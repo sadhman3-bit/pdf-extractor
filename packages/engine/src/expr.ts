@@ -382,6 +382,9 @@ export function validateExpr(
   for (const f of refs.fields) {
     if (!known.fields.includes(f) && !(f in known.tables)) return `Unknown field "${f}"`;
   }
+  for (const tb of refs.tables) {
+    if (!(tb in known.tables)) return `Unknown table "${tb}"`;
+  }
   for (const c of refs.columns) {
     const [t, col] = c.split('.') as [string, string];
     if (!(t in known.tables)) return `Unknown table "${t}"`;

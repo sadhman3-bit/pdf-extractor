@@ -24,8 +24,8 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] COA: all results, wrapped methods joined, match the golden
 
 ## M4: Engine part 3 (checks, status, outputs)
-- [ ] Every digital fixture's CSV and JSON match the goldens byte for byte (injected timestamp)
-- [ ] Changing one amount in a test copy produces `review` with the exact plain-English reason
+- [x] Every digital fixture's CSV and JSON match the goldens byte for byte (injected timestamp)
+- [x] Changing one amount in a test copy produces `review` with the exact plain-English reason
 
 ## M5: Workspace and storage
 - [ ] An end-to-end first run creates the folder tree
