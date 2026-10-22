@@ -38,16 +38,23 @@ test('maps Northline header fields from scratch; output equals the golden', asyn
 
 async function focusToken(page: Page, text: string): Promise<void> {
   const viewer = page.getByRole('group', { name: /^PDF page \d/ });
-  const spoken = viewer.locator('.sr-only');
+  // Index of the focused word in the overlay (-1 while nothing is focused).
+  const focused = () =>
+    viewer.evaluate((el) =>
+      [...el.querySelectorAll('.tok')].findIndex((t) => t.classList.contains('tok-focus')),
+    );
+  const textAt = (i: number) => viewer.locator('.tok').nth(i).getAttribute('data-text');
   await viewer.focus();
   await page.keyboard.press('Home');
-  await expect(spoken).toHaveText(/^Word: /);
-  for (let i = 0; i < 400; i++) {
-    const now = (await spoken.textContent()) ?? '';
-    if (now === `Word: ${text}`) return;
+  await expect.poll(focused).toBe(0);
+  const count = await viewer.locator('.tok').count();
+  for (let i = 0; i < count; i++) {
+    if ((await textAt(i)) === text) {
+      await expect(viewer.locator('.sr-only')).toHaveText(`Word: ${text}`);
+      return;
+    }
     await page.keyboard.press('ArrowRight');
-    // Each move announces the next word; wait for it before reading again.
-    await expect(spoken).not.toHaveText(now);
+    await expect.poll(focused).toBe(i + 1);
   }
   throw new Error(`token not reached: ${text}`);
 }
