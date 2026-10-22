@@ -8,8 +8,8 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] The hard-coded-colour test is in place
 
 ## M1: Fixtures
-- [ ] `pnpm fixtures` regenerates identical bytes on two runs
-- [ ] Every fixture opens in pdf.js; the scanned variants have no text layer
+- [x] `pnpm fixtures` regenerates identical bytes on two runs
+- [x] Every fixture opens in pdf.js; the scanned variants have no text layer
 
 ## M2: Engine part 1 (text, fingerprint, fields, values)
 - [ ] Unit tests pass for every module

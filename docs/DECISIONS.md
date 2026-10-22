@@ -36,3 +36,8 @@ One line per deviation or judgement call, newest at the bottom of each section.
 - The repository folder on the build machine is `PDF Extractor`; the GitHub repository and Pages base path are `pdf-extractor`.
 - The PWA service worker is registered by vite-plugin-pwa's generated `registerSW.js`, a separate same-origin script (no inline script).
 - Only the Latin subset of IBM Plex is bundled to keep the precache small.
+- Fixture PDFs use the 14 standard PDF fonts (Helvetica, Helvetica-Bold, Symbol for "≤") so they stay small and deterministic.
+- When a pdf.js text item holds several words, its width is shared between them by character count with spaces weighted at half a character, because a space in Helvetica is about half an average glyph. Plain character counting made single spaces look wider than the 0.35 × height phrase gap.
+- Scanned fixtures are rendered from the same layout model as the digital ones as HTML in Playwright Chromium (1 CSS px = 1 pt) at 200 DPI, tilted up to ±0.4° with seeded speckle noise. Byte-identical output is guaranteed on the same machine; other machines may render fonts slightly differently.
+- `encrypted.pdf` is hand-built with a standard security handler entry whose user password is unknown, because pdf-lib cannot encrypt.
+- The scanned Northline fixture (card 2) prints row 4 as a smudged "34.32" while the true amount, used for Total Due ($424.18), is $43.32. This gives the review flow in M11 its "Short by $9.00" case.
