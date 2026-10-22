@@ -460,7 +460,7 @@ export function TablePanel({
       </label>
       <fieldset class="stack">
         <legend class="field">{S.mapper.table.columns(table.columns.length)}</legend>
-        <div class="table-wrap">
+        <div class="table-wrap" tabIndex={0}>
           <table class="data">
             <thead>
               <tr>
@@ -891,7 +891,7 @@ export function PreviewPanel({ csv }: { csv: string | null }) {
       {!csv || !visible.length ? (
         <p class="muted small">{S.mapper.preview.empty}</p>
       ) : (
-        <div class="table-wrap">
+        <div class="table-wrap" tabIndex={0}>
           <table class="data mono" aria-label={S.mapper.preview.title}>
             <thead>
               <tr>

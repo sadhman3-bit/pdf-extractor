@@ -88,7 +88,7 @@ export function TemplatesScreen() {
         </section>
       ) : (
         <section class="card">
-          <div class="table-wrap">
+          <div class="table-wrap" tabIndex={0}>
             <table class="data">
               <thead>
                 <tr>

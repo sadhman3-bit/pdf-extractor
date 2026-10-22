@@ -44,3 +44,4 @@ One line per deviation or judgement call, newest at the bottom of each section.
 - Token overlay boxes carry `data-text` so end-to-end tests can click a word; the boxes stay `aria-hidden` and keyboard users get the same words through the viewer's live region.
 - The extraction worker passes `useWorkerFetch: false` to pdf.js, which otherwise reads `document.baseURI` and fails inside a worker.
 - E2E tests compare the template saved through the interface against the goldens by running the engine in Node (`apps/web/e2e/engine.ts`).
+- Scrollable table wrappers take `tabIndex={0}` so keyboard users can scroll them (axe `scrollable-region-focusable`).

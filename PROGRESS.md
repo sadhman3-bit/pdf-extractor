@@ -39,8 +39,8 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] axe reports nothing
 
 ## M7: Mapper (tables)
-- [ ] End-to-end test maps the Northline table through the interface; output equals the golden
-- [ ] End-to-end test maps the COA results table through the interface; output equals the golden
+- [x] End-to-end test maps the Northline table through the interface; output equals the golden
+- [x] End-to-end test maps the COA results table through the interface; output equals the golden
 
 ## M8: Test on samples
 - [ ] From a v1 template with only "Total GST"/"Total Due", the June layout fails TotalGST and TotalDue

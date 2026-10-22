@@ -111,6 +111,18 @@ describe('click-to-map inference', () => {
     expect(rows).toHaveLength(8);
     expect(rows[5]!.cells.Method!.value).toBe('Inductively coupled plasma (ICP-MS)');
   });
+
+  it('finds the COA header above a first row that is all text', async () => {
+    const l = await layoutOf('harbourside-coa-a2391.pdf');
+    const t = inferTable(l, token(l, 'Appearance'), 'Results')!;
+    expect(t.rule.columns.map((c) => c.name)).toEqual([
+      'Test',
+      'Method',
+      'Specification',
+      'Result',
+      'Unit',
+    ]);
+  });
 });
 
 describe('diagnostics', () => {

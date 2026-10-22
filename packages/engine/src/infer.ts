@@ -276,6 +276,17 @@ function isHeaderish(line: Line): boolean {
   );
 }
 
+/** True when most phrases of `row` start or sit under a phrase of `header`. */
+function alignsWith(header: Line, row: Line): boolean {
+  const hp = phrases(header);
+  const rp = phrases(row);
+  if (hp.length < rp.length - 1 || rp.length < 2) return false;
+  const under = rp.filter((r) =>
+    hp.some((h) => Math.abs(h.x0 - r.x0) <= 6 || (r.x0 < h.x1 && r.x1 > h.x0)),
+  );
+  return under.length >= Math.ceil(rp.length * 0.6);
+}
+
 export interface InferredTable {
   rule: TableRule;
   headerLine: Line;
@@ -292,9 +303,12 @@ export function inferTable(
   const line = page.lines.find((l) => l.tokens.includes(clicked));
   if (!line) return null;
   let idx = page.lines.indexOf(line);
-  let header: Line | undefined = isHeaderish(line) ? line : undefined;
-  for (let i = idx - 1; !header && i >= Math.max(0, idx - 4); i--)
-    if (isHeaderish(page.lines[i]!)) header = page.lines[i];
+  // A first row of plain text looks like a header too, so prefer a header-like
+  // line just above whose columns line up with the clicked row.
+  const above = page.lines.slice(Math.max(0, idx - 4), idx).reverse();
+  let header: Line | undefined = above.find((l) => isHeaderish(l) && alignsWith(l, line));
+  if (!header && isHeaderish(line)) header = line;
+  if (!header) header = above.find(isHeaderish);
   if (!header) return null;
   idx = page.lines.indexOf(header);
   const hp = phrases(header);

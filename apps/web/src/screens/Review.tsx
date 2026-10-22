@@ -109,7 +109,7 @@ export function ReviewScreen() {
         </section>
       ) : (
         <section class="card">
-          <div class="table-wrap">
+          <div class="table-wrap" tabIndex={0}>
             <table class="data">
               <thead>
                 <tr>
@@ -476,7 +476,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
             {(t.tables ?? []).map((tb) => (
               <section class="card stack" key={tb.name} aria-label={tb.name}>
                 <h2 class="card-title">{tb.name}</h2>
-                <div class="table-wrap">
+                <div class="table-wrap" tabIndex={0}>
                   <table class="data">
                     <thead>
                       <tr>

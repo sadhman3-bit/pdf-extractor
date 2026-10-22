@@ -236,7 +236,7 @@ export function TestScreen() {
       ) : (
         <div class="split">
           <section class="card" aria-label={S.test.title}>
-            <div class="table-wrap">
+            <div class="table-wrap" tabIndex={0}>
               <table class="data">
                 <thead>
                   <tr>

@@ -26,7 +26,7 @@ test('maps Northline header fields from scratch; output equals the golden', asyn
   }
   await expectNoAxe(page);
   await page.getByRole('button', { name: 'Save template' }).click();
-  await expect(page.getByText('Saved as version 1')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Saved as version 1')).toBeVisible();
   const { json } = await savedTemplate(page);
   const out = await extractWithSaved('northline-sep26.pdf', json);
   expect(out.fields).toEqual(goldenJson('northline-sep26').fields);
@@ -70,7 +70,7 @@ test('mapping works from the keyboard alone', async ({ page }) => {
   }
   await page.getByRole('button', { name: 'Save template' }).focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByText('Saved as version 1')).toBeVisible();
+  await expect(page.getByRole('main').getByText('Saved as version 1')).toBeVisible();
   const { json } = await savedTemplate(page);
   const out = await extractWithSaved('northline-sep26.pdf', json);
   expect(out.fields).toEqual(goldenJson('northline-sep26').fields);
