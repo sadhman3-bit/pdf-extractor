@@ -1,0 +1,7 @@
+﻿StatementNo,StatementDate,TotalGST,TotalDue,Date,Card,Site,Product,Litres,Amount,_SourceFile,_SourceSha256,_Template,_TemplateVersion,_ExtractedAt,_Status,_ReviewedBy,_Corrected
+ST-47530,2026-08-31,54.90,603.89,2026-08-03,•• 0021,Hornsby,Unleaded 91,39.34,69.20,northline-aug26.pdf,3bc6cb9932ac03e6a434249e5b403ed46bc8a98de9c572040aba241c837ce9bd,northline-fuel-statement,2,2026-10-22T09:14:03Z,ok,,false
+ST-47530,2026-08-31,54.90,603.89,2026-08-09,•• 0021,Gosford,Unleaded 91,70.86,124.64,northline-aug26.pdf,3bc6cb9932ac03e6a434249e5b403ed46bc8a98de9c572040aba241c837ce9bd,northline-fuel-statement,2,2026-10-22T09:14:03Z,ok,,false
+ST-47530,2026-08-31,54.90,603.89,2026-08-10,•• 0021,Penrith,Unleaded 91,65.81,115.76,northline-aug26.pdf,3bc6cb9932ac03e6a434249e5b403ed46bc8a98de9c572040aba241c837ce9bd,northline-fuel-statement,2,2026-10-22T09:14:03Z,ok,,false
+ST-47530,2026-08-31,54.90,603.89,2026-08-21,•• 0021,Liverpool,Unleaded 91,51.25,90.15,northline-aug26.pdf,3bc6cb9932ac03e6a434249e5b403ed46bc8a98de9c572040aba241c837ce9bd,northline-fuel-statement,2,2026-10-22T09:14:03Z,ok,,false
+ST-47530,2026-08-31,54.90,603.89,2026-08-24,•• 0021,Ryde,Unleaded 91,41.73,73.40,northline-aug26.pdf,3bc6cb9932ac03e6a434249e5b403ed46bc8a98de9c572040aba241c837ce9bd,northline-fuel-statement,2,2026-10-22T09:14:03Z,ok,,false
+ST-47530,2026-08-31,54.90,603.89,2026-08-26,•• 0021,Penrith,Diesel,69.21,130.74,northline-aug26.pdf,3bc6cb9932ac03e6a434249e5b403ed46bc8a98de9c572040aba241c837ce9bd,northline-fuel-statement,2,2026-10-22T09:14:03Z,ok,,false

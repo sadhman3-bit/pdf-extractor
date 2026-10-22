@@ -1,0 +1,26 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "corrupt.pdf",
+    "sha256": "44b022a2755ee56fb3b8341fefe6a97b2cb068c3c11a65a0271282e27edcc078",
+    "pages": 0,
+    "ocr": false
+  },
+  "template": null,
+  "status": "error",
+  "reasons": [
+    {
+      "code": "unreadable",
+      "message": "This PDF can’t be read. It may be damaged or not a real PDF."
+    }
+  ],
+  "fields": {},
+  "tables": {},
+  "checks": [],
+  "confidence": {
+    "min": 0
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

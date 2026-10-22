@@ -1,0 +1,107 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "northline-jul26.pdf",
+    "sha256": "a7ad7022b02f802a9c603476a394336ea0a22f7255aee3ccf11da7d508f7d93e",
+    "pages": 2,
+    "ocr": false
+  },
+  "template": {
+    "id": "northline-fuel-statement",
+    "version": 2
+  },
+  "status": "ok",
+  "reasons": [],
+  "fields": {
+    "StatementNo": "ST-46811",
+    "StatementDate": "2026-07-31",
+    "TotalGST": 69.74,
+    "TotalDue": 767.1
+  },
+  "tables": {
+    "Transactions": [
+      {
+        "Date": "2026-07-02",
+        "Card": "•• 0021",
+        "Site": "Chatswood",
+        "Product": "Unleaded 91",
+        "Litres": 48.93,
+        "Amount": 86.07
+      },
+      {
+        "Date": "2026-07-06",
+        "Card": "•• 0021",
+        "Site": "Liverpool",
+        "Product": "Diesel",
+        "Litres": 55.55,
+        "Amount": 104.93
+      },
+      {
+        "Date": "2026-07-07",
+        "Card": "•• 0021",
+        "Site": "Parramatta",
+        "Product": "Premium 98",
+        "Litres": 74.87,
+        "Amount": 154.16
+      },
+      {
+        "Date": "2026-07-07",
+        "Card": "•• 0021",
+        "Site": "Gosford",
+        "Product": "Diesel",
+        "Litres": 66.46,
+        "Amount": 125.54
+      },
+      {
+        "Date": "2026-07-24",
+        "Card": "•• 0021",
+        "Site": "Ryde",
+        "Product": "Unleaded 91",
+        "Litres": 61.74,
+        "Amount": 108.6
+      },
+      {
+        "Date": "2026-07-26",
+        "Card": "•• 0021",
+        "Site": "Blacktown",
+        "Product": "Diesel",
+        "Litres": 43.67,
+        "Amount": 82.49
+      },
+      {
+        "Date": "2026-07-28",
+        "Card": "•• 0021",
+        "Site": "Hornsby",
+        "Product": "Diesel",
+        "Litres": 55.75,
+        "Amount": 105.31
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "c1",
+      "label": "Amounts add up to TotalDue",
+      "result": "pass",
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "TotalGST is TotalDue ÷ 11",
+      "result": "pass",
+      "severity": "warning"
+    },
+    {
+      "id": "c3",
+      "label": "At least one transaction",
+      "result": "pass",
+      "severity": "error"
+    }
+  ],
+  "confidence": {
+    "min": 1
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

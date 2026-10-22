@@ -1,0 +1,3725 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "coastal-telco-sep26.pdf",
+    "sha256": "2892e312f9c9ec14848e862d6f8ec810b83c213b989addb0efb9938b574d57ba",
+    "pages": 14,
+    "ocr": false
+  },
+  "template": {
+    "id": "coastal-telco-bill",
+    "version": 1
+  },
+  "status": "ok",
+  "reasons": [],
+  "fields": {
+    "AccountNo": "4471 2093",
+    "InvoiceNumber": "CT-2026-09-118",
+    "InvoiceDate": "2026-10-02",
+    "DueDate": "2026-10-23",
+    "TotalGST": 59.88,
+    "TotalDue": 658.65
+  },
+  "tables": {
+    "Calls": [
+      {
+        "Date": "2026-09-01",
+        "Time": "08:30",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "02:45",
+        "Amount": 0.6,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "09:16",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "03:15",
+        "Amount": 0.69,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "10:20",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "09:50",
+        "Amount": 1.87,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "11:46",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "00:26",
+        "Amount": 0.18,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "11:57",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "12:02",
+        "Amount": 2.27,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "13:24",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "06:39",
+        "Amount": 1.3,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "13:55",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "03:10",
+        "Amount": 0.67,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "14:44",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "03:22",
+        "Amount": 0.71,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "15:32",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "13:42",
+        "Amount": 2.57,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "17:08",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "05:43",
+        "Amount": 1.73,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "17:29",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "03:14",
+        "Amount": 0.68,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "18:58",
+        "Number": "0491 570 110",
+        "Description": "Video call",
+        "Duration": "05:29",
+        "Amount": 1.09,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-01",
+        "Time": "19:42",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "07:28",
+        "Amount": 2.04,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "08:14",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "05:31",
+        "Amount": 1.69,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "09:28",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "12:20",
+        "Amount": 2.32,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "10:34",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "12:19",
+        "Amount": 2.32,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "10:56",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "14:06",
+        "Amount": 2.64,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "11:27",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "04:32",
+        "Amount": 0.92,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "12:11",
+        "Number": "0491 570 110",
+        "Description": "Mobile call",
+        "Duration": "07:18",
+        "Amount": 1.41,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "12:43",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "12:49",
+        "Amount": 2.41,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "13:17",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:37",
+        "Amount": 2.25,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "13:28",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "12:24",
+        "Amount": 2.33,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "13:58",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call",
+        "Duration": "03:55",
+        "Amount": 0.81,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "15:00",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "06:47",
+        "Amount": 1.32,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "16:33",
+        "Number": "02 5550 4410",
+        "Description": "Video call",
+        "Duration": "02:14",
+        "Amount": 0.5,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "17:47",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "14:19",
+        "Amount": 2.68,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-02",
+        "Time": "19:03",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "11:05",
+        "Amount": 2.1,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "08:09",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:38",
+        "Amount": 0.81,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "08:22",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "04:24",
+        "Amount": 1.49,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "09:23",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "04:26",
+        "Amount": 1.5,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "10:20",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "01:29",
+        "Amount": 0.97,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "11:20",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:13",
+        "Amount": 2.18,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "12:38",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "13:13",
+        "Amount": 2.48,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "12:50",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "12:44",
+        "Amount": 2.39,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "13:42",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "00:32",
+        "Amount": 0.2,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "14:50",
+        "Number": "02 5550 4410",
+        "Description": "Call to voicemail",
+        "Duration": "10:52",
+        "Amount": 2.06,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "15:17",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:52",
+        "Amount": 1.4,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "15:27",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "14:33",
+        "Amount": 3.32,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "16:39",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "11:23",
+        "Amount": 2.75,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "16:59",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "02:50",
+        "Amount": 0.61,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "17:33",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "08:39",
+        "Amount": 1.66,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "19:09",
+        "Number": "0491 570 110",
+        "Description": "Video call",
+        "Duration": "09:29",
+        "Amount": 1.81,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-03",
+        "Time": "19:48",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "00:41",
+        "Amount": 0.22,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "08:19",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "04:40",
+        "Amount": 1.54,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "08:42",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "12:58",
+        "Amount": 2.43,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "09:40",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "01:16",
+        "Amount": 0.93,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "10:39",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "13:46",
+        "Amount": 2.58,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "12:01",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "12:41",
+        "Amount": 2.38,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "12:37",
+        "Number": "02 5550 1234",
+        "Description": "National call",
+        "Duration": "08:16",
+        "Amount": 1.59,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "12:46",
+        "Number": "0491 570 110",
+        "Description": "Video call",
+        "Duration": "10:07",
+        "Amount": 1.92,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "13:44",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "14:24",
+        "Amount": 3.29,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "14:17",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "07:02",
+        "Amount": 1.37,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "15:00",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "04:11",
+        "Amount": 0.85,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "15:32",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "04:56",
+        "Amount": 0.99,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "16:08",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "01:34",
+        "Amount": 0.38,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "16:28",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "01:40",
+        "Amount": 0.4,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "17:55",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "03:12",
+        "Amount": 0.68,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "18:12",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "10:39",
+        "Amount": 2.02,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "19:36",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "09:01",
+        "Amount": 1.72,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-04",
+        "Time": "19:56",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "11:04",
+        "Amount": 2.09,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "08:26",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "08:48",
+        "Amount": 1.68,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "09:35",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "02:17",
+        "Amount": 0.51,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "09:53",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:54",
+        "Amount": 1.22,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "10:21",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "08:38",
+        "Amount": 1.65,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "10:45",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "13:08",
+        "Amount": 2.46,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "11:04",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:31",
+        "Amount": 2.59,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "11:57",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "13:29",
+        "Amount": 3.13,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "12:18",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "10:26",
+        "Amount": 1.98,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "13:09",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "12:03",
+        "Amount": 2.27,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "13:59",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "14:02",
+        "Amount": 3.23,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "14:25",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "00:32",
+        "Amount": 0.2,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "14:36",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "05:22",
+        "Amount": 1.07,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "16:08",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "08:23",
+        "Amount": 2.21,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "17:14",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:34",
+        "Amount": 1.16,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "17:37",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "08:45",
+        "Amount": 1.68,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "18:12",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:38",
+        "Amount": 1.35,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "18:26",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:25",
+        "Amount": 2.94,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-05",
+        "Time": "19:54",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "06:57",
+        "Amount": 1.35,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "08:20",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "00:38",
+        "Amount": 0.81,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "08:46",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "11:26",
+        "Amount": 2.76,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "08:56",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "09:22",
+        "Amount": 1.79,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "10:18",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "07:36",
+        "Amount": 1.47,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "11:27",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "08:38",
+        "Amount": 1.65,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "12:22",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "13:06",
+        "Amount": 3.06,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "12:43",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "14:48",
+        "Amount": 2.76,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "13:09",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:09",
+        "Amount": 1.09,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "13:51",
+        "Number": "0491 570 313",
+        "Description": "Video call",
+        "Duration": "07:36",
+        "Amount": 1.47,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "15:15",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "12:25",
+        "Amount": 2.94,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "15:37",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "09:41",
+        "Amount": 2.44,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "16:40",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "11:24",
+        "Amount": 2.15,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "17:27",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "11:05",
+        "Amount": 2.1,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "18:05",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:56",
+        "Amount": 2.31,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-06",
+        "Time": "19:34",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "04:40",
+        "Amount": 0.94,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "08:25",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:14",
+        "Amount": 1.1,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "09:21",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:48",
+        "Amount": 1.38,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "10:11",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "03:36",
+        "Amount": 0.75,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "10:56",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "14:43",
+        "Amount": 2.75,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "12:28",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "05:03",
+        "Amount": 1.01,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "12:43",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "07:53",
+        "Amount": 1.52,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "13:11",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:24",
+        "Amount": 1.13,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "14:33",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "13:26",
+        "Amount": 2.52,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "15:36",
+        "Number": "02 5550 4410",
+        "Description": "Video call",
+        "Duration": "06:38",
+        "Amount": 1.29,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "17:12",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "07:41",
+        "Amount": 1.48,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "18:30",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "07:11",
+        "Amount": 1.99,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-07",
+        "Time": "19:18",
+        "Number": "02 5550 4410",
+        "Description": "Call to voicemail",
+        "Duration": "08:03",
+        "Amount": 1.55,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "08:07",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:25",
+        "Amount": 2.94,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "08:16",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "13:45",
+        "Amount": 3.18,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "09:37",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "07:57",
+        "Amount": 1.53,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "10:26",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "02:13",
+        "Amount": 0.5,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "11:58",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "14:39",
+        "Amount": 2.74,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "12:21",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "03:51",
+        "Amount": 0.79,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "13:11",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "10:27",
+        "Amount": 1.98,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "14:15",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "08:56",
+        "Amount": 2.31,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "15:35",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:23",
+        "Amount": 0.77,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "16:55",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "05:08",
+        "Amount": 1.02,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "18:19",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "05:26",
+        "Amount": 1.08,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-08",
+        "Time": "19:17",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "06:56",
+        "Amount": 1.35,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "08:20",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "12:42",
+        "Amount": 2.39,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "09:13",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "10:16",
+        "Amount": 1.95,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "09:39",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "13:52",
+        "Amount": 2.6,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "10:31",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:20",
+        "Amount": 2.92,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "11:26",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "02:49",
+        "Amount": 0.61,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "12:23",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "11:30",
+        "Amount": 2.77,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "13:32",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "13:59",
+        "Amount": 2.62,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "13:47",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "03:01",
+        "Amount": 1.24,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "14:17",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "07:18",
+        "Amount": 1.41,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "14:52",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:08",
+        "Amount": 1.08,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "14:59",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "07:44",
+        "Amount": 1.49,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "16:00",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:40",
+        "Amount": 2.26,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "17:17",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "04:23",
+        "Amount": 0.89,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "18:25",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "12:48",
+        "Amount": 3,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "19:15",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "09:16",
+        "Amount": 1.77,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "19:41",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "14:33",
+        "Amount": 2.72,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-09",
+        "Time": "19:49",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:14",
+        "Amount": 2.18,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "08:23",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "04:53",
+        "Amount": 0.98,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "08:56",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "11:32",
+        "Amount": 2.78,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "10:04",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "03:17",
+        "Amount": 0.69,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "10:59",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "13:19",
+        "Amount": 3.1,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "11:45",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "05:31",
+        "Amount": 1.69,
+        "ServiceNumber": "0491 570 156"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "12:29",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "05:53",
+        "Amount": 1.16,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "13:57",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "01:58",
+        "Amount": 1.05,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "14:06",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "01:34",
+        "Amount": 0.38,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "14:59",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "08:49",
+        "Amount": 1.69,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "15:48",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "13:49",
+        "Amount": 3.19,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "17:01",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "00:13",
+        "Amount": 0.14,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "17:53",
+        "Number": "0491 570 110",
+        "Description": "Video call",
+        "Duration": "10:03",
+        "Amount": 1.91,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "18:05",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "08:25",
+        "Amount": 2.22,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "18:54",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "04:17",
+        "Amount": 1.47,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-10",
+        "Time": "19:13",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "01:36",
+        "Amount": 0.99,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "08:26",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "07:30",
+        "Amount": 1.45,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "08:50",
+        "Number": "02 5550 4410",
+        "Description": "Video call",
+        "Duration": "01:29",
+        "Amount": 0.37,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "09:58",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "06:43",
+        "Amount": 1.91,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "10:50",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "07:49",
+        "Amount": 2.11,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "11:01",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "11:12",
+        "Amount": 2.12,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "11:27",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "01:02",
+        "Amount": 0.89,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "11:52",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "06:20",
+        "Amount": 1.24,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "13:13",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "07:00",
+        "Amount": 1.96,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "14:05",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "04:52",
+        "Amount": 0.98,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "14:43",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "13:52",
+        "Amount": 2.6,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "15:27",
+        "Number": "02 5550 1234",
+        "Description": "Call to voicemail",
+        "Duration": "09:24",
+        "Amount": 1.79,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "16:28",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "07:15",
+        "Amount": 2.01,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "16:53",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "03:28",
+        "Amount": 0.72,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "18:11",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "09:44",
+        "Amount": 2.45,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-11",
+        "Time": "19:40",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "08:22",
+        "Amount": 1.61,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "08:27",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "01:54",
+        "Amount": 0.44,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "08:34",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "01:36",
+        "Amount": 0.99,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "10:10",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "08:04",
+        "Amount": 1.55,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "11:34",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "07:28",
+        "Amount": 1.44,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "11:46",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "13:12",
+        "Amount": 2.48,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "13:05",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "01:18",
+        "Amount": 0.93,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "14:18",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "03:33",
+        "Amount": 0.74,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "15:25",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "08:57",
+        "Amount": 1.71,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "15:33",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:46",
+        "Amount": 3,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "17:05",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "06:00",
+        "Amount": 1.18,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "17:57",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "12:28",
+        "Amount": 2.94,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "18:45",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "01:09",
+        "Amount": 0.91,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-12",
+        "Time": "19:20",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:23",
+        "Amount": 2.57,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "08:01",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:49",
+        "Amount": 0.85,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "09:29",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "03:34",
+        "Amount": 0.74,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "09:47",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:11",
+        "Amount": 1.27,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "09:57",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "10:17",
+        "Amount": 2.55,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "10:13",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "12:13",
+        "Amount": 2.3,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "11:00",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "02:07",
+        "Amount": 0.48,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "11:43",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "02:53",
+        "Amount": 1.22,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "13:08",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:11",
+        "Amount": 2.53,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "14:32",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "05:17",
+        "Amount": 1.65,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "16:08",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "03:42",
+        "Amount": 0.77,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "17:04",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "04:27",
+        "Amount": 1.5,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "17:42",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "08:42",
+        "Amount": 1.67,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "18:58",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "11:36",
+        "Amount": 2.79,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-13",
+        "Time": "19:35",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "08:01",
+        "Amount": 1.54,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "08:15",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "00:44",
+        "Amount": 0.23,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "09:46",
+        "Number": "02 5550 1234",
+        "Description": "National call",
+        "Duration": "14:27",
+        "Amount": 2.7,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "10:40",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "14:50",
+        "Amount": 3.37,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "11:12",
+        "Number": "0491 570 110",
+        "Description": "Video call",
+        "Duration": "07:50",
+        "Amount": 1.51,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "11:44",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "10:01",
+        "Amount": 2.5,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "13:15",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "08:35",
+        "Amount": 1.65,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "13:49",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "13:43",
+        "Amount": 2.57,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "15:15",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "07:26",
+        "Amount": 2.04,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "16:31",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "01:31",
+        "Amount": 0.97,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "16:54",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call",
+        "Duration": "07:32",
+        "Amount": 1.46,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "17:28",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "04:05",
+        "Amount": 0.83,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "18:56",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "02:37",
+        "Amount": 0.57,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-14",
+        "Time": "19:41",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "12:14",
+        "Amount": 2.3,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "08:27",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call",
+        "Duration": "03:15",
+        "Amount": 0.69,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "09:30",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:29",
+        "Amount": 2.23,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "10:58",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "05:59",
+        "Amount": 1.18,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "12:28",
+        "Number": "0491 570 313",
+        "Description": "Video call",
+        "Duration": "13:23",
+        "Amount": 2.51,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "13:44",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "14:55",
+        "Amount": 3.39,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "13:51",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "09:51",
+        "Amount": 1.87,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "15:12",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "13:06",
+        "Amount": 2.46,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "15:53",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "00:45",
+        "Amount": 0.84,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "16:29",
+        "Number": "02 5550 4410",
+        "Description": "Call to voicemail",
+        "Duration": "09:38",
+        "Amount": 1.83,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "17:57",
+        "Number": "02 5550 4410",
+        "Description": "Call to voicemail",
+        "Duration": "00:54",
+        "Amount": 0.26,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-15",
+        "Time": "19:32",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "12:06",
+        "Amount": 2.28,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "08:09",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "11:13",
+        "Amount": 2.12,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "08:55",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "09:31",
+        "Amount": 2.41,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "09:10",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "12:59",
+        "Amount": 2.44,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "10:22",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:22",
+        "Amount": 0.77,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "11:25",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "09:18",
+        "Amount": 1.77,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "11:41",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "11:11",
+        "Amount": 2.71,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "11:54",
+        "Number": "0491 570 313",
+        "Description": "Video call",
+        "Duration": "00:54",
+        "Amount": 0.26,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "12:30",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "06:41",
+        "Amount": 1.3,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "12:42",
+        "Number": "0491 570 110",
+        "Description": "Mobile call",
+        "Duration": "07:20",
+        "Amount": 1.42,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "13:29",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "09:14",
+        "Amount": 1.76,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "15:03",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "05:11",
+        "Amount": 1.03,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "16:08",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "08:34",
+        "Amount": 1.64,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "17:36",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "04:56",
+        "Amount": 0.99,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "17:46",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call",
+        "Duration": "01:01",
+        "Amount": 0.28,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "19:21",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "06:49",
+        "Amount": 1.33,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-16",
+        "Time": "19:32",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "02:05",
+        "Amount": 0.48,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "08:27",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "03:48",
+        "Amount": 0.78,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "08:58",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:30",
+        "Amount": 2.59,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "10:05",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "10:08",
+        "Amount": 2.52,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "10:43",
+        "Number": "0491 570 110",
+        "Description": "Video call",
+        "Duration": "04:00",
+        "Amount": 0.82,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "11:01",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "05:02",
+        "Amount": 1.61,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "12:11",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:42",
+        "Amount": 2.99,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "12:18",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "06:28",
+        "Amount": 1.86,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "12:59",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "13:27",
+        "Amount": 2.52,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "14:28",
+        "Number": "02 5550 1234",
+        "Description": "Call to voicemail",
+        "Duration": "11:36",
+        "Amount": 2.19,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "15:30",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "05:08",
+        "Amount": 1.02,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "16:18",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:47",
+        "Amount": 2.64,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "17:00",
+        "Number": "02 5550 1234",
+        "Description": "National call",
+        "Duration": "07:36",
+        "Amount": 1.47,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "17:08",
+        "Number": "0491 570 110",
+        "Description": "Mobile call",
+        "Duration": "09:20",
+        "Amount": 1.78,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "17:43",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "03:49",
+        "Amount": 0.79,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "18:11",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "04:22",
+        "Amount": 0.89,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-17",
+        "Time": "19:27",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "07:02",
+        "Amount": 1.37,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "08:26",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "14:46",
+        "Amount": 2.76,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "08:56",
+        "Number": "0491 570 110",
+        "Description": "Mobile call",
+        "Duration": "02:26",
+        "Amount": 0.54,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "10:05",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "13:54",
+        "Amount": 2.6,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "10:56",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "03:47",
+        "Amount": 0.78,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "12:23",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "00:30",
+        "Amount": 0.19,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "13:08",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "01:49",
+        "Amount": 0.43,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "14:13",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "11:46",
+        "Amount": 2.22,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "14:32",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:53",
+        "Amount": 0.86,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "15:30",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "09:33",
+        "Amount": 1.82,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "16:36",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "05:32",
+        "Amount": 1.7,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "17:37",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "08:23",
+        "Amount": 1.61,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "19:12",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "03:49",
+        "Amount": 1.39,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-18",
+        "Time": "19:19",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "06:56",
+        "Amount": 1.95,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "08:14",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "10:05",
+        "Amount": 1.92,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "08:41",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "01:54",
+        "Amount": 0.44,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "09:02",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "12:19",
+        "Amount": 2.32,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "09:20",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call",
+        "Duration": "06:37",
+        "Amount": 1.29,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "10:36",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call",
+        "Duration": "01:08",
+        "Amount": 0.3,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "11:53",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:02",
+        "Amount": 1.25,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "12:55",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "11:48",
+        "Amount": 2.82,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "14:01",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "05:39",
+        "Amount": 1.72,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "15:22",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "10:09",
+        "Amount": 1.93,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "16:20",
+        "Number": "02 5550 1234",
+        "Description": "Call to voicemail",
+        "Duration": "05:23",
+        "Amount": 1.07,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "17:39",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "05:14",
+        "Amount": 1.64,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "17:46",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "04:14",
+        "Amount": 0.86,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-19",
+        "Time": "18:59",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:21",
+        "Amount": 1.3,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "08:18",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "06:49",
+        "Amount": 1.93,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "09:53",
+        "Number": "02 5550 1234",
+        "Description": "National call",
+        "Duration": "08:55",
+        "Amount": 1.7,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "10:22",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "01:32",
+        "Amount": 0.38,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "11:28",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "01:38",
+        "Amount": 0.39,
+        "ServiceNumber": "0491 570 157"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "12:20",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "01:53",
+        "Amount": 0.44,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "12:41",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "06:19",
+        "Amount": 1.24,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "13:45",
+        "Number": "02 5550 1234",
+        "Description": "National call",
+        "Duration": "10:07",
+        "Amount": 1.92,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "15:17",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "06:48",
+        "Amount": 1.32,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "15:26",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "11:35",
+        "Amount": 2.19,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "15:59",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "10:17",
+        "Amount": 1.95,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "17:33",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "02:48",
+        "Amount": 0.6,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "17:46",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "06:06",
+        "Amount": 1.2,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "18:56",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "09:36",
+        "Amount": 1.83,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "19:15",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "14:38",
+        "Amount": 2.73,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-20",
+        "Time": "19:55",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "10:03",
+        "Amount": 1.91,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "08:08",
+        "Number": "0491 570 313",
+        "Description": "Video call",
+        "Duration": "04:36",
+        "Amount": 0.93,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "09:42",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "01:58",
+        "Amount": 0.45,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "11:11",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "08:19",
+        "Amount": 1.6,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "11:51",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "10:01",
+        "Amount": 1.9,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "13:00",
+        "Number": "0491 570 313",
+        "Description": "Video call",
+        "Duration": "02:04",
+        "Amount": 0.47,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "14:16",
+        "Number": "02 5550 1234",
+        "Description": "Call to voicemail",
+        "Duration": "12:48",
+        "Amount": 2.4,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "15:23",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:45",
+        "Amount": 2.28,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "15:47",
+        "Number": "02 5550 4410",
+        "Description": "Video call",
+        "Duration": "02:25",
+        "Amount": 0.53,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "16:27",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "05:25",
+        "Amount": 1.08,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "17:20",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "01:35",
+        "Amount": 0.99,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "17:34",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "02:40",
+        "Amount": 0.58,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "18:23",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "14:42",
+        "Amount": 3.35,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-21",
+        "Time": "19:42",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "08:27",
+        "Amount": 1.62,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "08:02",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "03:59",
+        "Amount": 0.82,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "08:32",
+        "Number": "02 5550 4410",
+        "Description": "Call to voicemail",
+        "Duration": "13:48",
+        "Amount": 2.58,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "09:30",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:50",
+        "Amount": 1.39,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "09:43",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "02:24",
+        "Amount": 0.53,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "09:56",
+        "Number": "02 5550 4410",
+        "Description": "Video call",
+        "Duration": "10:10",
+        "Amount": 1.93,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "10:59",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "12:53",
+        "Amount": 2.42,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "12:10",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "06:16",
+        "Amount": 1.23,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "12:24",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "04:18",
+        "Amount": 0.87,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "13:03",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "11:18",
+        "Amount": 2.13,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "14:12",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "14:27",
+        "Amount": 2.7,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "15:24",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "10:08",
+        "Amount": 1.92,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "15:59",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "03:12",
+        "Amount": 0.68,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "17:06",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "05:49",
+        "Amount": 1.15,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "17:13",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "05:21",
+        "Amount": 1.06,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "17:21",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "01:11",
+        "Amount": 0.31,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "18:48",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "03:43",
+        "Amount": 0.77,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "19:00",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "12:26",
+        "Amount": 2.34,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "19:26",
+        "Number": "02 5550 1234",
+        "Description": "Video call",
+        "Duration": "11:20",
+        "Amount": 2.14,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-22",
+        "Time": "20:00",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "09:35",
+        "Amount": 1.83,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "08:21",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "06:32",
+        "Amount": 1.28,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "09:36",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "13:34",
+        "Amount": 2.54,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "09:51",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "04:03",
+        "Amount": 0.83,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "10:20",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "01:26",
+        "Amount": 0.36,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "11:32",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "09:19",
+        "Amount": 1.78,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "12:25",
+        "Number": "02 5550 1234",
+        "Description": "National call",
+        "Duration": "08:01",
+        "Amount": 1.54,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "12:37",
+        "Number": "0491 570 737",
+        "Description": "Call to voicemail",
+        "Duration": "10:05",
+        "Amount": 1.92,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "13:06",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "11:36",
+        "Amount": 2.19,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "14:10",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "06:23",
+        "Amount": 1.85,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "15:36",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:50",
+        "Amount": 0.85,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "16:44",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "07:38",
+        "Amount": 1.47,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "17:05",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "14:59",
+        "Amount": 2.8,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "17:27",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "09:43",
+        "Amount": 1.85,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "18:19",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "13:45",
+        "Amount": 3.18,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "18:29",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "01:09",
+        "Amount": 0.31,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "19:09",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "13:16",
+        "Amount": 3.09,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-23",
+        "Time": "19:31",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "14:16",
+        "Amount": 2.67,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "08:05",
+        "Number": "02 5550 4410",
+        "Description": "Call to voicemail",
+        "Duration": "07:16",
+        "Amount": 1.41,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "09:38",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "09:18",
+        "Amount": 2.37,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "10:41",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "10:10",
+        "Amount": 1.93,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "11:44",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "10:10",
+        "Amount": 2.53,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "12:21",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "02:54",
+        "Amount": 0.62,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "13:46",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "11:54",
+        "Amount": 2.84,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "14:06",
+        "Number": "0491 570 159",
+        "Description": "Call to voicemail",
+        "Duration": "05:19",
+        "Amount": 1.06,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "14:15",
+        "Number": "0491 570 110",
+        "Description": "Mobile call",
+        "Duration": "08:21",
+        "Amount": 1.6,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "15:24",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:40",
+        "Amount": 1.18,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "15:50",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:32",
+        "Amount": 2.6,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "17:09",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "06:49",
+        "Amount": 1.33,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "18:30",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:40",
+        "Amount": 1.18,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "18:51",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "06:00",
+        "Amount": 1.78,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-24",
+        "Time": "19:35",
+        "Number": "0491 570 313",
+        "Description": "Video call",
+        "Duration": "01:55",
+        "Amount": 0.44,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "08:06",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "13:48",
+        "Amount": 3.18,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "09:10",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "07:34",
+        "Amount": 1.46,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "09:43",
+        "Number": "0491 570 159",
+        "Description": "Mobile call",
+        "Duration": "01:16",
+        "Amount": 0.33,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "10:09",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "09:25",
+        "Amount": 1.8,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "11:14",
+        "Number": "02 5550 4410",
+        "Description": "Call to voicemail",
+        "Duration": "04:55",
+        "Amount": 0.99,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "11:51",
+        "Number": "02 5550 8812",
+        "Description": "Call to voicemail",
+        "Duration": "07:01",
+        "Amount": 1.36,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "13:11",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "08:50",
+        "Amount": 1.69,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "14:09",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call",
+        "Duration": "11:01",
+        "Amount": 2.08,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "14:16",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "02:55",
+        "Amount": 1.22,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "14:45",
+        "Number": "02 5550 4410",
+        "Description": "Video call",
+        "Duration": "03:54",
+        "Amount": 0.8,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "15:53",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:00",
+        "Amount": 2.86,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "16:16",
+        "Number": "0491 570 313",
+        "Description": "National call",
+        "Duration": "03:39",
+        "Amount": 0.76,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "17:45",
+        "Number": "02 5550 8812",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "01:47",
+        "Amount": 1.02,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-25",
+        "Time": "18:50",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "03:33",
+        "Amount": 1.34,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "08:13",
+        "Number": "0491 570 110",
+        "Description": "Mobile call",
+        "Duration": "08:14",
+        "Amount": 1.58,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "09:08",
+        "Number": "0491 570 313",
+        "Description": "Video call",
+        "Duration": "05:40",
+        "Amount": 1.12,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "10:16",
+        "Number": "02 5550 8812",
+        "Description": "National call",
+        "Duration": "02:20",
+        "Amount": 0.52,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "11:41",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call",
+        "Duration": "01:49",
+        "Amount": 0.43,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "12:51",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:37",
+        "Amount": 2.25,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "13:40",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "03:52",
+        "Amount": 0.8,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "14:36",
+        "Number": "0491 570 110",
+        "Description": "National call",
+        "Duration": "14:36",
+        "Amount": 2.73,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "14:53",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "08:09",
+        "Amount": 1.57,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "16:03",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:12",
+        "Amount": 2.9,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "17:21",
+        "Number": "02 5550 4410",
+        "Description": "National call",
+        "Duration": "14:49",
+        "Amount": 2.77,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "17:28",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "06:50",
+        "Amount": 1.93,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "18:14",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "14:17",
+        "Amount": 3.27,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-26",
+        "Time": "18:54",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "12:20",
+        "Amount": 2.32,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "08:28",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "02:26",
+        "Amount": 1.14,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "09:53",
+        "Number": "02 5550 8812",
+        "Description": "Video call",
+        "Duration": "06:08",
+        "Amount": 1.2,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "11:23",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "14:21",
+        "Amount": 2.68,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "12:00",
+        "Number": "0491 570 110",
+        "Description": "Video call",
+        "Duration": "03:51",
+        "Amount": 0.79,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "12:11",
+        "Number": "02 5550 4410",
+        "Description": "Video call",
+        "Duration": "05:00",
+        "Amount": 1,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "13:42",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:22",
+        "Amount": 2.57,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "15:09",
+        "Number": "0491 570 737",
+        "Description": "Video call",
+        "Duration": "03:24",
+        "Amount": 0.71,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "16:22",
+        "Number": "02 5550 4410",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:50",
+        "Amount": 2.29,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "17:13",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:36",
+        "Amount": 0.81,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "17:55",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "00:56",
+        "Amount": 0.27,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "18:52",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "08:46",
+        "Amount": 1.68,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-27",
+        "Time": "19:58",
+        "Number": "0491 570 313",
+        "Description": "Call to voicemail",
+        "Duration": "12:54",
+        "Amount": 2.42,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "08:00",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "00:24",
+        "Amount": 0.17,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "09:07",
+        "Number": "02 5550 1234",
+        "Description": "Call to voicemail",
+        "Duration": "05:19",
+        "Amount": 1.06,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "09:30",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "01:27",
+        "Amount": 0.96,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "10:06",
+        "Number": "0491 570 159",
+        "Description": "Video call",
+        "Duration": "06:56",
+        "Amount": 1.35,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "10:56",
+        "Number": "0491 570 737",
+        "Description": "Mobile call",
+        "Duration": "00:17",
+        "Amount": 0.15,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "11:26",
+        "Number": "0491 570 110",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "02:27",
+        "Amount": 1.14,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "12:26",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "14:54",
+        "Amount": 2.78,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "13:26",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "10:42",
+        "Amount": 2.63,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "13:38",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "07:15",
+        "Amount": 1.41,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "13:48",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "01:37",
+        "Amount": 0.39,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "15:09",
+        "Number": "02 5550 1234",
+        "Description": "Mobile call",
+        "Duration": "02:05",
+        "Amount": 0.48,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "16:05",
+        "Number": "0491 570 159",
+        "Description": "Mobile call – after hours business line",
+        "Duration": "08:26",
+        "Amount": 2.22,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "17:06",
+        "Number": "0491 570 737",
+        "Description": "National call",
+        "Duration": "00:36",
+        "Amount": 0.21,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "18:32",
+        "Number": "0491 570 313",
+        "Description": "Mobile call",
+        "Duration": "05:56",
+        "Amount": 1.17,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "18:57",
+        "Number": "0491 570 159",
+        "Description": "National call",
+        "Duration": "01:27",
+        "Amount": 0.36,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-28",
+        "Time": "19:23",
+        "Number": "0491 570 313",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "00:27",
+        "Amount": 0.78,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-29",
+        "Time": "08:07",
+        "Number": "0491 570 737",
+        "Description": "Mobile call – national roaming partner network",
+        "Duration": "12:39",
+        "Amount": 2.98,
+        "ServiceNumber": "0491 570 158"
+      },
+      {
+        "Date": "2026-09-29",
+        "Time": "09:41",
+        "Number": "0491 570 110",
+        "Description": "Call to voicemail",
+        "Duration": "14:28",
+        "Amount": 2.7,
+        "ServiceNumber": "0491 570 158"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "c1",
+      "label": "Call amounts add up to TotalDue",
+      "result": "pass",
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "TotalGST is TotalDue ÷ 11",
+      "result": "pass",
+      "severity": "warning"
+    },
+    {
+      "id": "c3",
+      "label": "At least one call",
+      "result": "pass",
+      "severity": "error"
+    }
+  ],
+  "confidence": {
+    "min": 1
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

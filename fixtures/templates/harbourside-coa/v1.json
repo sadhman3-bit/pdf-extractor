@@ -1,0 +1,42 @@
+{
+  "schema": "pdfx.template/1",
+  "id": "harbourside-coa",
+  "name": "Harbourside certificate of analysis",
+  "version": 1,
+  "savedAt": "2026-10-22T09:14:00Z",
+  "savedBy": "Fixture",
+  "fingerprint": { "mustContain": ["HARBOURSIDE CHEMICALS", "Certificate of Analysis"], "mustNotContain": [], "anyPage": false },
+  "settings": { "confidenceThreshold": 0.8, "ocr": "auto", "decimal": "." },
+  "fields": [
+    { "id": "f1", "name": "Product", "type": "text", "required": true, "anchor": { "labels": ["Product"] }, "direction": "right" },
+    { "id": "f2", "name": "ProductCode", "type": "text", "required": true, "anchor": { "labels": ["Product Code", "Item Code", "Part No"] }, "direction": "right", "take": "token" },
+    { "id": "f3", "name": "LotNumber", "type": "text", "required": true, "anchor": { "labels": ["Batch No", "Lot No", "Batch", "Lot"] }, "direction": "right", "take": "token" },
+    { "id": "f4", "name": "ManufactureDate", "type": "date", "required": true, "anchor": { "labels": ["Manufacture Date", "Mfg Date", "DOM"] }, "direction": "right" },
+    { "id": "f5", "name": "ExpiryDate", "type": "date", "required": true, "anchor": { "labels": ["Expiry Date", "Exp Date", "Expiry", "Best Before"] }, "direction": "right" },
+    { "id": "f6", "name": "PONumber", "type": "text", "anchor": { "labels": ["PO Number", "PO", "Purchase Order"] }, "direction": "right", "take": "token" }
+  ],
+  "tables": [
+    {
+      "id": "t1",
+      "name": "Results",
+      "header": { "labels": ["Test", "Method", "Specification", "Result", "Unit"], "minMatch": 4 },
+      "columns": [
+        { "name": "Test", "header": "Test", "type": "text", "required": true },
+        { "name": "Method", "header": "Method", "type": "text" },
+        { "name": "Specification", "header": "Specification", "type": "text" },
+        { "name": "Result", "header": "Result", "type": "text", "required": true },
+        { "name": "Unit", "header": "Unit", "type": "text" }
+      ],
+      "rowStart": { "column": "Test", "pattern": "\\S" },
+      "wrappedLines": "join",
+      "end": { "labels": ["Conclusion"], "match": "starts-with" },
+      "skip": [],
+      "continuesOnNextPage": false,
+      "groups": []
+    }
+  ],
+  "checks": [
+    { "id": "c1", "label": "At least one result", "expr": "count(Results) > 0", "severity": "error" },
+    { "id": "c2", "label": "Every result is filled in", "expr": "count(Results.Result) == count(Results)", "severity": "error" }
+  ]
+}

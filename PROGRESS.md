@@ -12,10 +12,10 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] Every fixture opens in pdf.js; the scanned variants have no text layer
 
 ## M2: Engine part 1 (text, fingerprint, fields, values)
-- [ ] Unit tests pass for every module
-- [ ] Northline, Apex and COA header fields match the goldens
-- [ ] `encrypted.pdf` and `corrupt.pdf` give `error` with the right reasons
-- [ ] `rotated.pdf` extracts correctly
+- [x] Unit tests pass for every module
+- [x] Northline, Apex and COA header fields match the goldens
+- [x] `encrypted.pdf` and `corrupt.pdf` give `error` with the right reasons
+- [x] `rotated.pdf` extracts correctly
 
 ## M3: Engine part 2 (tables)
 - [ ] Northline table: 6 rows match the golden

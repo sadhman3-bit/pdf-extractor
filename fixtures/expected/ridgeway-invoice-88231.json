@@ -1,0 +1,26 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "ridgeway-invoice-88231.pdf",
+    "sha256": "5864495efbf7601ca565978abb12e69e4b0f91c05d8777102fb7a38cd7536a98",
+    "pages": 1,
+    "ocr": false
+  },
+  "template": null,
+  "status": "unknown",
+  "reasons": [
+    {
+      "code": "unknown_template",
+      "message": "No template matches this file. Create a template for this supplier."
+    }
+  ],
+  "fields": {},
+  "tables": {},
+  "checks": [],
+  "confidence": {
+    "min": 0
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

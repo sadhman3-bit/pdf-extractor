@@ -1,0 +1,26 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "blank.pdf",
+    "sha256": "1950cd19fcdff45e15dbdc50f57f2a28ee7358ee0a3795f4f941915503d23de7",
+    "pages": 1,
+    "ocr": false
+  },
+  "template": null,
+  "status": "error",
+  "reasons": [
+    {
+      "code": "no_text",
+      "message": "This PDF has no readable text, even after OCR."
+    }
+  ],
+  "fields": {},
+  "tables": {},
+  "checks": [],
+  "confidence": {
+    "min": 0
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

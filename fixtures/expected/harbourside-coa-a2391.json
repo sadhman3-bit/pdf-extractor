@@ -1,0 +1,103 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "harbourside-coa-a2391.pdf",
+    "sha256": "36c91137e59be0cd39959186201fa6518ca7c10663b3e6d3fd0b1ee1a89df85b",
+    "pages": 1,
+    "ocr": false
+  },
+  "template": {
+    "id": "harbourside-coa",
+    "version": 1
+  },
+  "status": "ok",
+  "reasons": [],
+  "fields": {
+    "Product": "Citric Acid Anhydrous",
+    "ProductCode": "HC-2391",
+    "LotNumber": "A2391-07",
+    "ManufactureDate": "2026-08-14",
+    "ExpiryDate": "2028-08-14",
+    "PONumber": "PO-55102"
+  },
+  "tables": {
+    "Results": [
+      {
+        "Test": "Appearance",
+        "Method": "Visual",
+        "Specification": "White powder",
+        "Result": "Conforms",
+        "Unit": null
+      },
+      {
+        "Test": "Identification",
+        "Method": "IR spectroscopy",
+        "Specification": "Conforms",
+        "Result": "Conforms",
+        "Unit": null
+      },
+      {
+        "Test": "Assay",
+        "Method": "Titration",
+        "Specification": "99.5 – 100.5",
+        "Result": "99.84",
+        "Unit": "%"
+      },
+      {
+        "Test": "Water",
+        "Method": "Karl Fischer titration",
+        "Specification": "≤ 0.5",
+        "Result": "0.12",
+        "Unit": "%"
+      },
+      {
+        "Test": "Sulfated ash",
+        "Method": "Ph. Eur. 2.4.14",
+        "Specification": "≤ 0.05",
+        "Result": "0.01",
+        "Unit": "%"
+      },
+      {
+        "Test": "Heavy metals",
+        "Method": "Inductively coupled plasma (ICP-MS)",
+        "Specification": "≤ 1",
+        "Result": "0.3",
+        "Unit": "mg/kg"
+      },
+      {
+        "Test": "Oxalate",
+        "Method": "Ion chromatography",
+        "Specification": "≤ 100",
+        "Result": "35",
+        "Unit": "mg/kg"
+      },
+      {
+        "Test": "Particle size",
+        "Method": "Laser diffraction",
+        "Specification": "0.5 – 1.2",
+        "Result": "0.84",
+        "Unit": "mm"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "c1",
+      "label": "At least one result",
+      "result": "pass",
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "Every result is filled in",
+      "result": "pass",
+      "severity": "error"
+    }
+  ],
+  "confidence": {
+    "min": 1
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

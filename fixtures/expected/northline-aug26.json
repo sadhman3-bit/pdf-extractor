@@ -1,0 +1,99 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "northline-aug26.pdf",
+    "sha256": "3bc6cb9932ac03e6a434249e5b403ed46bc8a98de9c572040aba241c837ce9bd",
+    "pages": 2,
+    "ocr": false
+  },
+  "template": {
+    "id": "northline-fuel-statement",
+    "version": 2
+  },
+  "status": "ok",
+  "reasons": [],
+  "fields": {
+    "StatementNo": "ST-47530",
+    "StatementDate": "2026-08-31",
+    "TotalGST": 54.9,
+    "TotalDue": 603.89
+  },
+  "tables": {
+    "Transactions": [
+      {
+        "Date": "2026-08-03",
+        "Card": "•• 0021",
+        "Site": "Hornsby",
+        "Product": "Unleaded 91",
+        "Litres": 39.34,
+        "Amount": 69.2
+      },
+      {
+        "Date": "2026-08-09",
+        "Card": "•• 0021",
+        "Site": "Gosford",
+        "Product": "Unleaded 91",
+        "Litres": 70.86,
+        "Amount": 124.64
+      },
+      {
+        "Date": "2026-08-10",
+        "Card": "•• 0021",
+        "Site": "Penrith",
+        "Product": "Unleaded 91",
+        "Litres": 65.81,
+        "Amount": 115.76
+      },
+      {
+        "Date": "2026-08-21",
+        "Card": "•• 0021",
+        "Site": "Liverpool",
+        "Product": "Unleaded 91",
+        "Litres": 51.25,
+        "Amount": 90.15
+      },
+      {
+        "Date": "2026-08-24",
+        "Card": "•• 0021",
+        "Site": "Ryde",
+        "Product": "Unleaded 91",
+        "Litres": 41.73,
+        "Amount": 73.4
+      },
+      {
+        "Date": "2026-08-26",
+        "Card": "•• 0021",
+        "Site": "Penrith",
+        "Product": "Diesel",
+        "Litres": 69.21,
+        "Amount": 130.74
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "c1",
+      "label": "Amounts add up to TotalDue",
+      "result": "pass",
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "TotalGST is TotalDue ÷ 11",
+      "result": "pass",
+      "severity": "warning"
+    },
+    {
+      "id": "c3",
+      "label": "At least one transaction",
+      "result": "pass",
+      "severity": "error"
+    }
+  ],
+  "confidence": {
+    "min": 1
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

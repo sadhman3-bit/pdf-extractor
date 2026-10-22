@@ -1,0 +1,44 @@
+{
+  "schema": "pdfx.template/1",
+  "id": "apex-fleet-invoice",
+  "name": "Apex Fleet invoice",
+  "version": 1,
+  "savedAt": "2026-10-22T09:12:00Z",
+  "savedBy": "Fixture",
+  "fingerprint": { "mustContain": ["APEX FLEET SERVICES", "Tax invoice"], "mustNotContain": [], "anyPage": false },
+  "settings": { "confidenceThreshold": 0.8, "ocr": "auto", "decimal": "." },
+  "fields": [
+    { "id": "f1", "name": "InvoiceNumber", "type": "text", "required": true, "anchor": { "labels": ["Invoice No"] }, "direction": "right", "take": "token" },
+    { "id": "f2", "name": "InvoiceDate", "type": "date", "required": true, "anchor": { "labels": ["Invoice Date"] }, "direction": "right" },
+    { "id": "f3", "name": "AccountNo", "type": "text", "anchor": { "labels": ["Account No"] }, "direction": "right" },
+    { "id": "f4", "name": "PONumber", "type": "text", "anchor": { "labels": ["PO Number"] }, "direction": "right" },
+    { "id": "f5", "name": "TotalGST", "type": "currency", "required": true, "anchor": { "labels": ["Total GST"] }, "direction": "right", "page": "last" },
+    { "id": "f6", "name": "TotalDue", "type": "currency", "required": true, "anchor": { "labels": ["Total Due"] }, "direction": "right", "page": "last" }
+  ],
+  "tables": [
+    {
+      "id": "t1",
+      "name": "Items",
+      "header": { "labels": ["Date", "Docket", "Vehicle", "Description", "Qty", "Amount"], "minMatch": 4 },
+      "columns": [
+        { "name": "Date", "header": "Date", "type": "date", "required": true },
+        { "name": "Docket", "header": "Docket", "type": "text" },
+        { "name": "Vehicle", "header": "Vehicle", "type": "text" },
+        { "name": "Description", "header": "Description", "type": "text" },
+        { "name": "Qty", "header": "Qty", "type": "integer" },
+        { "name": "Amount", "header": "Amount", "type": "currency", "required": true }
+      ],
+      "rowStart": { "column": "Date", "pattern": "^\\d{2}/\\d{2}/\\d{4}$" },
+      "wrappedLines": "join",
+      "end": { "labels": ["Invoice total"], "match": "starts-with" },
+      "skip": ["^Continued over page$", "Page \\d+ of \\d+$"],
+      "continuesOnNextPage": true,
+      "groups": []
+    }
+  ],
+  "checks": [
+    { "id": "c1", "label": "Amounts add up to TotalDue", "expr": "sum(Items.Amount) ~= TotalDue", "tolerance": 0.01, "severity": "error" },
+    { "id": "c2", "label": "TotalGST is TotalDue ÷ 11", "expr": "round(TotalDue / 11, 2) ~= TotalGST", "tolerance": 0.02, "severity": "warning" },
+    { "id": "c3", "label": "At least one item", "expr": "count(Items) > 0", "severity": "error" }
+  ]
+}

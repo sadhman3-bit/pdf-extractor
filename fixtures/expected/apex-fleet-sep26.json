@@ -1,0 +1,381 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "apex-fleet-sep26.pdf",
+    "sha256": "d189d113d3b7d37c254b71770dbc0413930230e8891a51900486232b795b0194",
+    "pages": 3,
+    "ocr": false
+  },
+  "template": {
+    "id": "apex-fleet-invoice",
+    "version": 1
+  },
+  "status": "ok",
+  "reasons": [],
+  "fields": {
+    "InvoiceNumber": "AFS-30917",
+    "InvoiceDate": "2026-09-30",
+    "AccountNo": "BW-0882",
+    "PONumber": "PO-77120",
+    "TotalGST": 623.34,
+    "TotalDue": 6856.75
+  },
+  "tables": {
+    "Items": [
+      {
+        "Date": "2026-09-01",
+        "Docket": "D-40100",
+        "Vehicle": "AFS 104",
+        "Description": "Service – 15,000 km",
+        "Qty": 3,
+        "Amount": 291.09
+      },
+      {
+        "Date": "2026-09-01",
+        "Docket": "D-40107",
+        "Vehicle": "AFS 135",
+        "Description": "Wheel alignment",
+        "Qty": 2,
+        "Amount": 110.84
+      },
+      {
+        "Date": "2026-09-02",
+        "Docket": "D-40114",
+        "Vehicle": "AFS 108",
+        "Description": "Diesel – bulk",
+        "Qty": 2,
+        "Amount": 173.67
+      },
+      {
+        "Date": "2026-09-03",
+        "Docket": "D-40121",
+        "Vehicle": "AFS 122",
+        "Description": "Wheel alignment",
+        "Qty": 3,
+        "Amount": 123.43
+      },
+      {
+        "Date": "2026-09-03",
+        "Docket": "D-40128",
+        "Vehicle": "AFS 127",
+        "Description": "Credit – price adjustment",
+        "Qty": 1,
+        "Amount": -24.77
+      },
+      {
+        "Date": "2026-09-04",
+        "Docket": "D-40135",
+        "Vehicle": "AFS 117",
+        "Description": "Diesel – bulk",
+        "Qty": 1,
+        "Amount": 301.91
+      },
+      {
+        "Date": "2026-09-05",
+        "Docket": "D-40142",
+        "Vehicle": "AFS 116",
+        "Description": "Windscreen repair",
+        "Qty": 2,
+        "Amount": 99.25
+      },
+      {
+        "Date": "2026-09-05",
+        "Docket": "D-40149",
+        "Vehicle": "AFS 124",
+        "Description": "Brake pads – front",
+        "Qty": 3,
+        "Amount": 292.24
+      },
+      {
+        "Date": "2026-09-06",
+        "Docket": "D-40156",
+        "Vehicle": "AFS 136",
+        "Description": "Brake pads – front",
+        "Qty": 1,
+        "Amount": 218.93
+      },
+      {
+        "Date": "2026-09-07",
+        "Docket": "D-40163",
+        "Vehicle": "AFS 128",
+        "Description": "Diesel – bulk",
+        "Qty": 1,
+        "Amount": 364.87
+      },
+      {
+        "Date": "2026-09-08",
+        "Docket": "D-40170",
+        "Vehicle": "AFS 112",
+        "Description": "Service – 15,000 km",
+        "Qty": 1,
+        "Amount": 446.69
+      },
+      {
+        "Date": "2026-09-08",
+        "Docket": "D-40177",
+        "Vehicle": "AFS 127",
+        "Description": "Brake pads – front",
+        "Qty": 3,
+        "Amount": 215
+      },
+      {
+        "Date": "2026-09-09",
+        "Docket": "D-40184",
+        "Vehicle": "AFS 109",
+        "Description": "Diesel – bulk",
+        "Qty": 2,
+        "Amount": 369.87
+      },
+      {
+        "Date": "2026-09-10",
+        "Docket": "D-40191",
+        "Vehicle": "AFS 127",
+        "Description": "Credit – price adjustment",
+        "Qty": 1,
+        "Amount": -24.78
+      },
+      {
+        "Date": "2026-09-10",
+        "Docket": "D-40198",
+        "Vehicle": "AFS 118",
+        "Description": "Windscreen repair",
+        "Qty": 3,
+        "Amount": 113.4
+      },
+      {
+        "Date": "2026-09-11",
+        "Docket": "D-40205",
+        "Vehicle": "AFS 134",
+        "Description": "Windscreen repair",
+        "Qty": 2,
+        "Amount": 94.62
+      },
+      {
+        "Date": "2026-09-12",
+        "Docket": "D-40212",
+        "Vehicle": "AFS 109",
+        "Description": "Tyre rotation",
+        "Qty": 2,
+        "Amount": 68.82
+      },
+      {
+        "Date": "2026-09-13",
+        "Docket": "D-40219",
+        "Vehicle": "AFS 105",
+        "Description": "Brake pads – front",
+        "Qty": 3,
+        "Amount": 303.6
+      },
+      {
+        "Date": "2026-09-13",
+        "Docket": "D-40226",
+        "Vehicle": "AFS 124",
+        "Description": "Tyre rotation",
+        "Qty": 2,
+        "Amount": 90.49
+      },
+      {
+        "Date": "2026-09-14",
+        "Docket": "D-40233",
+        "Vehicle": "AFS 100",
+        "Description": "Brake pads – front",
+        "Qty": 1,
+        "Amount": 262.95
+      },
+      {
+        "Date": "2026-09-15",
+        "Docket": "D-40240",
+        "Vehicle": "AFS 123",
+        "Description": "Tyre rotation",
+        "Qty": 2,
+        "Amount": 76.61
+      },
+      {
+        "Date": "2026-09-15",
+        "Docket": "D-40247",
+        "Vehicle": "AFS 118",
+        "Description": "Tyre rotation",
+        "Qty": 3,
+        "Amount": 66.7
+      },
+      {
+        "Date": "2026-09-16",
+        "Docket": "D-40254",
+        "Vehicle": "AFS 127",
+        "Description": "Credit – price adjustment",
+        "Qty": 1,
+        "Amount": -25.06
+      },
+      {
+        "Date": "2026-09-17",
+        "Docket": "D-40261",
+        "Vehicle": "AFS 139",
+        "Description": "Service – 15,000 km",
+        "Qty": 3,
+        "Amount": 438.92
+      },
+      {
+        "Date": "2026-09-17",
+        "Docket": "D-40268",
+        "Vehicle": "AFS 131",
+        "Description": "Diesel – bulk",
+        "Qty": 1,
+        "Amount": 180
+      },
+      {
+        "Date": "2026-09-18",
+        "Docket": "D-40275",
+        "Vehicle": "AFS 130",
+        "Description": "Windscreen repair",
+        "Qty": 3,
+        "Amount": 110.38
+      },
+      {
+        "Date": "2026-09-19",
+        "Docket": "D-40282",
+        "Vehicle": "AFS 128",
+        "Description": "Windscreen repair",
+        "Qty": 1,
+        "Amount": 74.31
+      },
+      {
+        "Date": "2026-09-20",
+        "Docket": "D-40289",
+        "Vehicle": "AFS 131",
+        "Description": "Brake pads – front",
+        "Qty": 1,
+        "Amount": 234.86
+      },
+      {
+        "Date": "2026-09-20",
+        "Docket": "D-40296",
+        "Vehicle": "AFS 133",
+        "Description": "Service – 15,000 km",
+        "Qty": 3,
+        "Amount": 388.49
+      },
+      {
+        "Date": "2026-09-21",
+        "Docket": "D-40303",
+        "Vehicle": "AFS 125",
+        "Description": "Wheel alignment",
+        "Qty": 2,
+        "Amount": 97.34
+      },
+      {
+        "Date": "2026-09-22",
+        "Docket": "D-40310",
+        "Vehicle": "AFS 118",
+        "Description": "Wheel alignment",
+        "Qty": 3,
+        "Amount": 125.61
+      },
+      {
+        "Date": "2026-09-22",
+        "Docket": "D-40317",
+        "Vehicle": "AFS 103",
+        "Description": "Credit – price adjustment",
+        "Qty": 1,
+        "Amount": -38.84
+      },
+      {
+        "Date": "2026-09-23",
+        "Docket": "D-40324",
+        "Vehicle": "AFS 100",
+        "Description": "Service – 15,000 km",
+        "Qty": 3,
+        "Amount": 494.93
+      },
+      {
+        "Date": "2026-09-24",
+        "Docket": "D-40331",
+        "Vehicle": "AFS 113",
+        "Description": "Wheel alignment",
+        "Qty": 1,
+        "Amount": 92.29
+      },
+      {
+        "Date": "2026-09-25",
+        "Docket": "D-40338",
+        "Vehicle": "AFS 106",
+        "Description": "Wheel alignment",
+        "Qty": 2,
+        "Amount": 94.71
+      },
+      {
+        "Date": "2026-09-25",
+        "Docket": "D-40345",
+        "Vehicle": "AFS 109",
+        "Description": "Brake pads – front",
+        "Qty": 3,
+        "Amount": 193.25
+      },
+      {
+        "Date": "2026-09-26",
+        "Docket": "D-40352",
+        "Vehicle": "AFS 125",
+        "Description": "Tyre rotation",
+        "Qty": 1,
+        "Amount": 74.46
+      },
+      {
+        "Date": "2026-09-27",
+        "Docket": "D-40359",
+        "Vehicle": "AFS 137",
+        "Description": "Wheel alignment",
+        "Qty": 1,
+        "Amount": 134.54
+      },
+      {
+        "Date": "2026-09-27",
+        "Docket": "D-40366",
+        "Vehicle": "AFS 115",
+        "Description": "Tyre rotation",
+        "Qty": 3,
+        "Amount": 75.54
+      },
+      {
+        "Date": "2026-09-28",
+        "Docket": "D-40373",
+        "Vehicle": "AFS 135",
+        "Description": "Windscreen repair",
+        "Qty": 3,
+        "Amount": 109
+      },
+      {
+        "Date": "2026-09-29",
+        "Docket": "D-40380",
+        "Vehicle": "AFS 115",
+        "Description": "Credit – price adjustment",
+        "Qty": 1,
+        "Amount": -33.41
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "c1",
+      "label": "Amounts add up to TotalDue",
+      "result": "pass",
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "TotalGST is TotalDue ÷ 11",
+      "result": "pass",
+      "severity": "warning"
+    },
+    {
+      "id": "c3",
+      "label": "At least one item",
+      "result": "pass",
+      "severity": "error"
+    }
+  ],
+  "confidence": {
+    "min": 1
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

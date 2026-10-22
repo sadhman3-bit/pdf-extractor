@@ -1,0 +1,214 @@
+{
+  "schema": "pdfx.template/1",
+  "id": "northline-fuel-statement",
+  "name": "Northline Fuel statement",
+  "version": 1,
+  "savedAt": "2026-07-02T08:30:00Z",
+  "savedBy": "Fixture",
+  "fingerprint": {
+    "mustContain": [
+      "NORTHLINE FUEL",
+      "Fuel card statement"
+    ],
+    "mustNotContain": [],
+    "abn": "15 803 047 975",
+    "anyPage": false
+  },
+  "settings": {
+    "confidenceThreshold": 0.8,
+    "ocr": "auto",
+    "decimal": "."
+  },
+  "fields": [
+    {
+      "id": "f1",
+      "name": "StatementNo",
+      "type": "text",
+      "required": true,
+      "anchor": {
+        "labels": [
+          "Statement No"
+        ],
+        "match": "exact"
+      },
+      "direction": "right",
+      "maxDistance": 250,
+      "take": "token",
+      "pattern": "^ST-\\d+$",
+      "page": "first",
+      "occurrence": "first",
+      "clean": [
+        "trim",
+        "upper"
+      ],
+      "hint": {
+        "page": 1,
+        "bbox": [
+          440,
+          54,
+          483.91,
+          64
+        ]
+      }
+    },
+    {
+      "id": "f2",
+      "name": "StatementDate",
+      "type": "date",
+      "required": true,
+      "anchor": {
+        "labels": [
+          "Statement Date"
+        ]
+      },
+      "direction": "right",
+      "dateFormats": [
+        "DD/MM/YYYY"
+      ],
+      "hint": {
+        "page": 1,
+        "bbox": [
+          440,
+          70,
+          490.04,
+          80
+        ]
+      }
+    },
+    {
+      "id": "f3",
+      "name": "TotalGST",
+      "type": "currency",
+      "required": true,
+      "anchor": {
+        "labels": [
+          "Total GST"
+        ]
+      },
+      "direction": "right",
+      "hint": {
+        "page": 1,
+        "bbox": [
+          513.31,
+          160,
+          545,
+          170
+        ]
+      }
+    },
+    {
+      "id": "f4",
+      "name": "TotalDue",
+      "type": "currency",
+      "required": true,
+      "anchor": {
+        "labels": [
+          "Total Due"
+        ]
+      },
+      "direction": "right",
+      "hint": {
+        "page": 1,
+        "bbox": [
+          502.2,
+          176,
+          545,
+          186
+        ]
+      }
+    }
+  ],
+  "tables": [
+    {
+      "id": "t1",
+      "name": "Transactions",
+      "header": {
+        "labels": [
+          "Date",
+          "Card",
+          "Site",
+          "Product",
+          "Litres",
+          "Amount"
+        ],
+        "minMatch": 4
+      },
+      "columns": [
+        {
+          "name": "Date",
+          "header": "Date",
+          "type": "date",
+          "dateFormats": [
+            "DD/MM/YYYY"
+          ],
+          "required": true
+        },
+        {
+          "name": "Card",
+          "header": "Card",
+          "type": "text"
+        },
+        {
+          "name": "Site",
+          "header": "Site",
+          "type": "text"
+        },
+        {
+          "name": "Product",
+          "header": "Product",
+          "type": "text"
+        },
+        {
+          "name": "Litres",
+          "header": "Litres",
+          "type": "number"
+        },
+        {
+          "name": "Amount",
+          "header": "Amount",
+          "type": "currency",
+          "required": true
+        }
+      ],
+      "boundaries": "from-header",
+      "rowStart": {
+        "column": "Date",
+        "pattern": "^\\d{2}/\\d{2}/\\d{4}$"
+      },
+      "wrappedLines": "join",
+      "end": {
+        "labels": [
+          "Subtotal"
+        ],
+        "match": "starts-with"
+      },
+      "skip": [
+        "^Page \\d+ of \\d+$"
+      ],
+      "continuesOnNextPage": true,
+      "groups": []
+    }
+  ],
+  "checks": [
+    {
+      "id": "c1",
+      "label": "Amounts add up to TotalDue",
+      "expr": "sum(Transactions.Amount) ~= TotalDue",
+      "tolerance": 0.01,
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "TotalGST is TotalDue ÷ 11",
+      "expr": "round(TotalDue / 11, 2) ~= TotalGST",
+      "tolerance": 0.02,
+      "severity": "warning"
+    },
+    {
+      "id": "c3",
+      "label": "At least one transaction",
+      "expr": "count(Transactions) > 0",
+      "severity": "error"
+    }
+  ]
+}

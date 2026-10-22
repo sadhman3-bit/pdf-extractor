@@ -1,0 +1,99 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "rotated.pdf",
+    "sha256": "1c126518256a5788f588c9a65d35fd810f812d37b866e4c8bc6e79431e8f42af",
+    "pages": 1,
+    "ocr": false
+  },
+  "template": {
+    "id": "northline-fuel-statement",
+    "version": 2
+  },
+  "status": "ok",
+  "reasons": [],
+  "fields": {
+    "StatementNo": "ST-48213",
+    "StatementDate": "2026-09-30",
+    "TotalGST": 38.56,
+    "TotalDue": 424.18
+  },
+  "tables": {
+    "Transactions": [
+      {
+        "Date": "2026-09-03",
+        "Card": "•• 0021",
+        "Site": "Ryde",
+        "Product": "Diesel",
+        "Litres": 52.1,
+        "Amount": 98.45
+      },
+      {
+        "Date": "2026-09-08",
+        "Card": "•• 0021",
+        "Site": "Parramatta",
+        "Product": "Unleaded 91",
+        "Litres": 34.79,
+        "Amount": 61.2
+      },
+      {
+        "Date": "2026-09-12",
+        "Card": "•• 0021",
+        "Site": "Chatswood",
+        "Product": "Diesel",
+        "Litres": 39.89,
+        "Amount": 75.36
+      },
+      {
+        "Date": "2026-09-17",
+        "Card": "•• 0021",
+        "Site": "Hornsby",
+        "Product": "Premium 98",
+        "Litres": 21.04,
+        "Amount": 43.32
+      },
+      {
+        "Date": "2026-09-23",
+        "Card": "•• 0021",
+        "Site": "Ryde",
+        "Product": "Diesel",
+        "Litres": 46.67,
+        "Amount": 88.15
+      },
+      {
+        "Date": "2026-09-28",
+        "Card": "•• 0021",
+        "Site": "Penrith",
+        "Product": "Unleaded 91",
+        "Litres": 32.8,
+        "Amount": 57.7
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "c1",
+      "label": "Amounts add up to TotalDue",
+      "result": "pass",
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "TotalGST is TotalDue ÷ 11",
+      "result": "pass",
+      "severity": "warning"
+    },
+    {
+      "id": "c3",
+      "label": "At least one transaction",
+      "result": "pass",
+      "severity": "error"
+    }
+  ],
+  "confidence": {
+    "min": 1
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

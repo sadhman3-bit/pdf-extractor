@@ -1,0 +1,44 @@
+{
+  "schema": "pdfx.template/1",
+  "id": "coastal-telco-bill",
+  "name": "Coastal Telco bill",
+  "version": 1,
+  "savedAt": "2026-10-22T09:10:00Z",
+  "savedBy": "Fixture",
+  "fingerprint": { "mustContain": ["COASTAL TELCO", "Tax invoice"], "mustNotContain": [], "anyPage": false },
+  "settings": { "confidenceThreshold": 0.8, "ocr": "auto", "decimal": "." },
+  "fields": [
+    { "id": "f1", "name": "AccountNo", "type": "text", "required": true, "anchor": { "labels": ["Account No"] }, "direction": "right", "page": "first" },
+    { "id": "f2", "name": "InvoiceNumber", "type": "text", "required": true, "anchor": { "labels": ["Invoice No"] }, "direction": "right", "page": "first", "take": "token" },
+    { "id": "f3", "name": "InvoiceDate", "type": "date", "required": true, "anchor": { "labels": ["Bill Date"] }, "direction": "right", "page": "first" },
+    { "id": "f4", "name": "DueDate", "type": "date", "anchor": { "labels": ["Due Date"] }, "direction": "right", "page": "first" },
+    { "id": "f5", "name": "TotalGST", "type": "currency", "required": true, "anchor": { "labels": ["Total GST"] }, "direction": "right", "page": "first" },
+    { "id": "f6", "name": "TotalDue", "type": "currency", "required": true, "anchor": { "labels": ["Total Due"] }, "direction": "right", "page": "first" }
+  ],
+  "tables": [
+    {
+      "id": "t1",
+      "name": "Calls",
+      "header": { "labels": ["Date", "Time", "Number", "Description", "Duration", "Amount"], "minMatch": 4 },
+      "columns": [
+        { "name": "Date", "header": "Date", "type": "date", "required": true },
+        { "name": "Time", "header": "Time", "type": "text" },
+        { "name": "Number", "header": "Number", "type": "text" },
+        { "name": "Description", "header": "Description", "type": "text" },
+        { "name": "Duration", "header": "Duration", "type": "text" },
+        { "name": "Amount", "header": "Amount", "type": "currency", "required": true }
+      ],
+      "rowStart": { "column": "Date", "pattern": "^\\d{2}/\\d{2}/\\d{4}$" },
+      "wrappedLines": "join",
+      "end": { "labels": ["Total calls"], "match": "starts-with" },
+      "skip": ["^Subtotal for this page", "Page \\d+ of \\d+$"],
+      "continuesOnNextPage": true,
+      "groups": [{ "name": "ServiceNumber", "pattern": "^Service (\\d{4} \\d{3} \\d{3})$", "capture": 1 }]
+    }
+  ],
+  "checks": [
+    { "id": "c1", "label": "Call amounts add up to TotalDue", "expr": "sum(Calls.Amount) ~= TotalDue", "tolerance": 0.01, "severity": "error" },
+    { "id": "c2", "label": "TotalGST is TotalDue ÷ 11", "expr": "round(TotalDue / 11, 2) ~= TotalGST", "tolerance": 0.02, "severity": "warning" },
+    { "id": "c3", "label": "At least one call", "expr": "count(Calls) > 0", "severity": "error" }
+  ]
+}

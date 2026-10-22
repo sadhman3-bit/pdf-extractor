@@ -1,0 +1,91 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "northline-jun26.pdf",
+    "sha256": "41f9ab05678f12dd5793696e22819f1e434cc339fbd12c3bdcc13cfc551c9f1d",
+    "pages": 2,
+    "ocr": false
+  },
+  "template": {
+    "id": "northline-fuel-statement",
+    "version": 2
+  },
+  "status": "ok",
+  "reasons": [],
+  "fields": {
+    "StatementNo": "ST-46102",
+    "StatementDate": "2026-06-30",
+    "TotalGST": 43.78,
+    "TotalDue": 481.57
+  },
+  "tables": {
+    "Transactions": [
+      {
+        "Date": "2026-06-03",
+        "Card": "•• 0021",
+        "Site": "Gosford",
+        "Product": "Diesel",
+        "Litres": 37.18,
+        "Amount": 70.23
+      },
+      {
+        "Date": "2026-06-13",
+        "Card": "•• 0021",
+        "Site": "Ryde",
+        "Product": "Premium 98",
+        "Litres": 44.05,
+        "Amount": 90.7
+      },
+      {
+        "Date": "2026-06-17",
+        "Card": "•• 0021",
+        "Site": "Liverpool",
+        "Product": "Diesel",
+        "Litres": 74.51,
+        "Amount": 140.75
+      },
+      {
+        "Date": "2026-06-26",
+        "Card": "•• 0021",
+        "Site": "Penrith",
+        "Product": "Premium 98",
+        "Litres": 40.93,
+        "Amount": 84.27
+      },
+      {
+        "Date": "2026-06-28",
+        "Card": "•• 0021",
+        "Site": "Parramatta",
+        "Product": "Diesel",
+        "Litres": 50.62,
+        "Amount": 95.62
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "c1",
+      "label": "Amounts add up to TotalDue",
+      "result": "pass",
+      "severity": "error"
+    },
+    {
+      "id": "c2",
+      "label": "TotalGST is TotalDue ÷ 11",
+      "result": "pass",
+      "severity": "warning"
+    },
+    {
+      "id": "c3",
+      "label": "At least one transaction",
+      "result": "pass",
+      "severity": "error"
+    }
+  ],
+  "confidence": {
+    "min": 1
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

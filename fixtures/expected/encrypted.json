@@ -1,0 +1,26 @@
+{
+  "schema": "pdfx.extraction/1",
+  "source": {
+    "file": "encrypted.pdf",
+    "sha256": "bb731a0aaa714e081263ad711451632f7f280672dcc1ca22437edb966d9af8e4",
+    "pages": 0,
+    "ocr": false
+  },
+  "template": null,
+  "status": "error",
+  "reasons": [
+    {
+      "code": "password_protected",
+      "message": "This PDF is password protected."
+    }
+  ],
+  "fields": {},
+  "tables": {},
+  "checks": [],
+  "confidence": {
+    "min": 0
+  },
+  "extractedAt": "2026-10-22T09:14:03Z",
+  "reviewedBy": null,
+  "corrections": []
+}

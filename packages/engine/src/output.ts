@@ -1,0 +1,177 @@
+import type { Template } from './template';
+import type { Extraction, Reason } from './extract';
+import type { Value } from './parse';
+
+export interface Correction {
+  field: string;
+  table?: string;
+  row?: number;
+  from: string | number | null;
+  to: string | number | null;
+}
+
+export interface OutputMeta {
+  file: string;
+  sha256: string;
+  extractedAt: string;
+  reviewedBy?: string | null;
+  corrections?: Correction[];
+}
+
+export const AUDIT_COLUMNS = [
+  '_SourceFile',
+  '_SourceSha256',
+  '_Template',
+  '_TemplateVersion',
+  '_ExtractedAt',
+  '_Status',
+  '_ReviewedBy',
+  '_Corrected',
+] as const;
+
+export interface ExtractionJson {
+  schema: 'pdfx.extraction/1';
+  source: { file: string; sha256: string; pages: number; ocr: boolean };
+  template: { id: string; version: number } | null;
+  status: Extraction['status'];
+  reasons: Reason[];
+  fields: Record<string, Value | null>;
+  tables: Record<string, Record<string, Value | null>[]>;
+  checks: {
+    id: string;
+    label: string;
+    result: 'pass' | 'fail' | 'unknown';
+    severity: 'error' | 'warning';
+    message?: string;
+  }[];
+  confidence: { min: number };
+  extractedAt: string;
+  reviewedBy: string | null;
+  corrections: Correction[];
+}
+
+/** Group columns of a table, in rule order. */
+export function groupColumns(t: Template, table: string): string[] {
+  return (t.tables ?? []).find((x) => x.name === table)?.groups?.map((g) => g.name) ?? [];
+}
+
+export function toJsonObject(
+  result: Extraction,
+  t: Template | null,
+  meta: OutputMeta,
+): ExtractionJson {
+  const fields: Record<string, Value | null> = {};
+  const tables: Record<string, Record<string, Value | null>[]> = {};
+  if (t) {
+    for (const f of t.fields) fields[f.name] = result.fields[f.name]?.value ?? null;
+    for (const tb of t.tables ?? []) {
+      const groups = groupColumns(t, tb.name);
+      tables[tb.name] = (result.tables[tb.name]?.rows ?? []).map((row) => {
+        const o: Record<string, Value | null> = {};
+        for (const c of tb.columns) o[c.name] = row.cells[c.name]?.value ?? null;
+        for (const g of groups) o[g] = row.groups[g] ?? null;
+        return o;
+      });
+    }
+  }
+  return {
+    schema: 'pdfx.extraction/1',
+    source: { file: meta.file, sha256: meta.sha256, pages: result.pages, ocr: result.ocr },
+    template: result.template ? { id: result.template.id, version: result.template.version } : null,
+    status: result.status,
+    reasons: result.reasons,
+    fields,
+    tables,
+    checks: result.checks.map((c) => ({
+      id: c.id,
+      label: c.label,
+      result: c.result,
+      severity: c.severity,
+      ...(c.message && c.result !== 'pass' ? { message: c.message } : {}),
+    })),
+    confidence: result.confidence,
+    extractedAt: meta.extractedAt,
+    reviewedBy: meta.reviewedBy ?? null,
+    corrections: meta.corrections ?? [],
+  };
+}
+
+export function toJson(result: Extraction, t: Template | null, meta: OutputMeta): string {
+  return `${JSON.stringify(toJsonObject(result, t, meta), null, 2)}\n`;
+}
+
+function csvCell(s: string): string {
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function csvLine(cells: string[]): string {
+  return cells.map(csvCell).join(',');
+}
+
+export interface CsvFile {
+  /** null for the single-table (or no-table) file; otherwise the table name for <base>.<Table>.csv. */
+  table: string | null;
+  content: string;
+}
+
+/**
+ * CSV files for one extraction: one file, or one per table when the template has
+ * more than one. Header fields repeat on every row; audit columns come last.
+ */
+export function toCsv(
+  result: Extraction,
+  t: Template,
+  meta: OutputMeta,
+  opts: { bom?: boolean } = {},
+): CsvFile[] {
+  const bom = (opts.bom ?? true) ? '﻿' : '';
+  const corrected = (meta.corrections ?? []).length > 0;
+  const audit = [
+    meta.file,
+    meta.sha256,
+    t.id,
+    String(t.version),
+    meta.extractedAt,
+    result.status,
+    meta.reviewedBy ?? '',
+    corrected ? 'true' : 'false',
+  ];
+  const fieldNames = t.fields.map((f) => f.name);
+  const fieldCells = fieldNames.map((n) => result.fields[n]?.csv ?? '');
+  const tables = t.tables ?? [];
+  const build = (tableName: string | null): CsvFile => {
+    const tb = tables.find((x) => x.name === tableName);
+    const cols = tb ? tb.columns.map((c) => c.name) : [];
+    const groups = tb ? groupColumns(t, tb.name) : [];
+    const header = [...fieldNames, ...cols, ...groups, ...AUDIT_COLUMNS];
+    const lines = [csvLine(header)];
+    const rows = tb ? (result.tables[tb.name]?.rows ?? []) : [];
+    if (!tb || !rows.length) {
+      lines.push(
+        csvLine([...fieldCells, ...cols.map(() => ''), ...groups.map(() => ''), ...audit]),
+      );
+    } else {
+      for (const row of rows) {
+        lines.push(
+          csvLine([
+            ...fieldCells,
+            ...cols.map((c) => row.cells[c]?.csv ?? ''),
+            ...groups.map((g) => row.groups[g] ?? ''),
+            ...audit,
+          ]),
+        );
+      }
+    }
+    return {
+      table: tables.length > 1 ? tableName : null,
+      content: bom + lines.join('\r\n') + '\r\n',
+    };
+  };
+  if (tables.length <= 1) return [build(tables[0]?.name ?? null)];
+  return tables.map((tb) => build(tb.name));
+}
+
+/** Output file base name for a source PDF: the file name without ".pdf". */
+export function baseName(file: string): string {
+  return file.replace(/\.pdf$/i, '');
+}
