@@ -43,9 +43,9 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] End-to-end test maps the COA results table through the interface; output equals the golden
 
 ## M8: Test on samples
-- [ ] From a v1 template with only "Total GST"/"Total Due", the June layout fails TotalGST and TotalDue
-- [ ] Suggested fixes add "GST included" and "Amount payable"
-- [ ] Every check then passes on all four samples
+- [x] From a v1 template with only "Total GST"/"Total Due", the June layout fails TotalGST and TotalDue
+- [x] Suggested fixes add "GST included" and "Amount payable"
+- [x] Every check then passes on all four samples
 
 ## M9: Process inbox
 - [ ] Processing the inbox fixtures gives the expected status for every file; outputs equal the goldens

@@ -213,7 +213,7 @@ export function PageView(props: {
     <div
       class="viewer"
       ref={wrap}
-      tabIndex={onToken ? 0 : -1}
+      tabIndex={0}
       role="group"
       aria-label={props.label ?? S.mapper.viewerLabel(page)}
       onKeyDown={onKey}
