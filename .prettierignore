@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-test
+pnpm-lock.yaml
+fixtures/pdf
+fixtures/expected
+fixtures/templates
+test-results
+playwright-report
+apps/web/public/vendor
+BUILD_PLAN.md
+*.md

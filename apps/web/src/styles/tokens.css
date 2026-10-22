@@ -1,0 +1,56 @@
+/* The only place colours are defined. Everything else uses var(--token). */
+:root {
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-subtle: #f6f7f9;
+  --surface-hover: #fafbfc;
+  --viewer-bg: #e5e7eb;
+  --border: #d9dde3;
+  --border-subtle: #eef0f3;
+  --border-input: #c3c9d1;
+  --text: #161a1f;
+  --text-2: #2e353d;
+  --text-muted: #5b6470;
+  --topbar: #161a1f;
+  --topbar-active: #2a3038;
+  --topbar-text: #c9ced6;
+  --brand-icon: #7cc4e4;
+  --accent: #0b6e99;
+  --accent-hover: #08506f;
+  --accent-tint: #e6f2f8;
+  --accent-border: #b9daea;
+  --accent-ink: #0a4a66;
+  --divider: #7cb8d3;
+  --warn: #b45309;
+  --warn-tint: #fef3e2;
+  --warn-ink: #8a4108;
+  --danger: #b42318;
+  --danger-tint: #fdecea;
+  --danger-border: #e8a39b;
+  --danger-ink: #7a1a10;
+  --success: #18794e;
+  --success-tint: #e7f5ee;
+  --success-border: #8fcbae;
+  --success-ink: #0e4f32;
+  --focus: #0b6e99;
+  --on-accent: #ffffff;
+  --neutral-chip: #eef0f3;
+  --page-shadow: rgba(0, 0, 0, 0.12);
+  --overlay: rgba(22, 26, 31, 0.45);
+  --token-hover: rgba(11, 110, 153, 0.18);
+
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --r-small: 6px;
+  --r-control: 8px;
+  --r-card: 10px;
+  --r-chip: 999px;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+}

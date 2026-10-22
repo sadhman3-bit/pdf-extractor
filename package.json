@@ -1,0 +1,39 @@
+{
+  "name": "pdf-extractor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @pdfx/web dev",
+    "build": "pnpm --filter @pdfx/web build",
+    "build:test": "pnpm --filter @pdfx/web build:test",
+    "preview": "pnpm --filter @pdfx/web preview",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "pnpm build:test && playwright test",
+    "fixtures": "pnpm --filter @pdfx/fixtures generate",
+    "goldens": "pnpm --filter @pdfx/fixtures goldens",
+    "perf": "pnpm --filter @pdfx/fixtures perf"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.19.1",
+    "eslint": "10.13.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-test/
+coverage/
+test-results/
+playwright-report/
+.vite/
+*.log
+.DS_Store
+.tmp/
+apps/web/public/vendor/
