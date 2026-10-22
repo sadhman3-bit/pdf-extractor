@@ -15,4 +15,4 @@ export type WorkerResponse =
       detail: string;
     }
   | { id: number; type: 'process'; extraction: Extraction }
-  | { id: number; type: 'error'; message: string };
+  | { id: number; type: 'error'; message: string; stack?: string };

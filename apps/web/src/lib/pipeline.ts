@@ -27,8 +27,11 @@ function getWorker(): Worker {
       const p = pending.get(e.data.id);
       if (!p) return;
       pending.delete(e.data.id);
-      if (e.data.type === 'error') p.reject(new Error(e.data.message));
-      else p.resolve(e.data);
+      if (e.data.type === 'error') {
+        const err = new Error(e.data.message);
+        if (e.data.stack) err.stack = e.data.stack;
+        p.reject(err);
+      } else p.resolve(e.data);
     };
     worker.onerror = (e) => {
       for (const p of pending.values())

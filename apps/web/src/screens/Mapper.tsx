@@ -95,6 +95,7 @@ export function MapperScreen() {
   } | null>(null);
   const [changing, setChanging] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [nonce, setNonce] = useState(0);
   const saveTimer = useRef<number | null>(null);
   const pdf = usePdf(sample?.bytes ?? null);
 
@@ -214,7 +215,7 @@ export function MapperScreen() {
     return () => {
       alive = false;
     };
-  }, [route.template, ws]);
+  }, [route.template, ws, nonce]);
 
   const result = useMemo(() => {
     if (!draft || !layout) return null;
@@ -264,6 +265,7 @@ export function MapperScreen() {
             onFiles={async (f) => {
               app.set({ pendingSample: { name: f[0]!.name, bytes: await fileBytes(f[0]!) } });
               navigate({ view: 'mapper', template: '' }, true);
+              setNonce((n) => n + 1);
               setDraftState(null);
             }}
           />

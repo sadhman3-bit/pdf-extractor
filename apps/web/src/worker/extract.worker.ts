@@ -14,6 +14,8 @@ const OPTIONS = {
   standardFontDataUrl: `${BASE}vendor/pdfjs/standard_fonts/`,
   cMapUrl: `${BASE}vendor/pdfjs/cmaps/`,
   cMapPacked: true,
+  // pdf.js reads document.baseURI to decide this unless it is set; workers have no document.
+  useWorkerFetch: false,
 };
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
@@ -46,7 +48,12 @@ scope.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       };
     }
   } catch (err) {
-    reply = { id: msg.id, type: 'error', message: String((err as Error)?.message ?? err) };
+    reply = {
+      id: msg.id,
+      type: 'error',
+      message: String((err as Error)?.message ?? err),
+      stack: String((err as Error)?.stack ?? ''),
+    };
   }
   scope.postMessage(reply);
 };

@@ -41,3 +41,6 @@ One line per deviation or judgement call, newest at the bottom of each section.
 - Scanned fixtures are rendered from the same layout model as the digital ones as HTML in Playwright Chromium (1 CSS px = 1 pt) at 200 DPI, tilted up to ±0.4° with seeded speckle noise. Byte-identical output is guaranteed on the same machine; other machines may render fonts slightly differently.
 - `encrypted.pdf` is hand-built with a standard security handler entry whose user password is unknown, because pdf-lib cannot encrypt.
 - The scanned Northline fixture (card 2) prints row 4 as a smudged "34.32" while the true amount, used for Total Due ($424.18), is $43.32. This gives the review flow in M11 its "Short by $9.00" case.
+- Token overlay boxes carry `data-text` so end-to-end tests can click a word; the boxes stay `aria-hidden` and keyboard users get the same words through the viewer's live region.
+- The extraction worker passes `useWorkerFetch: false` to pdf.js, which otherwise reads `document.baseURI` and fails inside a worker.
+- E2E tests compare the template saved through the interface against the goldens by running the engine in Node (`apps/web/e2e/engine.ts`).

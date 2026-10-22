@@ -155,3 +155,23 @@ export function stableCsv(csv: string): string[][] {
     .filter((i) => i >= 0);
   return rows.map((r) => keep.map((i) => r[i]!));
 }
+
+/** Opens the Mapper with a new sample and waits for the token overlay. */
+export async function startFromSample(page: Page, file: string): Promise<void> {
+  await page.goto('./?view=mapper');
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles({ name: file, mimeType: 'application/pdf', buffer: fixturePdf(file) });
+  await expect(page.getByRole('textbox', { name: 'Template name' })).toBeVisible();
+  await expect(page.locator('.tok').first()).toBeAttached();
+}
+
+export async function savedTemplate(page: Page): Promise<{ id: string; json: string }> {
+  const ids = (await listWs(page, 'Templates')).filter((d) => !d.startsWith('_'));
+  expect(ids).toHaveLength(1);
+  const id = ids[0]!;
+  const files = (await listWs(page, `Templates/${id}`)).filter((f) => /^v\d+\.json$/.test(f));
+  files.sort();
+  return { id, json: await readWs(page, `Templates/${id}/${files[files.length - 1]}`) };
+}

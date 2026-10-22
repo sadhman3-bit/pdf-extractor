@@ -46,6 +46,8 @@ export function usePdf(bytes: Uint8Array | null) {
     });
     return () => {
       cancelled = true;
+      // Drop the document before closing it so no viewer keeps using it.
+      setState({ doc: null, pages: 0, error: null });
       if (close) void close();
     };
   }, [bytes]);
@@ -116,12 +118,16 @@ export function PageView(props: {
 
   useEffect(() => {
     let alive = true;
-    void doc.getPage(page).then((p) => {
-      if (!alive) return;
-      const vp = p.getViewport({ scale: 1 });
-      setSize({ w: vp.width, h: vp.height });
-      setPdfPage(p);
-    });
+    // getPage throws synchronously on a document that has just been closed.
+    void Promise.resolve()
+      .then(() => doc.getPage(page))
+      .then((p) => {
+        if (!alive) return;
+        const vp = p.getViewport({ scale: 1 });
+        setSize({ w: vp.width, h: vp.height });
+        setPdfPage(p);
+      })
+      .catch(() => undefined);
     return () => {
       alive = false;
     };
@@ -227,6 +233,7 @@ export function PageView(props: {
                 class={`tok${sel.has(t) ? ' tok-selected' : ''}${focused === t ? ' tok-focus' : ''}`}
                 style={box([t.x0, t.y0, t.x1, t.y1])}
                 aria-hidden="true"
+                data-text={t.text}
                 onClick={(e) => {
                   setFocus(i);
                   onToken(t, (e as MouseEvent).shiftKey);

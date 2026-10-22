@@ -34,9 +34,9 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] A fresh lock shows the in-use warning, and a stale lock doesn't
 
 ## M6: Mapper (fields)
-- [ ] An end-to-end test maps Northline's header fields from scratch; saved template's field output equals the golden
-- [ ] The mapping works from the keyboard alone
-- [ ] axe reports nothing
+- [x] An end-to-end test maps Northline's header fields from scratch; saved template's field output equals the golden
+- [x] The mapping works from the keyboard alone
+- [x] axe reports nothing
 
 ## M7: Mapper (tables)
 - [ ] End-to-end test maps the Northline table through the interface; output equals the golden
