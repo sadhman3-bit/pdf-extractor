@@ -107,7 +107,15 @@ export function extractWith(layout: DocLayout, t: Template, opts: EngineOptions 
 
   for (const f of t.fields) out.fields[f.name] = extractField(layout, f, { decimal });
   for (const tb of t.tables ?? []) out.tables[tb.name] = extractTable(layout, tb, { decimal });
+  return assess(out, t, { confidenceThreshold: threshold });
+}
 
+/**
+ * Works out checks, confidence, reasons and status from extracted values. Used after
+ * extraction and again after a person corrects values in review.
+ */
+export function assess(out: Extraction, t: Template, opts: EngineOptions = {}): Extraction {
+  const threshold = t.settings?.confidenceThreshold ?? opts.confidenceThreshold ?? 0.8;
   const reasons: Reason[] = [];
   for (const f of t.fields) {
     const r = out.fields[f.name]!;

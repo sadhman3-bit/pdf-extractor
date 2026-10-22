@@ -1,0 +1,52 @@
+/// <reference lib="webworker" />
+// Dedicated worker: reads PDF text with pdf.js and runs the engine, so the
+// interface stays responsive.
+import * as pdfjs from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { readPdf, type PdfjsLib } from '@pdfx/pdf';
+import { processDocument, type DocText, type EngineOptions, type TemplateSet } from '@pdfx/engine';
+import type { WorkerRequest, WorkerResponse } from './protocol';
+
+pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+const BASE = import.meta.env.BASE_URL;
+const OPTIONS = {
+  wasmUrl: `${BASE}vendor/pdfjs/wasm/`,
+  standardFontDataUrl: `${BASE}vendor/pdfjs/standard_fonts/`,
+  cMapUrl: `${BASE}vendor/pdfjs/cmaps/`,
+  cMapPacked: true,
+};
+
+const scope = self as unknown as DedicatedWorkerGlobalScope;
+
+scope.onmessage = async (e: MessageEvent<WorkerRequest>) => {
+  const msg = e.data;
+  let reply: WorkerResponse;
+  try {
+    if (msg.type === 'read') {
+      const r = await readPdf(pdfjs as unknown as PdfjsLib, msg.bytes, { extra: OPTIONS });
+      reply = r.ok
+        ? { id: msg.id, type: 'read', ok: true, pages: r.pages }
+        : {
+            id: msg.id,
+            type: 'read',
+            ok: false,
+            code: r.code,
+            message: r.message,
+            detail: r.detail ?? '',
+          };
+    } else {
+      reply = {
+        id: msg.id,
+        type: 'process',
+        extraction: processDocument(
+          msg.doc as DocText,
+          msg.sets as TemplateSet[],
+          msg.opts as EngineOptions,
+        ),
+      };
+    }
+  } catch (err) {
+    reply = { id: msg.id, type: 'error', message: String((err as Error)?.message ?? err) };
+  }
+  scope.postMessage(reply);
+};

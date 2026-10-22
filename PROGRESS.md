@@ -28,10 +28,10 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] Changing one amount in a test copy produces `review` with the exact plain-English reason
 
 ## M5: Workspace and storage
-- [ ] An end-to-end first run creates the folder tree
-- [ ] A template saves and reloads
-- [ ] A draft survives a page reload and offers to resume
-- [ ] A fresh lock shows the in-use warning, and a stale lock doesn't
+- [x] An end-to-end first run creates the folder tree
+- [x] A template saves and reloads
+- [x] A draft survives a page reload and offers to resume
+- [x] A fresh lock shows the in-use warning, and a stale lock doesn't
 
 ## M6: Mapper (fields)
 - [ ] An end-to-end test maps Northline's header fields from scratch; saved template's field output equals the golden

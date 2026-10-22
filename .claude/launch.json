@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "preview-test",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@pdfx/web", "preview:test"],
+      "port": 4173,
+      "url": "http://localhost:4173"
+    }
+  ]
+}
