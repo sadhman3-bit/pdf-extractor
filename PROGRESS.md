@@ -18,10 +18,10 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] `rotated.pdf` extracts correctly
 
 ## M3: Engine part 2 (tables)
-- [ ] Northline table: 6 rows match the golden
-- [ ] Apex: 41 rows, credits negative, match the golden
-- [ ] Coastal Telco: every call with ServiceNumber filled in matches the golden
-- [ ] COA: all results, wrapped methods joined, match the golden
+- [x] Northline table: 6 rows match the golden
+- [x] Apex: 41 rows, credits negative, match the golden
+- [x] Coastal Telco: every call with ServiceNumber filled in matches the golden
+- [x] COA: all results, wrapped methods joined, match the golden
 
 ## M4: Engine part 3 (checks, status, outputs)
 - [ ] Every digital fixture's CSV and JSON match the goldens byte for byte (injected timestamp)
