@@ -164,6 +164,7 @@ export async function startFromSample(page: Page, file: string): Promise<void> {
     .first()
     .setInputFiles({ name: file, mimeType: 'application/pdf', buffer: fixturePdf(file) });
   await expect(page.getByRole('textbox', { name: 'Template name' })).toBeVisible();
+  await expect(page).toHaveURL(/template=/);
   await expect(page.locator('.tok').first()).toBeAttached();
 }
 

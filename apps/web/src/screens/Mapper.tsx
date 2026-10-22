@@ -97,6 +97,8 @@ export function MapperScreen() {
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
   const saveTimer = useRef<number | null>(null);
+  // Id of a template this screen just created; its route change needs no reload.
+  const created = useRef<string | null>(null);
   const pdf = usePdf(sample?.bytes ?? null);
 
   const ws = s.ws;
@@ -143,6 +145,10 @@ export function MapperScreen() {
   // Load the template (or start a new one) when the route changes.
   useEffect(() => {
     if (!ws) return;
+    if (route.template && route.template === created.current) {
+      created.current = null;
+      return;
+    }
     let alive = true;
     void (async () => {
       setMessage(null);
@@ -207,6 +213,8 @@ export function MapperScreen() {
         });
         if (pending.fromException) await idbSet(`origin:${newId}`, pending.fromException);
         await refresh();
+        await takeLock(ws, `template:${newId}`, s.user, `template:${newId}`, now());
+        created.current = newId;
         navigate({ view: 'mapper', template: newId }, true);
       } else {
         setDraftState(null);
