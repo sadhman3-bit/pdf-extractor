@@ -48,8 +48,8 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] Every check then passes on all four samples
 
 ## M9: Process inbox
-- [ ] Processing the inbox fixtures gives the expected status for every file; outputs equal the goldens
-- [ ] The crash-and-rerun test leaves no duplicates
+- [x] Processing the inbox fixtures gives the expected status for every file; outputs equal the goldens
+- [x] The crash-and-rerun test leaves no duplicates
 
 ## M10: OCR
 - [ ] Scanned Northline extracts every header field and at least 5 of 6 rows; its low-confidence cell is flagged

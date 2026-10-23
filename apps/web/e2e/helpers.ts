@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseCsv } from '../src/workspace/csv';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const ORIGIN = 'http://localhost:4173';
@@ -142,11 +143,7 @@ export async function expectNoAxe(page: Page): Promise<void> {
 
 /** CSV text without the volatile audit columns, for comparing against goldens. */
 export function stableCsv(csv: string): string[][] {
-  const rows = csv
-    .replace(/^\uFEFF/, '')
-    .split('\r\n')
-    .filter(Boolean)
-    .map((l) => l.split(','));
+  const rows = parseCsv(csv).filter((r) => r.some(Boolean));
   const head = rows[0]!;
   const keep = head
     .map((h, i) =>
