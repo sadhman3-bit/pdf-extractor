@@ -43,9 +43,7 @@ export async function ocrPage(page: PdfPage, pageNo: number): Promise<PageText> 
   await renderPage(page, canvas, OCR_SCALE);
   const vp = page.getViewport({ scale: 1 });
   const w = await getOcrWorker();
-  const bitmap = await createImageBitmap(canvas);
   const res = await w.recognize(canvas, {}, { blocks: true, text: false });
-  bitmap.close();
   canvas.width = 0;
   canvas.height = 0;
   const blocks = (res.data as unknown as { blocks: OcrBlock[] | null }).blocks;

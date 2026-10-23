@@ -173,7 +173,7 @@ export function pageHtml(layout: PageLayout, seed: number, tiltDeg: number): str
   #page{position:relative;width:${layout.width}px;height:${layout.height}px;overflow:hidden;background:#fdfdfb;transform:rotate(${tiltDeg}deg);transform-origin:50% 50%}
   .t{position:absolute;white-space:pre;color:#1a1c20;line-height:1.15}
   .rule{position:absolute;height:0;border-top:0.6px solid #999}
-  .smudge{filter:blur(0.55px);color:#5a5d63}
+  .smudge{filter:blur(0.5px);color:#55585e}
   canvas{position:absolute;left:0;top:0}
   </style></head><body><div id="page">${spans}<canvas id="noise" width="${Math.round(layout.width * 3)}" height="${Math.round(layout.height * 3)}" style="width:${layout.width}px;height:${layout.height}px"></canvas></div>
   <script>
@@ -184,7 +184,8 @@ export function pageHtml(layout: PageLayout, seed: number, tiltDeg: number): str
     for(let i=0;i<9000;i++){const g=Math.floor(110+r()*120);c.fillStyle='rgba('+g+','+g+','+g+','+(0.25+r()*0.5)+')';c.fillRect(r()*c.canvas.width,r()*c.canvas.height,1+r()*2,1+r()*2);}
     document.querySelectorAll('.smudge').forEach(function(el){
       const b=el.getBoundingClientRect();
-      for(let i=0;i<260;i++){const g=Math.floor(90+r()*90);c.fillStyle='rgba('+g+','+g+','+g+','+(0.35+r()*0.4)+')';c.fillRect((b.left+r()*b.width)*3,(b.top+r()*b.height)*3,1+r()*3,1+r()*3);}
+      c.fillStyle='rgba(140,140,140,0.36)';c.fillRect((b.left-1)*3,(b.top+b.height*0.3)*3,(b.width+2)*3,b.height*0.5*3);
+      for(let i=0;i<190;i++){const g=Math.floor(95+r()*90);c.fillStyle='rgba('+g+','+g+','+g+','+(0.3+r()*0.35)+')';c.fillRect((b.left+r()*b.width)*3,(b.top+r()*b.height)*3,1+r()*2,1+r()*2);}
     });
   })();
   </script></body></html>`;

@@ -45,3 +45,5 @@ One line per deviation or judgement call, newest at the bottom of each section.
 - The extraction worker passes `useWorkerFetch: false` to pdf.js, which otherwise reads `document.baseURI` and fails inside a worker.
 - E2E tests compare the template saved through the interface against the goldens by running the engine in Node (`apps/web/e2e/engine.ts`).
 - Scrollable table wrappers take `tabIndex={0}` so keyboard users can scroll them (axe `scrollable-region-focusable`).
+- The scanned fixture's smudge is a faint grey smear plus specks over row 4's amount, tuned so tesseract reads "34.32" below the 0.8 confidence threshold (flagged for review) rather than dropping the value.
+- OCR cannot read the masked-card bullets ("•• 0034"); the M10 test compares that column by its digits only, and those cells are flagged as low confidence for review.

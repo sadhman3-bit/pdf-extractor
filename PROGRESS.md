@@ -52,8 +52,8 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] The crash-and-rerun test leaves no duplicates
 
 ## M10: OCR
-- [ ] Scanned Northline extracts every header field and at least 5 of 6 rows; its low-confidence cell is flagged
-- [ ] No OCR file is fetched from outside the origin
+- [x] Scanned Northline extracts every header field and at least 5 of 6 rows; its low-confidence cell is flagged
+- [x] No OCR file is fetched from outside the origin
 
 ## M11: Review
 - [ ] Correcting row 4 of the scanned fixture from 34.32 to 43.32 turns the checks green
