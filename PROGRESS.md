@@ -60,17 +60,17 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] Approving writes outputs with `_Corrected = true`, writes the audit line, and moves the file
 
 ## M12: Polish and release (section 13, definition of done)
-- [ ] All milestone acceptance checks in this file are ticked
-- [ ] CI is green; Pages deployment succeeds (or manual steps documented, if no remote)
-- [ ] Every digital fixture matches its golden output byte for byte
-- [ ] The scanned fixture works through OCR plus review
-- [ ] Zero axe violations; contrast tests pass; the mapper works from the keyboard
-- [ ] No request leaves the origin; the app works offline after the first load
-- [ ] No hard-coded colours or strings outside `tokens.css` and `strings.ts`
-- [ ] The performance targets are met and recorded
-- [ ] All docs are complete, in plain English, with no placeholders
-- [ ] `docs/MANUAL_SETUP.md` and `docs/MANUAL_TESTS.md` list everything the owner must do or check
+- [x] All milestone acceptance checks in this file are ticked
+- [x] CI is green; Pages deployment succeeds (or manual steps documented, if no remote)
+- [x] Every digital fixture matches its golden output byte for byte
+- [x] The scanned fixture works through OCR plus review
+- [x] Zero axe violations; contrast tests pass; the mapper works from the keyboard
+- [x] No request leaves the origin; the app works offline after the first load
+- [x] No hard-coded colours or strings outside `tokens.css` and `strings.ts`
+- [x] The performance targets are met and recorded
+- [x] All docs are complete, in plain English, with no placeholders
+- [x] `docs/MANUAL_SETUP.md` and `docs/MANUAL_TESTS.md` list everything the owner must do or check
 
 ## Open issues
 
-(none yet)
+(none)

@@ -1,3 +1,166 @@
-# USER GUIDE
+# User guide
 
-To be written in full in M12.
+PDF Extractor turns supplier PDFs (statements, invoices, certificates of analysis) into identical, checked CSV and JSON files. You teach it each supplier's layout once by clicking on a sample. From then on, every PDF from that supplier is read the same way, checked, and saved for Power Automate and Power BI.
+
+Everything happens in your browser. Your documents are never uploaded (see `PRIVACY.md`).
+
+**Use Chrome or Edge.** Other browsers can't save into folders and run in [basic mode](#basic-mode).
+
+## Contents
+
+1. [First run](#1-first-run)
+2. [The workspace folder](#2-the-workspace-folder)
+3. [Mapping a supplier (Mapper)](#3-mapping-a-supplier-mapper)
+4. [Testing on samples](#4-testing-on-samples)
+5. [Processing the inbox](#5-processing-the-inbox)
+6. [Reviewing exceptions](#6-reviewing-exceptions)
+7. [Settings](#7-settings)
+8. [Working as a team](#8-working-as-a-team)
+9. [Basic mode](#basic-mode)
+10. [Using it offline](#10-using-it-offline)
+11. [Keyboard use](#11-keyboard-use)
+12. [Questions and problems](#12-questions-and-problems)
+
+## 1. First run
+
+1. Open the app and choose **Get started**.
+2. Choose **Choose folder** and pick your team's synced SharePoint folder (normally called `PDF Extractor`). The browser asks to let the site view and edit files there; allow it.
+3. The app lists the folders it will create. Choose **Create folders**.
+4. Type your name and choose **Continue**. Your name goes into the audit log and into the "in use" notices other people see.
+5. Choose **Create your first template** or **Process inbox**.
+
+Next time you open the app it remembers the folder. If the browser has forgotten the permission, you'll see **Reconnect to your folder**: one click and you're back. Nothing is lost.
+
+## 2. The workspace folder
+
+```
+PDF Extractor/
+  Inbox/              PDFs waiting to be processed (Power Automate can drop them here)
+  Processed/2026-10/  finished PDFs, filed by month
+  Exceptions/         PDFs that need a person, each with a .review.json
+  Output/<template>/  the CSV and JSON for each PDF
+  Templates/          one folder per supplier layout, with versions and samples
+  Audit/<name>/       who did what, one file per person per month
+  .locks/             "in use" markers (safe to ignore)
+  settings.json       shared settings
+```
+
+You can drop PDFs into `Inbox/` yourself, in File Explorer, or let a flow do it (see `POWER_AUTOMATE.md`).
+
+## 3. Mapping a supplier (Mapper)
+
+You need one sample PDF from the supplier.
+
+1. On **Templates**, choose **New template** (or open **Mapper** and drop a PDF on it).
+2. The app suggests a name and a **fingerprint**: text that appears on every document from this supplier, such as its name and ABN. Check it on the right ("Matches files that contain …").
+3. **Map each value.** With **Click a value** selected, click the value on the page (for example the statement number). The app:
+   - finds the label next to it (for example "Statement No"),
+   - works out the type (date, amount, number or text),
+   - suggests a standard name (for example `StatementNo`) and opens the field editor.
+
+   Check the name and type, then choose **Done**. To take several words, hold **Shift** and click the others.
+4. **Suggestions.** Dashed amber boxes marked "Suggested" are values the app thinks you'll want. **Accept** or **Dismiss** each one in the Fields panel.
+5. **Map the table** (if the document has one). Choose **Map table row** and click any cell in the first row. The app finds the header, the columns and their types, and outlines the table with its row count. Then:
+   - Rename the table (for example `Transactions`) and check each column's name and type.
+   - Choose **Set end marker** and click the line where the table ends (for example "Subtotal").
+   - Drag the dashed column dividers if a column is cut in the wrong place (or focus a divider and use the arrow keys).
+   - Turn on **Continues on the next page** for tables that run over several pages, and add **Skip lines matching** patterns for page footers.
+6. **Checks.** The app offers sensible checks, such as "the amounts add up to the total" and "GST is the total ÷ 11". Turn them on or off, or add your own (see `TEMPLATE_FORMAT.md` for the expression language).
+7. The **CSV preview** at the bottom shows exactly what will be written.
+8. Choose **Save template**. Each save creates a new version; old versions are kept.
+
+Your work is saved as a draft as you go. If the tab closes, opening the template again offers **Resume** or **Discard**.
+
+**Re-pick** a field to point it at a different value. **+ Add field from list** adds a standard field by name.
+
+## 4. Testing on samples
+
+Before relying on a template, test it on a few more PDFs from the same supplier.
+
+1. In the Mapper, choose **Test on samples**, then drop 3 or 4 more PDFs on **Add samples**. They're kept in `Templates/<id>/samples/`.
+2. The grid shows one row per field, table and check, and one column per sample. Green cells passed; red cells say why they failed.
+3. **Suggested fixes:** when a label is printed differently on one sample (for example "GST included" instead of "Total GST"), the app finds it and offers "Add 'GST included' as another label for TotalGST". **Where it failed** shows the spot on the page. Choose **Apply**, and every sample is re-run.
+4. When the summary reads, for example, "28 of 28 checks passed across 4 samples", choose **Save template**.
+
+## 5. Processing the inbox
+
+1. Open **Process**. The header shows the folders it reads and writes.
+2. Choose **Process N files**. A progress bar shows each file; **Cancel** stops after the current file (a file is never left half done).
+3. When it's finished:
+   - The tiles count what happened: Extracted, Needs review, Unknown supplier, Rows written.
+   - The files table lists each file with its template, status, a plain-English detail and the next step.
+   - **Written to Output** lists the files written.
+
+What happens to each file:
+
+| Status | Meaning | Where the PDF goes |
+| --- | --- | --- |
+| Extracted | Matched a template and every check passed. CSV and JSON written to `Output/`. | `Processed/<month>/` |
+| Needs review | A value is missing, didn't parse, was read with low confidence, or a check failed. | `Exceptions/` |
+| Unknown supplier | No template matched. | `Exceptions/` |
+| Ambiguous match | More than one template matched. | `Exceptions/` |
+| Could not read | The PDF is password protected, damaged, or has no text and no readable scan. | `Exceptions/` |
+| Already processed | The same PDF (same bytes) was already extracted. Nothing new is written. | `Processed/<month>/` |
+| Skipped (in use) | Someone else is processing it right now. | stays in `Inbox/` |
+
+**Scanned PDFs** are read with text recognition (OCR) automatically. The files table marks them "Scanned · read with OCR". OCR takes a few seconds per page, and any value it isn't sure about goes to review.
+
+If the browser tab closes mid-run, just run it again: nothing is duplicated.
+
+## 6. Reviewing exceptions
+
+**Review** lists every file that needs a person, with the reason. Filter by reason at the top. Choose **Open**.
+
+- The page is shown with the problem highlighted.
+- Every value is editable. Values read by OCR with low confidence say so ("Read by OCR as 34.32, low confidence").
+- The checks re-run as you type. When they all pass, the banner says "All checks pass. Approve to save the outputs."
+- **Approve and save** writes the CSV and JSON (marked `_Corrected = true` if you changed anything, with your name in `_ReviewedBy`), records each change in the audit log, and files the PDF in `Processed/`.
+- **Reject** moves the PDF to `Exceptions/Rejected/`, for example when a supplier sent the wrong document.
+- **Skip for now** leaves it for later. Your edits are kept.
+
+For an **unknown supplier**, choose **Create template from this file**. The Mapper opens with this PDF; after saving the template, come back and choose **Re-run this file**. For an **ambiguous match**, pick the right template from the list.
+
+## 7. Settings
+
+Open **Settings** (top right):
+
+- **Your name** for audit lines.
+- **Confidence threshold:** values read with lower confidence go to review. 0.8 is a good default; raise it to be stricter.
+- **Add a byte-order mark to CSV files:** keep this on so Excel shows characters correctly.
+- **Change folder**, **Export all templates (zip)** and **Import templates**.
+
+## 8. Working as a team
+
+- Everyone uses the same synced folder. Templates, outputs and settings are shared.
+- When someone has a template, a review or a file open, others see "In use by Sam since 09:05" with **Open anyway**. Notices older than 30 minutes are ignored.
+- Each person has their own audit file, so OneDrive never has to merge two people's edits.
+
+## Basic mode
+
+Firefox, Safari, or a browser where folder access is blocked can't save into folders. The app then shows: "This browser can't save into folders. Use Chrome or Edge for the full app. You can still map templates and extract single files."
+
+In basic mode:
+
+- Templates are stored in this browser only. Use **Import JSON** on Templates to load templates exported from the full app.
+- On **Process**, choose **Open PDF files** or **Open a folder of PDFs**. Nothing is moved.
+- Download results with **Download CSV**, **Download JSON**, **Download all as zip** or **Download XLSX**.
+
+## 10. Using it offline
+
+After the first visit the app keeps a copy of itself, so it opens and works without a network connection. In Chrome or Edge you can also install it: use the install icon in the address bar. OneDrive syncs the folder when you're back online.
+
+## 11. Keyboard use
+
+- **Tab** moves between controls; every button and field has a visible focus outline.
+- In the Mapper's page view: **arrow keys** move between words, **Enter** selects the word (Shift+Enter adds it to the selection), **Escape** cancels, **Home** goes to the first word. A screen reader announces each word.
+- Column dividers: focus one and use **Left** and **Right** to move it.
+
+## 12. Questions and problems
+
+| Problem | What to do |
+| --- | --- |
+| "Reconnect to your folder" on every visit | Allow the site to remember the permission when Chrome or Edge asks, or install the app. |
+| "Downloading … from OneDrive" | The file was online-only. Wait a moment, or right-click the folder in File Explorer and choose **Always keep on this device**. |
+| A supplier changed their layout | Open the template, map the new labels (or use **Test on samples** to get suggested fixes), and save. Old versions stay for old documents. |
+| A value is read wrongly every time | Re-pick it, add a pattern or cleaner in the field editor, or set a fixed box. |
+| "Something went wrong" | Choose **Reload**. If it keeps happening, choose **Copy details** and send them to whoever looks after the tool. Your files are safe. |

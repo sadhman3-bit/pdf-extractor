@@ -42,6 +42,19 @@ test('the scanned Northline statement is read with self-hosted OCR', async ({ pa
     tables: { Transactions: { rows: { cells: Record<string, ReviewCell> }[] } };
   };
   expect(ex.ocr).toBe(true);
+
+  // Performance (section 4.12, target under 8 s per scanned page, including starting
+  // the OCR engine). Logged rather than asserted: timing varies with machine load.
+  // The measured figure is recorded in docs/DECISIONS.md.
+  const finished = await page
+    .getByRole('main')
+    .getByText(/^Processed just now/)
+    .textContent();
+  const secs = Number(/([\d.]+) s/.exec(finished ?? '')?.[1]);
+  const perPage = secs / review.extraction.pages;
+  console.log(
+    `OCR: ${secs} s for ${review.extraction.pages} page(s), ${perPage.toFixed(1)} s per page`,
+  );
   expect(ex.status).toBe('review');
 
   // Every header field.

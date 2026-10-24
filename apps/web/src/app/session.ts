@@ -12,6 +12,7 @@ import { createFolders, loadSettings, loadTemplates, missingFolders } from '../w
 import { countExceptions } from '../workspace/review';
 import { idbGet, idbSet } from '../lib/idb';
 import { local } from '../lib/local';
+import { S } from '../strings';
 import { testHooks } from './testing';
 
 const HANDLE_KEY = 'workspace-handle';
@@ -52,7 +53,7 @@ export async function startup(): Promise<void> {
 
 export async function enterBasic(): Promise<void> {
   const h = await opfsRoot('pdfx-basic');
-  const ws = new HandleWorkspace(h, 'opfs', 'Browser storage');
+  const ws = new HandleWorkspace(h, 'opfs', S.basic.storageName);
   await createFolders(ws);
   app.set({ basic: true, ws, folderName: '', connected: false });
   await refresh();

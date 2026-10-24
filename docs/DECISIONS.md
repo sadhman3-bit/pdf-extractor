@@ -48,3 +48,23 @@ One line per deviation or judgement call, newest at the bottom of each section.
 - The scanned fixture's smudge is a faint grey smear plus specks over row 4's amount, tuned so tesseract reads "34.32" below the 0.8 confidence threshold (flagged for review) rather than dropping the value.
 - OCR cannot read the masked-card bullets ("•• 0034"); the M10 test compares that column by its digits only, and those cells are flagged as low confidence for review.
 - A review's edits autosave after 400 ms; approve, reject, skip and re-run cancel the pending save first (skip saves the edits at once), so a late save can't recreate a handled review file.
+- The Mapper remembers which exception a new template was started from (IndexedDB `origin:<id>`). After saving, it offers "Go to the file to re-run it", which opens that file in Review, where "Re-run this file" extracts it.
+- Labels such as "Invoice No", "Number", "Code", "ID", "Ref", "PO" and "ABN" (and any preset whose type is text) give a text field even when the value is all digits, so identifiers keep leading zeros and aren't summed.
+- The service worker uses `clientsClaim` and `skipWaiting`, so the first visit is already controlled and the app works offline without a second load.
+- `theme-color`, the manifest colours and the generated icons read their values from `tokens.css` (`apps/web/scripts/tokens.mjs`) at build time. The colour test also scans `index.html`, `vite.config.ts` and the build scripts.
+- Template keywords shown in selects (types, match modes, directions, severities) and reason codes in the Review filter use labels from `strings.ts`. The Page and Occurrence boxes still show the keywords `any` and `first` as placeholders, because those are what the user types.
+- Reason messages ("Amounts add up to $415.18, but Total Due is $424.18…") are written by the engine, which can't import the web app's `strings.ts`. They live in `packages/engine/src` as the engine's own plain-English output.
+- `corrections` entries in the output JSON are `{ field, table?, row?, from, to }`, with `from` and `to` as typed values (numbers for numeric columns). The plan shows `corrections: []` without fixing the entry shape.
+
+## Performance (section 4.12)
+
+Measured on 2026-10-24 on the build machine (Windows 10, Node 22.16, Chromium from Playwright 1.64.1). Digital timings come from `pnpm perf` (the same engine and pdf.js adapter the worker uses, median of 5 runs, 3 for the batch); OCR comes from the OCR end-to-end test in the real app.
+
+| Target | Measured | Result |
+| --- | --- | --- |
+| 2-page digital PDF under 300 ms | 50 ms | Met |
+| 20-page digital PDF under 2 s | 391 ms | Met |
+| 50 digital PDFs under 30 s | 4.0 s | Met |
+| One scanned page through OCR under 8 s | 5.3 to 7.7 s per page across runs (10.5 to 15.4 s for the 2-page scan, including starting the OCR engine) | Met, with little margin on a busy machine |
+
+OCR is the tightest. Starting the OCR engine is paid once per run, so longer runs average lower per page. On a slower PC, switching the language data to tesseract's "fast" model would roughly halve OCR time at some cost in accuracy; that's left as a later option.

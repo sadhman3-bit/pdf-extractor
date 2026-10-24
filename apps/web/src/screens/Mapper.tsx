@@ -96,6 +96,8 @@ export function MapperScreen() {
   const [changing, setChanging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
+  // The exception this template was created from, offered for a re-run after saving.
+  const [sourceFile, setSourceFile] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
   // Id of a template this screen just created; its route change needs no reload.
   const created = useRef<string | null>(null);
@@ -452,6 +454,7 @@ export function MapperScreen() {
     setSavedAt(null);
     setMessage({ tone: 'success', text: S.mapper.savedAs(saved.version) });
     app.announce(S.mapper.savedAs(saved.version));
+    setSourceFile((await idbGet<string>(`origin:${saved.id}`)) ?? null);
     await refresh();
   };
 
@@ -563,6 +566,26 @@ export function MapperScreen() {
           }
         >
           {S.mapper.resumeTitle(timeHM(resume.savedAt))}
+        </Banner>
+      ) : null}
+      {sourceFile ? (
+        <Banner
+          tone="success"
+          action={
+            <button
+              type="button"
+              class="btn btn-primary"
+              onClick={async () => {
+                await idbDel(`origin:${draft.id}`);
+                setSourceFile(null);
+                navigate({ view: 'review', file: sourceFile });
+              }}
+            >
+              {S.mapper.backToFile}
+            </button>
+          }
+        >
+          {S.mapper.createdFrom(sourceFile)}
         </Banner>
       ) : null}
       {message ? (

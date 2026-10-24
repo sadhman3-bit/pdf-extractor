@@ -14,8 +14,14 @@ function walk(dir: string): string[] {
 describe('one source for colours', () => {
   it('has no hard-coded hex colours outside tokens.css', () => {
     const offenders: string[] = [];
-    for (const file of walk(SRC)) {
-      if (!/\.(tsx|css)$/.test(file)) continue;
+    const web = join(SRC, '..');
+    const extra = [
+      join(web, 'index.html'),
+      join(web, 'vite.config.ts'),
+      ...walk(join(web, 'scripts')).filter((f) => f.endsWith('.mjs')),
+    ];
+    for (const file of [...walk(SRC), ...extra]) {
+      if (!/\.(tsx|css|html|mjs)$/.test(file) && !extra.includes(file)) continue;
       if (file.endsWith('tokens.css')) continue;
       const text = readFileSync(file, 'utf8');
       const lines = text.split('\n');

@@ -14,6 +14,7 @@ import {
   type TemplateSet,
 } from '@pdfx/engine';
 import type { Workspace } from './types';
+import { S } from '../strings';
 import { DIRS, basename, join, monthFolder, stem, uniqueName } from './paths';
 import { appendAudit, releaseLock, takeLock, type Lock, type Settings } from './store';
 
@@ -74,7 +75,7 @@ export function detailFor(ex: Extraction): string {
   if (ex.status === 'ok') {
     const rows = rowCount(ex);
     const passed = ex.checks.filter((c) => c.result === 'pass').length;
-    return `${rows} ${rows === 1 ? 'row' : 'rows'} · ${passed} of ${ex.checks.length} checks passed`;
+    return S.process.detailOk(rows, passed, ex.checks.length);
   }
   return ex.reasons[0]?.message ?? '';
 }
@@ -196,7 +197,7 @@ export async function processFile(
         rows: 0,
         written: [],
         movedTo: join(dest, name),
-        detail: `Already processed: ${dup}`,
+        detail: S.process.duplicateOf(dup),
       };
     }
     await step(3);

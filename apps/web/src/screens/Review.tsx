@@ -95,7 +95,7 @@ export function ReviewScreen() {
               <option value="">{S.review.filterAll}</option>
               {codes.map((c) => (
                 <option key={c} value={c}>
-                  {c.replace(/_/g, ' ')}
+                  {S.options.reason[c as keyof typeof S.options.reason] ?? c}
                 </option>
               ))}
             </select>

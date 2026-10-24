@@ -47,6 +47,13 @@ describe('click-to-map inference', () => {
     });
   });
 
+  it('keeps an all-digit invoice number as text', async () => {
+    const l = await layoutOf('ridgeway-invoice-88231.pdf');
+    const no = inferField(l, [token(l, '88231')])!;
+    expect(no.rule).toMatchObject({ name: 'InvoiceNumber', type: 'text' });
+    expect(extractField(l, no.rule).value).toBe('88231');
+  });
+
   it('falls back to the label directly above', async () => {
     const l = await layoutOf('northline-sep26.pdf');
     const r = inferField(l, [token(l, 'Brightwater')])!;

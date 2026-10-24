@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
+import { token } from './scripts/tokens.mjs';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
   version: string;
@@ -34,6 +35,14 @@ function cspPlugin(): Plugin {
   };
 }
 
+/** Fills index.html's theme colour from tokens.css. */
+function themeColorPlugin(): Plugin {
+  return {
+    name: 'pdfx-theme-color',
+    transformIndexHtml: (html) => html.replace('%THEME_COLOR%', token('topbar')),
+  };
+}
+
 export default defineConfig(({ mode }) => ({
   base: '/pdf-extractor/',
   define: {
@@ -43,6 +52,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     preact(),
     cspPlugin(),
+    themeColorPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script',
@@ -51,8 +61,8 @@ export default defineConfig(({ mode }) => ({
         name: 'PDF Extractor',
         short_name: 'PDF Extractor',
         description: 'Turn supplier PDFs into identical, checked CSV and JSON tables.',
-        theme_color: '#161A1F',
-        background_color: '#F3F4F6',
+        theme_color: token('topbar'),
+        background_color: token('bg'),
         display: 'standalone',
         start_url: '/pdf-extractor/',
         scope: '/pdf-extractor/',
@@ -67,6 +77,9 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
+        // Take control on the first visit, so the app works offline without a second load.
+        clientsClaim: true,
+        skipWaiting: true,
       },
     }),
   ],

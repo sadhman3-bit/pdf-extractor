@@ -102,6 +102,7 @@ export const S = {
     downloadZip: 'Download all as zip',
     downloadXlsx: 'Download XLSX',
     nothingMoved: 'Files are read only in basic mode. Nothing is moved.',
+    storageName: 'Browser storage',
   },
   settings: {
     title: 'Settings',
@@ -155,6 +156,8 @@ export const S = {
     testOnSamples: 'Test on samples',
     saveTemplate: 'Save template',
     savedAs: (v: number) => `Saved as version ${v}`,
+    createdFrom: (f: string) => `This template was started from ${f}. Re-run it now to extract it.`,
+    backToFile: 'Go to the file to re-run it',
     noSample: 'Choose a sample PDF to start mapping.',
     noTemplate: 'Open a template from the Templates screen, or start a new one.',
     modes: 'Mapping mode',
@@ -310,6 +313,9 @@ export const S = {
     writtenNone: 'Nothing written yet.',
     ocrProgress: (p: number) => `Reading scanned page ${p} with OCR`,
     refresh: 'Refresh',
+    detailOk: (rows: number, passed: number, total: number) =>
+      `${rows} ${rows === 1 ? 'row' : 'rows'} · ${passed} of ${total} checks passed`,
+    duplicateOf: (path: string) => `Already processed: ${path}`,
   },
   review: {
     title: 'Review',
@@ -339,6 +345,45 @@ export const S = {
     cellLabel: (table: string, row: number, column: string) => `${table} row ${row} ${column}`,
     back: 'Back to list',
     unreadable: 'This file can’t be read. Ask the supplier for a new copy, then reject this one.',
+  },
+  options: {
+    type: {
+      text: 'Text',
+      number: 'Number',
+      integer: 'Whole number',
+      currency: 'Currency',
+      date: 'Date',
+    },
+    match: {
+      exact: 'Exact',
+      'starts-with': 'Starts with',
+      contains: 'Contains',
+      regex: 'Pattern (regular expression)',
+    },
+    direction: {
+      right: 'Right of the label',
+      below: 'Below the label',
+      left: 'Left of the label',
+      above: 'Above the label',
+    },
+    severity: { error: 'Error (sends to review)', warning: 'Warning only' },
+    // Typed into the Page and Occurrence boxes, so these are the template keywords.
+    pageAny: 'any',
+    occurrenceFirst: 'first',
+    reason: {
+      password_protected: 'Password protected',
+      unreadable: 'Can’t be read',
+      no_text: 'No text found',
+      unknown_template: 'Unknown supplier',
+      ambiguous_template: 'Matches several templates',
+      missing_field: 'Missing value',
+      parse_failed: 'Value didn’t parse',
+      table_not_found: 'Table not found',
+      row_parse_failed: 'Row didn’t parse',
+      check_failed: 'Check failed',
+      check_unknown: 'Check couldn’t run',
+      low_confidence: 'Low confidence',
+    },
   },
   errors: {
     title: 'Something went wrong',

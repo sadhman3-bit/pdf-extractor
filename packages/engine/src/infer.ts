@@ -136,8 +136,11 @@ export function inferField(
   }
   if (!anchor) return null;
   const label = labelText(anchor) || anchor.text;
-  const type = inferType(value);
   const preset = presetFor(label);
+  // Identifiers such as "Invoice No: 88231" stay text even when they look numeric.
+  const identifier =
+    preset?.type === 'text' || /\b(no|number|code|id|ref|reference|po|abn)\b|#/i.test(label);
+  const type = identifier ? 'text' : inferType(value);
   let name = preset?.name ?? nameFromLabel(label);
   if (existing.includes(name)) {
     let n = 2;

@@ -218,7 +218,7 @@ function FieldEditor({
           >
             {FIELD_TYPES.map((t) => (
               <option key={t} value={t}>
-                {t}
+                {S.options.type[t]}
               </option>
             ))}
           </select>
@@ -284,7 +284,7 @@ function FieldEditor({
           >
             {MATCH_MODES.map((m) => (
               <option key={m} value={m}>
-                {m}
+                {S.options.match[m]}
               </option>
             ))}
           </select>
@@ -299,7 +299,7 @@ function FieldEditor({
           >
             {DIRECTIONS.map((m) => (
               <option key={m} value={m}>
-                {m}
+                {S.options.direction[m]}
               </option>
             ))}
           </select>
@@ -333,7 +333,7 @@ function FieldEditor({
           <input
             type="text"
             value={selValue(f.page)}
-            placeholder="any"
+            placeholder={S.options.pageAny}
             onInput={(e) =>
               set({ page: parseSel((e.target as HTMLInputElement).value) as FieldRule['page'] })
             }
@@ -344,7 +344,7 @@ function FieldEditor({
           <input
             type="text"
             value={selValue(f.occurrence)}
-            placeholder="first"
+            placeholder={S.options.occurrenceFirst}
             onInput={(e) =>
               set({
                 occurrence: parseSel(
@@ -505,7 +505,7 @@ export function TablePanel({
                     >
                       {FIELD_TYPES.map((t) => (
                         <option key={t} value={t}>
-                          {t}
+                          {S.options.type[t]}
                         </option>
                       ))}
                     </select>
@@ -789,8 +789,8 @@ export function ChecksPanel({
                 setSeverity((e.target as HTMLSelectElement).value as 'error' | 'warning')
               }
             >
-              <option value="error">error</option>
-              <option value="warning">warning</option>
+              <option value="error">{S.options.severity.error}</option>
+              <option value="warning">{S.options.severity.warning}</option>
             </select>
           </label>
         </div>
