@@ -204,6 +204,11 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => void saveEdits(ws, item, next), 400);
   };
+  /** Cancels a pending autosave so it can't rewrite the review file after it has been handled. */
+  const stopAutosave = () => {
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = null;
+  };
   const editValue = (e: Omit<Edit, 'to'>, fallback: string) =>
     edits.find((x) =>
       e.field
@@ -218,6 +223,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
     firstProblem?.bbox && firstProblem.page === pageNo ? firstProblem.bbox : null;
 
   const rerun = async (only?: TemplateSet[]) => {
+    stopAutosave();
     setBusy(true);
     setError(null);
     try {
@@ -283,6 +289,8 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
             class="btn"
             disabled={busy}
             onClick={async () => {
+              stopAutosave();
+              await saveEdits(ws, item, edits);
               await skip(ws, item, s.user, now());
               onDone('');
             }}
@@ -294,6 +302,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
             class="btn btn-danger"
             disabled={busy}
             onClick={async () => {
+              stopAutosave();
               await reject(ws, item, s.user, now());
               onDone(S.review.rejected(item.name));
             }}
@@ -308,6 +317,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
               aria-describedby={!canApprove ? 'approve-hint' : undefined}
               onClick={async () => {
                 if (!t) return;
+                stopAutosave();
                 setBusy(true);
                 await approve(ws, item, t, edits, s.user, s.settings, now());
                 onDone(S.review.approved(item.name));
@@ -501,7 +511,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
                               <td key={c.name} class={bad ? 'cell-fail' : low ? 'cell-low' : ''}>
                                 <input
                                   type="text"
-                                  aria-label={`${tb.name} row ${ri + 1} ${c.name}`}
+                                  aria-label={S.review.cellLabel(tb.name, ri + 1, c.name)}
                                   value={editValue(
                                     { table: tb.name, row: ri, column: c.name },
                                     cell.csv || cell.raw,

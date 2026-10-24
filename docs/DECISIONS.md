@@ -47,3 +47,4 @@ One line per deviation or judgement call, newest at the bottom of each section.
 - Scrollable table wrappers take `tabIndex={0}` so keyboard users can scroll them (axe `scrollable-region-focusable`).
 - The scanned fixture's smudge is a faint grey smear plus specks over row 4's amount, tuned so tesseract reads "34.32" below the 0.8 confidence threshold (flagged for review) rather than dropping the value.
 - OCR cannot read the masked-card bullets ("•• 0034"); the M10 test compares that column by its digits only, and those cells are flagged as low confidence for review.
+- A review's edits autosave after 400 ms; approve, reject, skip and re-run cancel the pending save first (skip saves the edits at once), so a late save can't recreate a handled review file.

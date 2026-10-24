@@ -336,6 +336,7 @@ export const S = {
     candidates: 'This file matches more than one template:',
     useTemplate: (n: string) => `Use ${n}`,
     open: 'Open',
+    cellLabel: (table: string, row: number, column: string) => `${table} row ${row} ${column}`,
     back: 'Back to list',
     unreadable: 'This file can’t be read. Ask the supplier for a new copy, then reject this one.',
   },

@@ -56,8 +56,8 @@ Resume from the first unticked item. Each milestone ends with a commit `M<n>: <s
 - [x] No OCR file is fetched from outside the origin
 
 ## M11: Review
-- [ ] Correcting row 4 of the scanned fixture from 34.32 to 43.32 turns the checks green
-- [ ] Approving writes outputs with `_Corrected = true`, writes the audit line, and moves the file
+- [x] Correcting row 4 of the scanned fixture from 34.32 to 43.32 turns the checks green
+- [x] Approving writes outputs with `_Corrected = true`, writes the audit line, and moves the file
 
 ## M12: Polish and release (section 13, definition of done)
 - [ ] All milestone acceptance checks in this file are ticked
