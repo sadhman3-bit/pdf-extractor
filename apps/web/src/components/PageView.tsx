@@ -8,6 +8,8 @@ export interface Mark {
   bbox: BBox;
   kind: 'field' | 'suggest' | 'table' | 'end' | 'error' | 'selected';
   label?: string;
+  /** The field being edited: drawn with a stronger outline. */
+  active?: boolean;
   tag?: 'accent' | 'warn';
 }
 
@@ -82,6 +84,10 @@ export function PageView(props: {
   selected?: Token[];
   dividers?: Divider[];
   onToken?: (t: Token, shift: boolean) => void;
+  /** Words inside a box dragged across the page. */
+  onTokens?: (ts: Token[]) => void;
+  /** The words a click on this word would take, highlighted on hover. */
+  expand?: (t: Token) => Token[];
   onEscape?: () => void;
   /** Scroll this box into view after rendering. */
   focusBox?: BBox | null;
@@ -96,11 +102,19 @@ export function PageView(props: {
     selected = [],
     dividers = [],
     onToken,
+    onTokens,
+    expand,
     onEscape,
     focusBox,
   } = props;
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  const pageBox = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ x: number; y: number; px: number; py: number; moved: boolean } | null>(
+    null,
+  );
+  const [band, setBand] = useState<BBox | null>(null);
+  const [hover, setHover] = useState<Token[]>([]);
   const [width, setWidth] = useState(800);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [pdfPage, setPdfPage] = useState<PdfPage | null>(null);
@@ -153,7 +167,56 @@ export function PageView(props: {
 
   const lines = useMemo(() => readingOrder(tokens), [tokens]);
   const flat = useMemo(() => lines.flat(), [lines]);
-  useEffect(() => setFocus(-1), [tokens]);
+  useEffect(() => {
+    setFocus(-1);
+    setHover([]);
+  }, [tokens]);
+
+  /** Pointer position in PDF points. */
+  const at = (e: PointerEvent) => {
+    const r = pageBox.current!.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale };
+  };
+  const norm = (b: BBox): BBox => [
+    Math.min(b[0], b[2]),
+    Math.min(b[1], b[3]),
+    Math.max(b[0], b[2]),
+    Math.max(b[1], b[3]),
+  ];
+  const onDown = (e: PointerEvent) => {
+    if (!onTokens || e.button !== 0) return;
+    if ((e.target as HTMLElement).closest('.divider-handle')) return;
+    const p = at(e);
+    drag.current = { x: p.x, y: p.y, px: p.x, py: p.y, moved: false };
+  };
+  const onMove = (e: PointerEvent) => {
+    const d = drag.current;
+    if (!d) return;
+    const p = at(e);
+    if (!d.moved) {
+      if (Math.hypot(p.x - d.x, p.y - d.y) * scale < 6) return;
+      d.moved = true;
+      pageBox.current!.setPointerCapture(e.pointerId);
+      setHover([]);
+    }
+    d.px = p.x;
+    d.py = p.y;
+    setBand([d.x, d.y, p.x, p.y]);
+  };
+  const onUp = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d?.moved) return setBand(null);
+    const [x0, y0, x1, y1] = norm([d.x, d.y, d.px, d.py]);
+    setBand(null);
+    // A word counts when its centre is inside the box.
+    const inside = flat.filter((t) => {
+      const cx = (t.x0 + t.x1) / 2;
+      const cy = (t.y0 + t.y1) / 2;
+      return cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1;
+    });
+    if (inside.length) onTokens?.(inside);
+  };
 
   const box = (b: BBox) => ({
     left: `${b[0] * scale}px`,
@@ -210,6 +273,7 @@ export function PageView(props: {
   };
 
   const sel = new Set(selected);
+  const hovered = new Set(hover);
   const focused = flat[focus];
 
   return (
@@ -226,6 +290,14 @@ export function PageView(props: {
     >
       <div
         class="page-box"
+        ref={pageBox}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={() => {
+          drag.current = null;
+          setBand(null);
+        }}
         style={size ? { width: `${size.w * scale}px`, height: `${size.h * scale}px` } : undefined}
       >
         <canvas ref={canvas} aria-hidden="true" />
@@ -233,10 +305,14 @@ export function PageView(props: {
           ? flat.map((t, i) => (
               <div
                 key={i}
-                class={`tok${sel.has(t) ? ' tok-selected' : ''}${focused === t ? ' tok-focus' : ''}`}
+                class={`tok${sel.has(t) ? ' tok-selected' : ''}${hovered.has(t) ? ' tok-hover' : ''}${focused === t ? ' tok-focus' : ''}`}
                 style={box([t.x0, t.y0, t.x1, t.y1])}
                 aria-hidden="true"
                 data-text={t.text}
+                onMouseEnter={() => {
+                  if (!drag.current?.moved) setHover(expand ? expand(t) : [t]);
+                }}
+                onMouseLeave={() => setHover([])}
                 onClick={(e) => {
                   setFocus(i);
                   onToken(t, (e as MouseEvent).shiftKey);
@@ -247,7 +323,7 @@ export function PageView(props: {
         {marks.map((m, i) => (
           <div
             key={`m${i}`}
-            class={`mark mark-${m.kind === 'selected' ? 'field' : m.kind}`}
+            class={`mark mark-${m.kind === 'selected' ? 'field' : m.kind}${m.active ? ' mark-active' : ''}`}
             style={box(m.bbox)}
             aria-hidden="true"
           >
@@ -256,6 +332,7 @@ export function PageView(props: {
             ) : null}
           </div>
         ))}
+        {band ? <div class="band" style={box(norm(band))} aria-hidden="true" /> : null}
         {dividers.map((d, i) => (
           <DividerHandle key={`d${i}`} d={d} scale={scale} />
         ))}

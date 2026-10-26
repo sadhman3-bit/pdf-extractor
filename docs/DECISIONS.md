@@ -79,3 +79,13 @@ OCR is the tightest. Starting the OCR engine is paid once per run, so longer run
 - The Mapper's side panel is split into tabs (Fields, Table, Checks, Fingerprint, Preview), and it switches to the tab you're working on. The page view stays in view while you scroll.
 - `pnpm screenshots` captures every screen in light and dark mode into `docs/screenshots`, for design review and the README. The normal e2e run ignores it.
 - The project is open source under the MIT licence; bundled third-party software, fonts and OCR data are listed with their licences in `THIRD_PARTY_NOTICES.md`.
+
+## Mapper interaction rework (after 1.0.0)
+
+Feedback was that mapping felt clunky: fields were hard to remove, and clicks picked single words. Changes:
+
+- **A click takes the whole value.** `valueTokens` (engine) widens a clicked word to the rest of its phrase, leaving out a label in front ("ABN", "Ref:"). Number-like words (digits, month names, currency signs) only widen across number-like neighbours, so "12 Mar 2026" is one date. Hovering highlights what a click will take. Multi-word picks now use `phrase` or `tokens:n` for every type (before, non-text fields always used `token`, which cut "12 Mar 2026" to "12").
+- **Drag to select** several words; Shift-click still adds single words.
+- **Clicking a mapped value opens its field** instead of adding a duplicate; clicking a suggested value accepts it.
+- **Remove from the row** (×), with Undo in a toast.
+- **Quieter page:** labels show only on the field being edited or pointed at in the list, so tags no longer cover neighbouring values. Fields are listed before suggestions, which gained **Accept all**, and the rarely needed field settings sit under **More options**.

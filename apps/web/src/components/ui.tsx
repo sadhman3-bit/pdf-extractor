@@ -98,24 +98,39 @@ export function Working({ label, slowAfter = 10 }: { label: string; slowAfter?: 
 let toastId = 0;
 
 /** Shows a short confirmation ("Saved as version 3") for a few seconds, and announces it. */
-export function toast(text: string): void {
+export function toast(text: string, action?: { label: string; run: () => void }): void {
   const id = ++toastId;
-  app.set({ toasts: [...app.get().toasts, { id, text }].slice(-3) });
+  app.set({ toasts: [...app.get().toasts, { id, text, ...(action ? { action } : {}) }].slice(-3) });
   app.announce(text);
-  window.setTimeout(() => app.set({ toasts: app.get().toasts.filter((t) => t.id !== id) }), 4000);
+  window.setTimeout(
+    () => app.set({ toasts: app.get().toasts.filter((t) => t.id !== id) }),
+    action ? 8000 : 4000,
+  );
 }
 
 export function Toasts() {
   const { toasts } = useAppToasts();
   if (!toasts.length) return null;
   return (
-    <div class="toasts" aria-hidden="true">
+    <div class="toasts">
       {toasts.map((t) => (
         <div class="toast" key={t.id}>
-          <span class="toast-icon">
+          <span class="toast-icon" aria-hidden="true">
             <CheckIcon size={14} />
           </span>
-          {t.text}
+          <span aria-hidden="true">{t.text}</span>
+          {t.action ? (
+            <button
+              type="button"
+              class="toast-action"
+              onClick={() => {
+                t.action!.run();
+                app.set({ toasts: app.get().toasts.filter((x) => x.id !== t.id) });
+              }}
+            >
+              {t.action.label}
+            </button>
+          ) : null}
         </div>
       ))}
     </div>

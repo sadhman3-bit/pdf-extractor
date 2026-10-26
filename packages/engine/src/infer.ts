@@ -81,6 +81,30 @@ function lineOfToken(layout: DocLayout, t: Token): Line | undefined {
 /** Text of a label phrase without the trailing colon. */
 const labelText = (p: Phrase) => p.text.replace(/\s*[:#]+$/, '').trim();
 
+const MONTH = /^(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*[.,]?$/i;
+const numberish = (t: Token) => /\d/.test(t.text) || MONTH.test(t.text) || /^[$€£(-]$/.test(t.text);
+
+/**
+ * The value a single click most likely means: the clicked word widened to the
+ * rest of its phrase ("12" → "12 Mar 2026", "Coastal" → "Coastal Telco Pty Ltd"),
+ * leaving out a label in front such as "ABN" or "Ref:".
+ */
+export function valueTokens(layout: DocLayout, t: Token): Token[] {
+  const line = lineOfToken(layout, t);
+  const own = line && phrases(line).find((p) => p.tokens.includes(t));
+  if (!own) return [t];
+  const toks = own.tokens;
+  const i = toks.indexOf(t);
+  let start = 0;
+  for (let k = 0; k < i; k++) if (/[:#]$/.test(toks[k]!.text)) start = k + 1;
+  if (!numberish(t)) return toks.slice(start);
+  let s = i;
+  while (s > start && numberish(toks[s - 1]!)) s--;
+  let e = i;
+  while (e < toks.length - 1 && numberish(toks[e + 1]!)) e++;
+  return toks.slice(s, e + 1);
+}
+
 export interface InferredField {
   rule: FieldRule;
   value: string;
@@ -149,8 +173,7 @@ export function inferField(
   }
   const ownPhrase = phrases(line).find((p) => p.tokens.includes(first));
   let take: string;
-  if (type !== 'text') take = 'token';
-  else if (sel.length === 1) take = 'token';
+  if (sel.length === 1) take = 'token';
   else if (
     ownPhrase &&
     ownPhrase.tokens.length === sel.length &&

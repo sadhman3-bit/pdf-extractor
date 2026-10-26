@@ -11,6 +11,8 @@ import {
   suggestFingerprint,
   suggestTable,
   toCsv,
+  valueTokens,
+  type BBox,
   type FieldRule,
   type InferredField,
   type PageText,
@@ -29,6 +31,7 @@ import {
   Segmented,
   fileBytes,
   timeHM,
+  toast,
   ActionButton,
 } from '../components/ui';
 import { PageView, usePdf, type Divider, type Mark, type Zoom } from '../components/PageView';
@@ -56,6 +59,17 @@ import {
 } from './MapperPanels';
 
 type Mode = 'value' | 'table' | 'end';
+
+/** True when the middle of a word lies inside a box (with a point of slack). */
+function inBox(t: Token, b: BBox): boolean {
+  const cx = (t.x0 + t.x1) / 2;
+  const cy = (t.y0 + t.y1) / 2;
+  return cx >= b[0] - 1 && cx <= b[2] + 1 && cy >= b[1] - 1 && cy <= b[3] + 1;
+}
+
+/** Words in reading order: top to bottom, then left to right. */
+const byReading = (a: Token, b: Token) =>
+  Math.abs(a.y0 - b.y0) > Math.min(a.height, b.height) / 2 ? a.y0 - b.y0 : a.x0 - b.x0;
 
 function titleCase(s: string) {
   return s
@@ -108,11 +122,15 @@ export function MapperScreen() {
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
   const [panel, setPanel] = useState<Panel>('fields');
+  // A field or suggestion pointed at in the list, outlined on the page.
+  const [hot, setHot] = useState<string | null>(null);
   // The exception this template was created from, offered for a re-run after saving.
   const [sourceFile, setSourceFile] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
   // Id of a template this screen just created; its route change needs no reload.
   const created = useRef<string | null>(null);
+  // The latest draft, for undo actions that run after later edits.
+  const latest = useRef<Template | null>(null);
   const pdf = usePdf(sample?.bytes ?? null);
 
   const ws = s.ws;
@@ -296,6 +314,7 @@ export function MapperScreen() {
     );
   }
 
+  latest.current = draft;
   const names = draft.fields.map((f) => f.name);
   const table = (draft.tables ?? [])[0];
   const tableResult = table ? result?.tables[table.name] : undefined;
@@ -307,6 +326,11 @@ export function MapperScreen() {
       ...draft,
       tables: t ? [t, ...(draft.tables ?? []).slice(1)] : (draft.tables ?? []).slice(1),
     });
+
+  const fieldAt = (t: Token) =>
+    draft.fields.find((f) =>
+      (result?.fields[f.name]?.boxes ?? []).some((b) => b.page === t.page && inBox(t, b.bbox)),
+    );
 
   const onToken = (t: Token, shift: boolean) => {
     if (!layout) return;
@@ -345,11 +369,51 @@ export function MapperScreen() {
       return;
     }
     // Click a value
+    if (repick) return pick(valueTokens(layout, t));
+    if (shift) {
+      const sel = selected.includes(t) ? selected.filter((x) => x !== t) : [...selected, t];
+      setSelected(sel);
+      const f = editing ? draft.fields.find((x) => x.id === editing) : undefined;
+      if (!f) return pick(sel);
+      const inf = inferField(
+        layout,
+        sel,
+        names.filter((n) => n !== f.name),
+      );
+      if (inf) updateField({ ...inf.rule, id: f.id, name: f.name });
+      return;
+    }
+    // A value that is already mapped opens its field instead of adding it twice.
+    const existing = fieldAt(t);
+    if (existing) {
+      setSelected([]);
+      setPanel('fields');
+      setEditing(existing.id);
+      app.announce(S.mapper.opened(existing.name));
+      return;
+    }
+    const sg = suggestions.find((x) => x.rule.hint?.page === t.page && inBox(t, x.rule.hint.bbox));
+    if (sg) {
+      setSelected([]);
+      setPanel('fields');
+      setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
+      setEditing(sg.rule.id);
+      app.announce(`${S.common.accept}: ${sg.rule.name}`);
+      return;
+    }
+    pick(valueTokens(layout, t));
+  };
+
+  /** Maps the chosen words: re-picks the field waiting for it, or adds a new field. */
+  const pick = (sel: Token[]) => {
+    if (!layout || !sel.length) return;
+    sel = [...sel].sort(byReading);
+    setSelected(sel);
     if (repick) {
       const f = draft.fields.find((x) => x.id === repick);
       const inf = inferField(
         layout,
-        [t],
+        sel,
         names.filter((n) => n !== f?.name),
       );
       if (f && inf)
@@ -360,32 +424,57 @@ export function MapperScreen() {
           type: f.type ?? inf.rule.type,
           required: f.required ?? true,
         });
+      else if (!inf) setMessage({ tone: 'warn', text: S.mapper.noLabel });
       setRepick(null);
-      setSelected([t]);
-      return;
-    }
-    const sel = shift
-      ? selected.includes(t)
-        ? selected.filter((x) => x !== t)
-        : [...selected, t]
-      : [t];
-    setSelected(sel);
-    if (shift && editing) {
-      const f = draft.fields.find((x) => x.id === editing);
-      const inf = inferField(
-        layout,
-        sel,
-        names.filter((n) => n !== f?.name),
-      );
-      if (f && inf) updateField({ ...inf.rule, id: f.id, name: f.name });
       return;
     }
     const inf = inferField(layout, sel, names);
-    if (!inf) return;
+    if (!inf) {
+      setMessage({ tone: 'warn', text: S.mapper.noLabel });
+      return;
+    }
+    setMessage(null);
     setPanel('fields');
     setDraft({ ...draft, fields: [...draft.fields, inf.rule] });
     setEditing(inf.rule.id);
     app.announce(`${inf.rule.name}: ${inf.value}`);
+  };
+
+  /** Words dragged across: the first one picks a table row or end line; values take them all. */
+  const onTokens = (ts: Token[]) => {
+    if (mode !== 'value') return onToken([...ts].sort(byReading)[0]!, false);
+    pick(ts);
+  };
+
+  /** What a click on a word would take, shown on hover. */
+  const expand = (t: Token): Token[] => {
+    if (!layout || mode !== 'value') return [t];
+    const f = repick ? undefined : fieldAt(t);
+    if (f) {
+      const boxes = (result?.fields[f.name]?.boxes ?? []).filter((b) => b.page === t.page);
+      return (pages?.[t.page - 1]?.tokens ?? []).filter((x) => boxes.some((b) => inBox(x, b.bbox)));
+    }
+    return valueTokens(layout, t);
+  };
+
+  const removeField = (id: string) => {
+    const i = draft.fields.findIndex((f) => f.id === id);
+    const f = draft.fields[i];
+    if (!f) return;
+    setDraft({ ...draft, fields: draft.fields.filter((x) => x.id !== id) });
+    if (editing === id) setEditing(null);
+    if (repick === id) setRepick(null);
+    setSelected([]);
+    toast(S.mapper.removed(f.name), {
+      label: S.mapper.undo,
+      run: () => {
+        const cur = latest.current;
+        if (!cur || cur.fields.some((x) => x.id === id)) return;
+        const fields = [...cur.fields];
+        fields.splice(Math.min(i, fields.length), 0, f);
+        setDraft({ ...cur, fields });
+      },
+    });
   };
 
   // Marks for the current page.
@@ -393,12 +482,28 @@ export function MapperScreen() {
   if (result) {
     for (const f of draft.fields) {
       for (const b of result.fields[f.name]?.boxes ?? [])
-        if (b.page === pageNo) marks.push({ bbox: b.bbox, kind: 'field', label: f.name });
+        if (b.page === pageNo)
+          marks.push({
+            bbox: b.bbox,
+            kind: 'field',
+            // Names only on the field in hand, so labels never cover other values.
+            ...(f.id === editing || f.id === hot ? { label: f.name, active: true } : {}),
+          });
     }
     for (const sg of suggestions) {
       const h = sg.rule.hint;
       if (h && h.page === pageNo)
-        marks.push({ bbox: h.bbox, kind: 'suggest', label: S.mapper.suggested, tag: 'warn' });
+        marks.push({
+          bbox: h.bbox,
+          kind: 'suggest',
+          ...(sg.rule.id === hot
+            ? {
+                label: `${S.mapper.suggested}: ${sg.rule.name}`,
+                tag: 'warn' as const,
+                active: true,
+              }
+            : {}),
+        });
     }
     if (tableResult?.found && tableResult.header) {
       const onPage = tableResult.rows.filter((r) => r.page === pageNo);
@@ -475,7 +580,7 @@ export function MapperScreen() {
 
   const fpParts = draft.fingerprint.mustContain.map((x) => `“${x}”`).join(', ');
   const panelCount = (p: Panel): number | null => {
-    if (p === 'fields') return draft.fields.length + suggestions.length;
+    if (p === 'fields') return draft.fields.length;
     if (p === 'table') return tableResult?.found ? tableResult.rows.length : null;
     if (p === 'checks') return (draft.checks ?? []).filter((c) => c.enabled !== false).length;
     return null;
@@ -622,7 +727,7 @@ export function MapperScreen() {
         </Banner>
       ) : null}
 
-      <div class="split">
+      <div class="split split-wide">
         <section class="card stack mapper-page" aria-label={sample?.name ?? S.mapper.title}>
           <div class="viewer-toolbar">
             <Segmented<Mode>
@@ -651,6 +756,7 @@ export function MapperScreen() {
               />
             </div>
           </div>
+          <p class="caption">{repick ? S.mapper.repickHint : S.mapper.modeHint[mode]}</p>
           {sample ? <p class="caption mono">{sample.name}</p> : null}
           {loading ? <p class="muted">{S.common.loading}</p> : null}
           {pdf.doc && pages ? (
@@ -664,6 +770,8 @@ export function MapperScreen() {
                 selected={selected}
                 dividers={dividers}
                 onToken={onToken}
+                onTokens={onTokens}
+                expand={expand}
                 onEscape={() => {
                   setSelected([]);
                   setRepick(null);
@@ -727,6 +835,15 @@ export function MapperScreen() {
                   setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
                   app.announce(`${S.common.accept}: ${sg.rule.name}`);
                 }}
+                onAcceptAll={() => {
+                  setDraft({
+                    ...draft,
+                    fields: [...draft.fields, ...suggestions.map((x) => x.rule)],
+                  });
+                  app.announce(`${S.mapper.acceptAll}: ${suggestions.length}`);
+                }}
+                hot={hot}
+                onHot={setHot}
                 onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
                 onEdit={setEditing}
                 onRepick={(id) => {
@@ -734,10 +851,7 @@ export function MapperScreen() {
                   setRepick(repick === id ? null : id);
                 }}
                 onChange={updateField}
-                onRemove={(id) => {
-                  setDraft({ ...draft, fields: draft.fields.filter((f) => f.id !== id) });
-                  setEditing(null);
-                }}
+                onRemove={removeField}
                 onAddPreset={(name) => {
                   const p = PRESETS.find((x) => x.name === name)!;
                   const f: FieldRule = {

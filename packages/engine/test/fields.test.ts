@@ -7,6 +7,8 @@ import {
   findAbns,
   matchTemplates,
   chooseVersion,
+  inferField,
+  valueTokens,
   type FieldRule,
   type Template,
 } from '../src';
@@ -219,5 +221,37 @@ describe('fingerprint', () => {
     const v3 = t('a', ['Northline'], { version: 3, fields: [f(['Statement No'])] });
     expect(chooseVersion(layout, { id: 'a', versions: [v1, v2, v3] }).version).toBe(3);
     expect(chooseVersion(layout, { id: 'a', versions: [v2] }).version).toBe(2);
+  });
+});
+
+describe('valueTokens and inferField', () => {
+  const l = buildLayout(
+    doc([
+      ...words('Statement date', 50, 100),
+      ...words('12 Mar 2026', 200, 100),
+      ...words('Supplier', 50, 130),
+      ...words('Coastal Telco Pty Ltd', 200, 130),
+      ...words('ABN 15 803 228 941', 50, 160),
+    ]),
+  );
+  const at = (text: string) =>
+    l.pages[0]!.lines.flatMap((x) => x.tokens).find((t) => t.text === text)!;
+  const text = (ts: { text: string }[]) => ts.map((t) => t.text).join(' ');
+
+  it('widens a click on part of a date to the whole date', () => {
+    const sel = valueTokens(l, at('Mar'));
+    expect(text(sel)).toBe('12 Mar 2026');
+    const inf = inferField(l, sel)!;
+    expect(inf.rule.type).toBe('date');
+    expect(inf.rule.take).toBe('phrase');
+    expect(extractField(l, inf.rule).value).toBe('2026-03-12');
+  });
+  it('widens a click on a name to the rest of the phrase', () => {
+    expect(text(valueTokens(l, at('Coastal')))).toBe('Coastal Telco Pty Ltd');
+  });
+  it('leaves out a label at the start of the same phrase', () => {
+    const sel = valueTokens(l, at('803'));
+    expect(text(sel)).toBe('15 803 228 941');
+    expect(inferField(l, sel)!.rule.anchor.labels).toEqual(['ABN']);
   });
 });

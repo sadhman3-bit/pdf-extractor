@@ -314,8 +314,12 @@ main.page {
   gap: var(--s4);
   align-items: start;
 }
+.split.split-wide {
+  grid-template-columns: minmax(0, 1.75fr) minmax(340px, 1fr);
+}
 @media (max-width: 1100px) {
-  .split {
+  .split,
+  .split.split-wide {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -842,6 +846,24 @@ table.data input {
   box-shadow: 0 8px 24px var(--page-shadow);
   animation: toast-in 0.18s ease-out;
 }
+.toast-action {
+  pointer-events: auto;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  margin-left: var(--s2);
+  border-radius: var(--r-control);
+  cursor: pointer;
+}
+.toast-action:hover {
+  background: var(--accent-tint);
+}
+.toast-action:focus-visible {
+  outline: 2px solid var(--focus);
+}
 .toast-icon {
   width: 22px;
   height: 22px;
@@ -874,6 +896,8 @@ table.data input {
 }
 .page-box {
   position: relative;
+  user-select: none;
+  touch-action: pan-x pan-y;
   margin: 0 auto;
   background: var(--paper);
   border-radius: 2px;
@@ -905,17 +929,27 @@ table.data input {
   border-color: var(--mark-field);
   background: var(--token-hover);
 }
+.band {
+  position: absolute;
+  pointer-events: none;
+  border: 1.5px dashed var(--mark-field);
+  background: var(--token-hover);
+  border-radius: 2px;
+}
+.mark-active {
+  outline: 2px solid var(--mark-field);
+  outline-offset: 1px;
+}
 .mark {
   position: absolute;
   pointer-events: none;
   border-radius: 3px;
 }
 .mark-field {
-  border: 2px solid var(--mark-field);
-  background: var(--token-hover);
+  border: 1.5px solid var(--mark-field);
 }
 .mark-suggest {
-  border: 2px dashed var(--mark-warn);
+  border: 1.5px dashed var(--mark-warn);
 }
 .mark-table {
   border: 2px solid var(--mark-field);
@@ -971,8 +1005,15 @@ table.data input {
   display: flex;
   gap: var(--s3);
   align-items: center;
-  flex-wrap: wrap;
   background: var(--surface);
+}
+.field-row > .grow {
+  min-width: 0;
+}
+.field-row > .row-actions,
+.field-row > .btn,
+.field-row > .icon-btn {
+  flex-shrink: 0;
 }
 .field-row:hover {
   border-color: var(--border-input);
@@ -980,6 +1021,9 @@ table.data input {
 .field-row.selected {
   border-color: var(--accent);
   background: var(--accent-tint);
+}
+.field-row.hot {
+  border-color: var(--accent);
 }
 .field-row.suggested {
   border: 1px dashed var(--mark-warn);
@@ -992,6 +1036,7 @@ table.data input {
 .field-value {
   font-family: var(--font-mono);
   color: var(--text-2);
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Dialog ---------- */
@@ -1408,6 +1453,15 @@ pre.details {
 .dropzone.compact p {
   display: inline;
 }
+.row.spread {
+  justify-content: space-between;
+}
+.card-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: var(--s2) 0 0;
+}
 .row.nowrap {
   flex-wrap: nowrap;
 }
@@ -1461,4 +1515,23 @@ table.data tbody th {
 }
 table.data tbody tr:last-child th {
   border-bottom: 0;
+}
+
+/* ---------- Collapsible options ---------- */
+details.more {
+  border-top: 1px solid var(--border);
+  padding-top: var(--s3);
+}
+details.more > summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--accent);
+  list-style-position: inside;
+}
+details.more > summary:focus-visible {
+  outline: 2px solid var(--focus);
+  border-radius: var(--r-control);
+}
+details.more[open] > summary {
+  margin-bottom: var(--s3);
 }

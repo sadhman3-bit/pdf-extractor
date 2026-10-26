@@ -28,7 +28,7 @@ export interface AppState {
   /** An action that failed, shown at the top of the page with its details. */
   problem: { message: string; detail: string } | null;
   /** Short confirmations shown in the corner for a few seconds. */
-  toasts: { id: number; text: string }[];
+  toasts: { id: number; text: string; action?: { label: string; run: () => void } }[];
 }
 
 const initial: AppState = {

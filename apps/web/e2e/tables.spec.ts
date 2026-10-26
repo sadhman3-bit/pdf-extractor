@@ -4,10 +4,12 @@ import { extractWithSaved, goldenJson } from './engine';
 
 const tok = (page: Page, text: string) => page.locator(`.tok[data-text="${text}"]`).first();
 
-/** Maps one value; extra words are added with Shift-click. Renames when needed. */
+/** Maps one value; words the click didn't take are added with Shift-click. Renames when needed. */
 async function mapField(page: Page, words: string[], name: string): Promise<void> {
   await tok(page, words[0]!).click();
-  for (const w of words.slice(1)) await tok(page, w).click({ modifiers: ['Shift'] });
+  for (const w of words.slice(1))
+    if (!(await tok(page, w).evaluate((el) => el.classList.contains('tok-selected'))))
+      await tok(page, w).click({ modifiers: ['Shift'] });
   const box = page.getByRole('combobox', { name: 'Name' });
   if ((await box.inputValue()) !== name) await box.fill(name);
   await page.getByRole('button', { name: 'Done' }).click();

@@ -228,6 +228,20 @@ export const S = {
     addField: '+ Add field from list',
     repick: 'Re-pick',
     repickHint: 'Click the value on the page to re-pick this field.',
+    modeHint: {
+      value:
+        'Click a value to map it. Drag a box to take several words together. Click a mapped value to edit it.',
+      table: 'Click any cell in the first row of the table.',
+      end: 'Click the line where the table ends, for example “Subtotal”.',
+    },
+    noLabel:
+      'No label was found next to that value. Pick a value with its label to its left or just above it, or use “Add field from list”.',
+    removeField: (name: string) => `Remove ${name}`,
+    acceptAll: 'Accept all',
+    suggestionsCount: (n: number) => `Suggestions (${n})`,
+    removed: (name: string) => `Removed ${name}`,
+    undo: 'Undo',
+    opened: (name: string) => `Editing ${name}`,
     noFields: 'No fields yet. Click a value on the page to map it.',
     ruleRight: (label: string, type: string) => `Right of ‘${label}’ · ${type}`,
     ruleBelow: (label: string, type: string) => `Below ‘${label}’ · ${type}`,
@@ -252,6 +266,7 @@ export const S = {
       useRegion: 'Use a fixed box if the label is missing',
       regionSet: 'Fixed box recorded from the selected value',
       remove: 'Remove field',
+      more: 'More options: label, direction, pattern, page',
       done: 'Done',
       removeLabel: (l: string) => `Remove label ${l}`,
     },

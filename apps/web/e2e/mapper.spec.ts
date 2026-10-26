@@ -82,3 +82,36 @@ test('mapping works from the keyboard alone', async ({ page }) => {
   const out = await extractWithSaved('northline-sep26.pdf', json);
   expect(out.fields).toEqual(goldenJson('northline-sep26').fields);
 });
+
+test('a mapped value reopens its field; fields remove with undo; dragging maps words', async ({
+  page,
+}) => {
+  await ready(page);
+  await startFromSample(page, 'northline-sep26.pdf');
+  const mapped = page.locator('.field-row:not(.suggested)');
+  const tok = (text: string) => page.locator(`.tok[data-text="${text}"]`).first();
+
+  await tok('ST-48213').click();
+  await page.getByRole('button', { name: 'Done' }).click();
+  await expect(mapped).toHaveCount(1);
+  // Clicking the same value again edits it instead of adding a second field.
+  await tok('ST-48213').click();
+  await expect(page.getByRole('group', { name: 'Field StatementNo' })).toBeVisible();
+  await expect(mapped).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Remove StatementNo' }).click();
+  await expect(mapped).toHaveCount(0);
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(mapped).toHaveCount(1);
+
+  // Drag a box around the date.
+  const b = (await tok('30/09/2026').boundingBox())!;
+  await page.mouse.move(b.x - 6, b.y - 6);
+  await page.mouse.down();
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 4 });
+  await page.mouse.move(b.x + b.width + 6, b.y + b.height + 6, { steps: 4 });
+  await page.mouse.up();
+  await expect(page.getByRole('combobox', { name: 'Name' })).toHaveValue('StatementDate');
+  await expect(mapped).toHaveCount(2);
+  await expectNoAxe(page);
+});

@@ -53,13 +53,17 @@ You need one sample PDF from the supplier.
 
 1. On **Templates**, choose **New template** (or open **Mapper** and drop a PDF on it).
 2. The app suggests a name and a **fingerprint**: text that appears on every document from this supplier, such as its name and ABN. Check it on the right ("Matches files that contain …").
-3. **Map each value.** With **Click a value** selected, click the value on the page (for example the statement number). The app:
+3. **Map each value.** With **Click a value** selected, click the value on the page (for example the statement number). Hovering shows exactly what a click will take: a click on any word takes the whole value, so "12 Mar 2026" or "Citric Acid Anhydrous" is one click. The app:
    - finds the label next to it (for example "Statement No"),
    - works out the type (date, amount, number or text),
-   - suggests a standard name (for example `StatementNo`) and opens the field editor.
+   - suggests a standard name (for example `StatementNo`) and opens the field editor at the top of the Fields list.
 
-   Check the name and type, then choose **Done**. To take several words, hold **Shift** and click the others.
-4. **Suggestions.** Dashed amber boxes marked "Suggested" are values the app thinks you'll want. **Accept** or **Dismiss** each one in the Fields panel.
+   Check the name and type, then choose **Done**. The label, direction, pattern and page settings are under **More options**; you rarely need them.
+
+   - **Several words:** drag a box across them, or hold **Shift** and click each one.
+   - **Change a field:** click its value on the page (it opens that field rather than adding a second one), or click its name in the list. Pointing at a field in the list outlines its value on the page.
+   - **Remove a field:** choose the **×** on its row. **Undo** in the message at the bottom of the screen puts it back.
+4. **Suggestions.** Dashed amber boxes are values the app thinks you'll want; they're listed under **Suggestions** below your fields. **Accept** or **Dismiss** each one, choose **Accept all**, or simply click one on the page to accept it.
 5. **Map the table** (if the document has one). Choose **Map table row** and click any cell in the first row. The app finds the header, the columns and their types, and outlines the table with its row count. Then:
    - Rename the table (for example `Transactions`) and check each column's name and type.
    - Choose **Set end marker** and click the line where the table ends (for example "Subtotal").

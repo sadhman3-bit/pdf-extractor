@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   DIRECTIONS,
   FIELD_TYPES,
@@ -64,6 +64,9 @@ export function FieldsPanel(props: {
   editing: string | null;
   repick: string | null;
   onAccept: (s: InferredField) => void;
+  onAcceptAll: () => void;
+  hot: string | null;
+  onHot: (id: string | null) => void;
   onDismiss: (s: InferredField) => void;
   onEdit: (id: string | null) => void;
   onRepick: (id: string) => void;
@@ -79,15 +82,85 @@ export function FieldsPanel(props: {
       <h2 id="fields-title" class="card-title">
         {S.mapper.fields}
       </h2>
-      {props.suggestions.length ? (
-        <div class="stack" aria-label={S.mapper.suggestions} role="group">
-          {props.suggestions.map((s) => (
-            <div class="field-row suggested" key={s.rule.id}>
+      {!draft.fields.length ? <p class="muted small">{S.mapper.noFields}</p> : null}
+      {draft.fields.map((f) => {
+        const r = result?.fields[f.name];
+        const open = props.editing === f.id;
+        return (
+          <div key={f.id} class="stack">
+            <div
+              class={`field-row${open ? ' selected' : ''}${props.hot === f.id ? ' hot' : ''}`}
+              onMouseEnter={() => props.onHot(f.id)}
+              onMouseLeave={() => props.onHot(null)}
+            >
               <div class="grow">
-                <div class="row nowrap">
-                  <span class="field-name">{s.rule.name}</span>
-                  <span class="tag tag-warn">{S.mapper.suggested}</span>
+                <button
+                  type="button"
+                  class="field-toggle field-name"
+                  aria-expanded={open}
+                  onClick={() => props.onEdit(open ? null : f.id)}
+                >
+                  {f.name}
+                </button>
+                <div class="caption">{ruleText(f)}</div>
+                <div class="field-value" data-field={f.name}>
+                  {r && r.value !== null ? r.csv : <span class="muted">{S.mapper.noValue}</span>}
                 </div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-small"
+                aria-pressed={props.repick === f.id}
+                onClick={() => props.onRepick(f.id)}
+                aria-label={`${S.mapper.repick} ${f.name}`}
+              >
+                {S.mapper.repick}
+              </button>
+              <button
+                type="button"
+                class="icon-btn"
+                title={S.mapper.removeField(f.name)}
+                aria-label={S.mapper.removeField(f.name)}
+                onClick={() => props.onRemove(f.id)}
+              >
+                <XIcon size={16} />
+              </button>
+            </div>
+            {props.repick === f.id ? <p class="caption">{S.mapper.repickHint}</p> : null}
+            {open ? (
+              <FieldEditor
+                field={f}
+                onChange={props.onChange}
+                onRemove={() => props.onRemove(f.id)}
+                onDone={() => props.onEdit(null)}
+                onRegion={(on) => props.onRegion(f.id, on)}
+              />
+            ) : null}
+          </div>
+        );
+      })}
+      {props.suggestions.length ? (
+        <div class="stack" aria-labelledby="suggestions-title" role="group">
+          <div class="row spread">
+            <h3 id="suggestions-title" class="card-subtitle">
+              {S.mapper.suggestionsCount(props.suggestions.length)}
+            </h3>
+            {props.suggestions.length > 1 ? (
+              <button type="button" class="btn btn-small" onClick={props.onAcceptAll}>
+                <CheckIcon size={14} />
+                {S.mapper.acceptAll}
+              </button>
+            ) : null}
+          </div>
+          {props.suggestions.map((s) => (
+            <div
+              class={`field-row suggested${props.hot === s.rule.id ? ' hot' : ''}`}
+              key={s.rule.id}
+              onMouseEnter={() => props.onHot(s.rule.id)}
+              onMouseLeave={() => props.onHot(null)}
+            >
+              <div class="grow">
+                <span class="field-name">{s.rule.name}</span>
                 <div class="caption">{ruleText(s.rule)}</div>
                 <div class="field-value">{s.value}</div>
               </div>
@@ -114,50 +187,6 @@ export function FieldsPanel(props: {
           ))}
         </div>
       ) : null}
-      {!draft.fields.length ? <p class="muted small">{S.mapper.noFields}</p> : null}
-      {draft.fields.map((f) => {
-        const r = result?.fields[f.name];
-        const open = props.editing === f.id;
-        return (
-          <div key={f.id} class="stack">
-            <div class={`field-row${open ? ' selected' : ''}`}>
-              <div class="grow">
-                <button
-                  type="button"
-                  class="field-toggle field-name"
-                  aria-expanded={open}
-                  onClick={() => props.onEdit(open ? null : f.id)}
-                >
-                  {f.name}
-                </button>
-                <div class="caption">{ruleText(f)}</div>
-                <div class="field-value" data-field={f.name}>
-                  {r && r.value !== null ? r.csv : <span class="muted">{S.mapper.noValue}</span>}
-                </div>
-              </div>
-              <button
-                type="button"
-                class="btn btn-small"
-                aria-pressed={props.repick === f.id}
-                onClick={() => props.onRepick(f.id)}
-                aria-label={`${S.mapper.repick} ${f.name}`}
-              >
-                {S.mapper.repick}
-              </button>
-            </div>
-            {props.repick === f.id ? <p class="caption">{S.mapper.repickHint}</p> : null}
-            {open ? (
-              <FieldEditor
-                field={f}
-                onChange={props.onChange}
-                onRemove={() => props.onRemove(f.id)}
-                onDone={() => props.onEdit(null)}
-                onRegion={(on) => props.onRegion(f.id, on)}
-              />
-            ) : null}
-          </div>
-        );
-      })}
       {unused.length ? (
         <label class="field">
           {S.mapper.addField}
@@ -196,8 +225,13 @@ function FieldEditor({
 }) {
   const set = (patch: Partial<FieldRule>) => onChange({ ...f, ...patch });
   const id = (k: string) => `fe-${f.id}-${k}`;
+  const el = useRef<HTMLDivElement>(null);
+  // Bring the editor into view when it opens, e.g. after clicking a value on the page.
+  useEffect(() => {
+    el.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+  }, [f.id]);
   return (
-    <div class="card stack" role="group" aria-label={`${S.mapper.editor.title} ${f.name}`}>
+    <div ref={el} class="card stack" role="group" aria-label={`${S.mapper.editor.title} ${f.name}`}>
       <div class="grid-2">
         <label class="field" for={id('name')}>
           {S.mapper.editor.name}
@@ -233,144 +267,6 @@ function FieldEditor({
           <option key={p.name} value={p.name} />
         ))}
       </datalist>
-      <fieldset class="stack">
-        <legend class="field">{S.mapper.editor.labels}</legend>
-        {f.anchor.labels.map((l, i) => (
-          <div class="row" key={i}>
-            <input
-              type="text"
-              class="grow"
-              aria-label={`${S.mapper.editor.labels} ${i + 1}`}
-              value={l}
-              onInput={(e) => {
-                const labels = [...f.anchor.labels];
-                labels[i] = (e.target as HTMLInputElement).value;
-                set({ anchor: { ...f.anchor, labels } });
-              }}
-            />
-            {f.anchor.labels.length > 1 ? (
-              <button
-                type="button"
-                class="icon-btn"
-                aria-label={S.mapper.editor.removeLabel(l)}
-                onClick={() =>
-                  set({
-                    anchor: { ...f.anchor, labels: f.anchor.labels.filter((_, k) => k !== i) },
-                  })
-                }
-              >
-                <XIcon size={14} />
-              </button>
-            ) : null}
-          </div>
-        ))}
-        <button
-          type="button"
-          class="btn btn-dashed"
-          onClick={() => set({ anchor: { ...f.anchor, labels: [...f.anchor.labels, ''] } })}
-        >
-          {S.mapper.editor.addLabel}
-        </button>
-      </fieldset>
-      <div class="grid-2">
-        <label class="field">
-          {S.mapper.editor.match}
-          <select
-            value={f.anchor.match ?? 'exact'}
-            onChange={(e) =>
-              set({
-                anchor: {
-                  ...f.anchor,
-                  match: (e.target as HTMLSelectElement).value as FieldRule['anchor']['match'],
-                },
-              })
-            }
-          >
-            {MATCH_MODES.map((m) => (
-              <option key={m} value={m}>
-                {S.options.match[m]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label class="field">
-          {S.mapper.editor.direction}
-          <select
-            value={f.direction ?? 'right'}
-            onChange={(e) =>
-              set({ direction: (e.target as HTMLSelectElement).value as FieldRule['direction'] })
-            }
-          >
-            {DIRECTIONS.map((m) => (
-              <option key={m} value={m}>
-                {S.options.direction[m]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label class="field">
-          {S.mapper.editor.take}
-          <input
-            type="text"
-            class="mono"
-            list="take-options"
-            value={f.take ?? ''}
-            onInput={(e) => set({ take: (e.target as HTMLInputElement).value || undefined })}
-          />
-        </label>
-        <datalist id="take-options">
-          {['token', 'phrase', 'rest-of-line', 'until-gap', 'tokens:2', 'tokens:3'].map((t) => (
-            <option key={t} value={t} />
-          ))}
-        </datalist>
-        <label class="field">
-          {S.mapper.editor.pattern}
-          <input
-            type="text"
-            class="mono"
-            value={f.pattern ?? ''}
-            onInput={(e) => set({ pattern: (e.target as HTMLInputElement).value || undefined })}
-          />
-        </label>
-        <label class="field">
-          {S.mapper.editor.page}
-          <input
-            type="text"
-            value={selValue(f.page)}
-            placeholder={S.options.pageAny}
-            onInput={(e) =>
-              set({ page: parseSel((e.target as HTMLInputElement).value) as FieldRule['page'] })
-            }
-          />
-        </label>
-        <label class="field">
-          {S.mapper.editor.occurrence}
-          <input
-            type="text"
-            value={selValue(f.occurrence)}
-            placeholder={S.options.occurrenceFirst}
-            onInput={(e) =>
-              set({
-                occurrence: parseSel(
-                  (e.target as HTMLInputElement).value,
-                ) as FieldRule['occurrence'],
-              })
-            }
-          />
-        </label>
-      </div>
-      <label class="field">
-        {S.mapper.editor.cleaners}
-        <input
-          type="text"
-          class="mono"
-          value={(f.clean ?? []).filter((c) => typeof c === 'string').join(', ')}
-          onInput={(e) => {
-            const v = list((e.target as HTMLInputElement).value);
-            set({ clean: v.length ? v : undefined });
-          }}
-        />
-      </label>
       {f.type === 'date' ? (
         <label class="field">
           {S.mapper.editor.dateFormats}
@@ -390,15 +286,160 @@ function FieldEditor({
         />
         {S.mapper.editor.required}
       </label>
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={!!f.region}
-          onChange={(e) => onRegion((e.target as HTMLInputElement).checked)}
-        />
-        {S.mapper.editor.useRegion}
-      </label>
-      {f.region ? <p class="caption">{S.mapper.editor.regionSet}</p> : null}
+      <details class="more">
+        <summary>{S.mapper.editor.more}</summary>
+        <div class="stack">
+          <fieldset class="stack">
+            <legend class="field">{S.mapper.editor.labels}</legend>
+            {f.anchor.labels.map((l, i) => (
+              <div class="row" key={i}>
+                <input
+                  type="text"
+                  class="grow"
+                  aria-label={`${S.mapper.editor.labels} ${i + 1}`}
+                  value={l}
+                  onInput={(e) => {
+                    const labels = [...f.anchor.labels];
+                    labels[i] = (e.target as HTMLInputElement).value;
+                    set({ anchor: { ...f.anchor, labels } });
+                  }}
+                />
+                {f.anchor.labels.length > 1 ? (
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    aria-label={S.mapper.editor.removeLabel(l)}
+                    onClick={() =>
+                      set({
+                        anchor: { ...f.anchor, labels: f.anchor.labels.filter((_, k) => k !== i) },
+                      })
+                    }
+                  >
+                    <XIcon size={14} />
+                  </button>
+                ) : null}
+              </div>
+            ))}
+            <button
+              type="button"
+              class="btn btn-dashed"
+              onClick={() => set({ anchor: { ...f.anchor, labels: [...f.anchor.labels, ''] } })}
+            >
+              {S.mapper.editor.addLabel}
+            </button>
+          </fieldset>
+          <div class="grid-2">
+            <label class="field">
+              {S.mapper.editor.match}
+              <select
+                value={f.anchor.match ?? 'exact'}
+                onChange={(e) =>
+                  set({
+                    anchor: {
+                      ...f.anchor,
+                      match: (e.target as HTMLSelectElement).value as FieldRule['anchor']['match'],
+                    },
+                  })
+                }
+              >
+                {MATCH_MODES.map((m) => (
+                  <option key={m} value={m}>
+                    {S.options.match[m]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label class="field">
+              {S.mapper.editor.direction}
+              <select
+                value={f.direction ?? 'right'}
+                onChange={(e) =>
+                  set({
+                    direction: (e.target as HTMLSelectElement).value as FieldRule['direction'],
+                  })
+                }
+              >
+                {DIRECTIONS.map((m) => (
+                  <option key={m} value={m}>
+                    {S.options.direction[m]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label class="field">
+              {S.mapper.editor.take}
+              <input
+                type="text"
+                class="mono"
+                list="take-options"
+                value={f.take ?? ''}
+                onInput={(e) => set({ take: (e.target as HTMLInputElement).value || undefined })}
+              />
+            </label>
+            <datalist id="take-options">
+              {['token', 'phrase', 'rest-of-line', 'until-gap', 'tokens:2', 'tokens:3'].map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+            <label class="field">
+              {S.mapper.editor.pattern}
+              <input
+                type="text"
+                class="mono"
+                value={f.pattern ?? ''}
+                onInput={(e) => set({ pattern: (e.target as HTMLInputElement).value || undefined })}
+              />
+            </label>
+            <label class="field">
+              {S.mapper.editor.page}
+              <input
+                type="text"
+                value={selValue(f.page)}
+                placeholder={S.options.pageAny}
+                onInput={(e) =>
+                  set({ page: parseSel((e.target as HTMLInputElement).value) as FieldRule['page'] })
+                }
+              />
+            </label>
+            <label class="field">
+              {S.mapper.editor.occurrence}
+              <input
+                type="text"
+                value={selValue(f.occurrence)}
+                placeholder={S.options.occurrenceFirst}
+                onInput={(e) =>
+                  set({
+                    occurrence: parseSel(
+                      (e.target as HTMLInputElement).value,
+                    ) as FieldRule['occurrence'],
+                  })
+                }
+              />
+            </label>
+          </div>
+          <label class="field">
+            {S.mapper.editor.cleaners}
+            <input
+              type="text"
+              class="mono"
+              value={(f.clean ?? []).filter((c) => typeof c === 'string').join(', ')}
+              onInput={(e) => {
+                const v = list((e.target as HTMLInputElement).value);
+                set({ clean: v.length ? v : undefined });
+              }}
+            />
+          </label>
+          <label class="check">
+            <input
+              type="checkbox"
+              checked={!!f.region}
+              onChange={(e) => onRegion((e.target as HTMLInputElement).checked)}
+            />
+            {S.mapper.editor.useRegion}
+          </label>
+          {f.region ? <p class="caption">{S.mapper.editor.regionSet}</p> : null}
+        </div>
+      </details>
       <div class="row">
         <button type="button" class="btn" onClick={onDone}>
           {S.mapper.editor.done}
