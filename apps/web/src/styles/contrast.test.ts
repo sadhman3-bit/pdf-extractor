@@ -3,8 +3,18 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const css = readFileSync(join(__dirname, 'tokens.css'), 'utf8');
-const tokens = new Map<string, string>();
-for (const m of css.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) tokens.set(m[1]!, m[2]!);
+const darkAt = css.indexOf('@media (prefers-color-scheme: dark)');
+
+/** Hex tokens of one theme; dark inherits anything it doesn't override. */
+function themeTokens(dark: boolean): Map<string, string> {
+  const t = new Map<string, string>();
+  const read = (src: string) => {
+    for (const m of src.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) t.set(m[1]!, m[2]!);
+  };
+  read(css.slice(0, darkAt));
+  if (dark) read(css.slice(darkAt));
+  return t;
+}
 
 function lum(hex: string): number {
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -26,6 +36,7 @@ const TEXT_PAIRS: [string, string][] = [
   ['text', 'bg'],
   ['text', 'surface'],
   ['text', 'surface-subtle'],
+  ['text', 'surface-hover'],
   ['text-2', 'surface'],
   ['text-2', 'surface-subtle'],
   ['text-2', 'neutral-chip'],
@@ -33,10 +44,13 @@ const TEXT_PAIRS: [string, string][] = [
   ['text-muted', 'bg'],
   ['text-muted', 'surface-subtle'],
   ['text-muted', 'surface-hover'],
+  ['text', 'sidebar'],
+  ['text-2', 'sidebar'],
+  ['text-2', 'sidebar-hover'],
+  ['text-muted', 'sidebar'],
+  ['accent-ink', 'sidebar'],
   ['topbar-text', 'topbar'],
   ['topbar-text', 'topbar-active'],
-  ['surface', 'topbar'],
-  ['surface', 'topbar-active'],
   ['on-accent', 'accent'],
   ['on-accent', 'accent-hover'],
   ['accent', 'surface'],
@@ -54,7 +68,12 @@ const TEXT_PAIRS: [string, string][] = [
   ['text', 'accent-tint'],
 ];
 
-describe('colour contrast (WCAG 2.1 AA)', () => {
+describe.each([
+  ['light', false],
+  ['dark', true],
+] as const)('colour contrast, %s theme (WCAG 2.1 AA)', (_name, dark) => {
+  const tokens = themeTokens(dark);
+
   it.each(TEXT_PAIRS)('%s on %s is at least 4.5:1', (fg, bg) => {
     const a = tokens.get(fg);
     const b = tokens.get(bg);
@@ -64,8 +83,18 @@ describe('colour contrast (WCAG 2.1 AA)', () => {
   });
 
   it('focus ring is at least 3:1 against the surfaces it sits on', () => {
-    for (const bg of ['surface', 'bg', 'viewer-bg']) {
+    for (const bg of ['surface', 'bg', 'viewer-bg', 'sidebar']) {
       expect(contrast(tokens.get('focus')!, tokens.get(bg)!)).toBeGreaterThanOrEqual(3);
     }
   });
+});
+
+describe('marks on the PDF page (always white paper)', () => {
+  const tokens = themeTokens(false);
+  it.each(['mark-field', 'mark-warn', 'mark-error', 'mark-end'])(
+    '%s is at least 3:1 on white',
+    (m) => {
+      expect(contrast(tokens.get(m)!, '#ffffff')).toBeGreaterThanOrEqual(3);
+    },
+  );
 });

@@ -4,7 +4,7 @@ import { S } from '../strings';
 import { app, useApp } from '../app/store';
 import { navigate, useRoute } from '../app/router';
 import { now, refresh } from '../app/session';
-import { Banner, dateTime, timeHM } from '../components/ui';
+import { Banner, dateTime, timeHM, ActionButton } from '../components/ui';
 import { StatusChip } from '../components/StatusChip';
 import { ScanIcon } from '../components/Icons';
 import { PageView, usePdf, type Mark } from '../components/PageView';
@@ -284,11 +284,11 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
           </div>
         </div>
         <div class="row">
-          <button
-            type="button"
+          <ActionButton
+            busyLabel={S.busy.saving}
             class="btn"
             disabled={busy}
-            onClick={async () => {
+            onAction={async () => {
               stopAutosave();
               await saveEdits(ws, item, edits);
               await skip(ws, item, s.user, now());
@@ -296,26 +296,26 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
             }}
           >
             {S.review.skip}
-          </button>
-          <button
-            type="button"
+          </ActionButton>
+          <ActionButton
+            busyLabel={S.busy.rejecting}
             class="btn btn-danger"
             disabled={busy}
-            onClick={async () => {
+            onAction={async () => {
               stopAutosave();
               await reject(ws, item, s.user, now());
               onDone(S.review.rejected(item.name));
             }}
           >
             {S.review.reject}
-          </button>
+          </ActionButton>
           {ex.status === 'review' ? (
-            <button
-              type="button"
+            <ActionButton
+              busyLabel={S.busy.approving}
               class="btn btn-primary"
               disabled={!canApprove || busy}
               aria-describedby={!canApprove ? 'approve-hint' : undefined}
-              onClick={async () => {
+              onAction={async () => {
                 if (!t) return;
                 stopAutosave();
                 setBusy(true);
@@ -324,7 +324,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
               }}
             >
               {S.review.approve}
-            </button>
+            </ActionButton>
           ) : null}
         </div>
       </div>
@@ -332,16 +332,16 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
         <Banner
           tone="warn"
           action={
-            <button
-              type="button"
+            <ActionButton
+              busyLabel={S.busy.opening}
               class="btn"
-              onClick={async () => {
+              onAction={async () => {
                 await takeLock(ws, `review:${item.name}`, s.user, 'review', now(), true);
                 setLock(null);
               }}
             >
               {S.common.openAnyway}
-            </button>
+            </ActionButton>
           }
         >
           {S.common.inUse(lock.user, timeHM(lock.since))}
@@ -384,14 +384,14 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
           >
             {S.review.createTemplate}
           </button>
-          <button
-            type="button"
+          <ActionButton
+            busyLabel={S.busy.rerunning}
             class="btn"
             disabled={busy || !s.templates.length}
-            onClick={() => void rerun()}
+            onAction={() => rerun()}
           >
             {S.review.rerun}
-          </button>
+          </ActionButton>
         </section>
       ) : null}
       {ex.status === 'ambiguous' ? (
@@ -417,14 +417,14 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
         </section>
       ) : null}
 
-      <div class="split">
-        <section class="card stack" aria-label={item.name}>
+      <div class={t && ex.status === 'review' ? 'split' : 'single'}>
+        <section class="card stack mapper-page" aria-label={item.name}>
           {pdf.doc ? (
             <>
               <PageView
                 doc={pdf.doc}
                 page={pageNo}
-                zoom={1}
+                zoom="fit"
                 marks={marks}
                 focusBox={focusBox}
                 label={item.name}

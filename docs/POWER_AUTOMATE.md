@@ -6,7 +6,7 @@ Throughout, replace:
 
 - `<site>` with your SharePoint site address, for example `https://contoso.sharepoint.com/sites/Finance`.
 - `<library>` with the document library holding the folder (usually **Documents** / `Shared Documents`).
-- `<owner>` with the GitHub account hosting the app.
+- `sadhman3-bit` with the GitHub account hosting the app.
 
 The folder paths assume the workspace folder is called `PDF Extractor` at the top of the library.
 
@@ -64,7 +64,7 @@ Posts a message on weekday mornings when documents are waiting.
 
      ```
      @{length(body('Get_files_(properties_only)')?['value'])} new documents are waiting.
-     <a href="https://<owner>.github.io/pdf-extractor/?view=process&from=teams">Open PDF Extractor</a>
+     <a href="https://sadhman3-bit.github.io/pdf-extractor/?view=process&from=teams">Open PDF Extractor</a>
      ```
 
 6. Save and use **Test → Manually** to check the message.

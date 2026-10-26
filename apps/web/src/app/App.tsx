@@ -5,8 +5,22 @@ import { useRoute, navigate, routeHref, type View } from './router';
 import { app, useApp } from './store';
 import { reconnect, startup } from './session';
 import { installTestApi } from './testing';
-import { DocIcon, FolderIcon, GearIcon, DotIcon, AlertIcon } from '../components/Icons';
-import { Banner, ErrorPanel } from '../components/ui';
+import {
+  AlertIcon,
+  DocIcon,
+  DotIcon,
+  EyeCheckIcon,
+  FlaskIcon,
+  FolderIcon,
+  GearIcon,
+  InboxIcon,
+  LayersIcon,
+  MenuIcon,
+  PointerIcon,
+  SwitchIcon,
+  XIcon,
+} from '../components/Icons';
+import { Banner, ErrorPanel, Toasts, reportProblem } from '../components/ui';
 import { FirstRun } from '../screens/FirstRun';
 import { SettingsDialog } from '../screens/Settings';
 import { TemplatesScreen } from '../screens/Templates';
@@ -49,83 +63,137 @@ class Boundary extends Component<
   }
 }
 
-function TopBar() {
+const NAV_ICON: Record<View, (p: { size?: number }) => preact.JSX.Element> = {
+  templates: LayersIcon,
+  mapper: PointerIcon,
+  test: FlaskIcon,
+  process: InboxIcon,
+  review: EyeCheckIcon,
+};
+
+function Brand() {
+  return (
+    <a
+      class="brand"
+      href={routeHref({ view: 'templates' })}
+      onClick={(e) => {
+        e.preventDefault();
+        navigate({ view: 'templates' });
+      }}
+    >
+      <span class="brand-mark">
+        <DocIcon size={16} />
+      </span>
+      {S.appName}
+    </a>
+  );
+}
+
+/** The working folder, its connection state, and the way to switch it. */
+function FolderSwitch() {
+  const s = useApp();
+  if (s.basic) return <div class="folder-switch is-static">{S.topbar.basicMode}</div>;
+  if (!s.folderName) return <div class="folder-switch is-static muted">{S.topbar.noFolder}</div>;
+  return (
+    <div class="folder-switch">
+      <span class="caption">{S.topbar.workspace}</span>
+      <span class="folder-line" title={S.topbar.folderLabel(s.folderName)}>
+        <FolderIcon size={15} />
+        <span class="folder-name-text">{s.folderName}</span>
+      </span>
+      {s.connected ? (
+        <span class="folder-status">
+          <span class="dot-ok">
+            <DotIcon size={9} />
+          </span>
+          {S.topbar.connected}
+        </span>
+      ) : (
+        <button type="button" class="btn btn-small btn-reconnect" onClick={() => void reconnect()}>
+          <AlertIcon size={14} />
+          {S.topbar.reconnect}
+        </button>
+      )}
+      {s.phase === 'ready' ? (
+        <button type="button" class="btn-link small" onClick={() => app.set({ phase: 'choose' })}>
+          <SwitchIcon size={13} />
+          {S.topbar.changeFolder}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function SettingsButton() {
+  return (
+    <button type="button" class="side-link" onClick={() => app.set({ settingsOpen: true })}>
+      <GearIcon size={17} />
+      {S.topbar.settings}
+    </button>
+  );
+}
+
+function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () => void }) {
   const s = useApp();
   const route = useRoute();
   const ready = s.phase === 'ready' || s.phase === 'basic';
   return (
-    <header class="topbar">
-      <a
-        class="brand"
-        href={routeHref({ view: 'templates' })}
-        onClick={(e) => {
-          e.preventDefault();
-          navigate({ view: 'templates' });
-        }}
-      >
-        <DocIcon size={22} />
-        {S.appName}
-      </a>
+    <aside class={`sidebar${open ? ' open' : ''}`}>
+      <Brand />
+      <FolderSwitch />
       {ready ? (
         <nav class="nav" aria-label={S.nav.label}>
-          {NAV.map((n) => (
-            <a
-              key={n.view}
-              href={routeHref({ view: n.view })}
-              aria-current={route.view === n.view ? 'page' : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                navigate({ view: n.view });
-              }}
-            >
-              {n.label}
-              {n.view === 'review' && s.exceptionCount > 0 ? (
-                <span class="nav-badge" aria-label={S.nav.reviewCount(s.exceptionCount)}>
-                  {s.exceptionCount}
-                </span>
-              ) : null}
-            </a>
-          ))}
+          {NAV.map((n) => {
+            const Icon = NAV_ICON[n.view];
+            return (
+              <a
+                key={n.view}
+                href={routeHref({ view: n.view })}
+                aria-current={route.view === n.view ? 'page' : undefined}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate({ view: n.view });
+                  onNavigate();
+                }}
+              >
+                <Icon size={17} />
+                {n.label}
+                {n.view === 'review' && s.exceptionCount > 0 ? (
+                  <span class="nav-badge" aria-label={S.nav.reviewCount(s.exceptionCount)}>
+                    {s.exceptionCount}
+                  </span>
+                ) : null}
+              </a>
+            );
+          })}
         </nav>
       ) : null}
-      <div class="topbar-right">
-        {s.basic ? (
-          <span class="folder-state">{S.topbar.basicMode}</span>
-        ) : s.folderName ? (
-          <span class="folder-state" title={S.topbar.folderLabel(s.folderName)}>
-            <FolderIcon size={16} />
-            <span>{s.folderName}</span>
-            {s.connected ? (
-              <span class="folder-state">
-                <span class="dot-ok">
-                  <DotIcon size={10} />
-                </span>
-                {S.topbar.connected}
-              </span>
-            ) : (
-              <button
-                type="button"
-                class="btn btn-small btn-reconnect"
-                onClick={() => void reconnect()}
-              >
-                <AlertIcon size={14} />
-                {S.topbar.reconnect}
-              </button>
-            )}
-          </span>
-        ) : (
-          <span>{S.topbar.noFolder}</span>
-        )}
-        <button
-          type="button"
-          class="icon-btn"
-          aria-label={S.topbar.settings}
-          onClick={() => app.set({ settingsOpen: true })}
-          disabled={!ready}
-        >
-          <GearIcon />
-        </button>
+      <div class="sidebar-foot">
+        <SettingsButton />
       </div>
+    </aside>
+  );
+}
+
+/** Narrow screens: brand and a menu button; the sidebar slides in over the page. */
+function MobileHeader({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+  return (
+    <header class="mobile-header">
+      <button
+        type="button"
+        class="icon-btn"
+        aria-label={S.topbar.menu}
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <MenuIcon />
+      </button>
+      <span class="brand brand-static">
+        <span class="brand-mark">
+          <DocIcon size={16} />
+        </span>
+        {S.appName}
+      </span>
     </header>
   );
 }
@@ -145,10 +213,61 @@ function Screen({ view }: { view: View }) {
   }
 }
 
+function ProblemBanner({ problem }: { problem: { message: string; detail: string } }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  return (
+    <Banner
+      tone="danger"
+      action={
+        <div class="row">
+          <button
+            type="button"
+            class="btn btn-small"
+            onClick={() =>
+              void navigator.clipboard
+                ?.writeText(
+                  `${problem.message}
+
+${problem.detail}`,
+                )
+                .then(() => setCopied(true))
+            }
+          >
+            {copied ? S.common.copied : S.common.copyDetails}
+          </button>
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label={S.common.dismissProblem}
+            onClick={() => app.set({ problem: null })}
+          >
+            <XIcon size={14} />
+          </button>
+        </div>
+      }
+    >
+      <p>
+        <strong>{problem.message}</strong>
+      </p>
+      <button
+        type="button"
+        class="btn-link small"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+      >
+        {open ? S.common.hideDetails : S.common.showDetails}
+      </button>
+      {open ? <pre class="details">{problem.detail}</pre> : null}
+    </Banner>
+  );
+}
+
 export function App() {
   const s = useApp();
   const route = useRoute();
   const [fatal, setFatal] = useState<Error | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     installTestApi();
@@ -156,6 +275,8 @@ export function App() {
     const onError = (e: PromiseRejectionEvent) => {
       if (String(e.reason?.message ?? '').includes('Failed to fetch dynamically imported module'))
         setFatal(e.reason as Error);
+      // Anything else that failed in the background is shown, never swallowed.
+      else reportProblem(S.common.working.replace(/…$/, ''), e.reason);
     };
     window.addEventListener('unhandledrejection', onError);
     return () => window.removeEventListener('unhandledrejection', onError);
@@ -170,8 +291,10 @@ export function App() {
   const firstRun = ['welcome', 'choose', 'confirm', 'name', 'done'].includes(s.phase);
 
   return (
-    <>
-      <TopBar />
+    <div class="shell">
+      <MobileHeader open={menuOpen} onToggle={() => setMenuOpen(!menuOpen)} />
+      {menuOpen ? <div class="scrim" onClick={() => setMenuOpen(false)} /> : null}
+      <Sidebar open={menuOpen} onNavigate={() => setMenuOpen(false)} />
       <main class="page" id="main">
         {fatal ? (
           <ErrorPanel
@@ -180,6 +303,7 @@ export function App() {
             onRetry={() => location.reload()}
           />
         ) : null}
+        {s.problem ? <ProblemBanner problem={s.problem} /> : null}
         {s.slowRead ? (
           <Banner>{S.errors.slowRead(s.slowRead.split('/').pop() ?? '')}</Banner>
         ) : null}
@@ -208,9 +332,10 @@ export function App() {
         ) : null}
       </main>
       {s.settingsOpen ? <SettingsDialog /> : null}
+      <Toasts />
       <div class="sr-only" aria-live="polite" role="status">
         {s.announce}
       </div>
-    </>
+    </div>
   );
 }

@@ -32,7 +32,7 @@ test('basic mode imports a template, extracts opened files and downloads the CSV
     buffer: readFileSync(template),
   });
   await expect(page.getByText('Imported 1 template')).toBeVisible();
-  await expect(page.getByRole('cell', { name: /Northline Fuel statement/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Northline Fuel statement/ })).toBeVisible();
 
   await page.goto('./?view=process');
   await expect(

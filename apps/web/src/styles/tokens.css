@@ -1,50 +1,65 @@
 /* The only place colours are defined. Everything else uses var(--token). */
+/* Light theme (the first block: build scripts read brand colours from here). */
 :root {
-  --bg: #f3f4f6;
+  color-scheme: light;
+  --bg: #f4f5f7;
   --surface: #ffffff;
-  --surface-subtle: #f6f7f9;
-  --surface-hover: #fafbfc;
-  --viewer-bg: #e5e7eb;
-  --border: #d9dde3;
-  --border-subtle: #eef0f3;
-  --border-input: #c3c9d1;
-  --text: #161a1f;
-  --text-2: #2e353d;
+  --surface-subtle: #f7f8fa;
+  --surface-hover: #f1f3f6;
+  --viewer-bg: #e8ebef;
+  --border: #e1e4e8;
+  --border-subtle: #eceff2;
+  --border-input: #c6ccd3;
+  --text: #14171a;
+  --text-2: #3a424b;
   --text-muted: #5b6470;
-  --topbar: #161a1f;
-  --topbar-active: #2a3038;
-  --topbar-text: #c9ced6;
-  --brand-icon: #7cc4e4;
+  --sidebar: #fafbfc;
+  --sidebar-hover: #eff2f5;
+  --topbar: #ffffff;
+  --topbar-active: #eff2f5;
+  --topbar-text: #3a424b;
+  --brand: #0b6e99;
+  --brand-icon: #bfe3f3;
+  --brand-fold: #d9eef8;
   --accent: #0b6e99;
-  --accent-hover: #08506f;
-  --accent-tint: #e6f2f8;
-  --accent-border: #b9daea;
+  --accent-hover: #095a7e;
+  --accent-tint: #e7f2f8;
+  --accent-border: #b6d8e9;
   --accent-ink: #0a4a66;
-  --divider: #7cb8d3;
+  --divider: #6fb1cf;
   --warn: #b45309;
-  --warn-tint: #fef3e2;
-  --warn-ink: #8a4108;
+  --warn-tint: #fdf3e1;
+  --warn-border: #efc98c;
+  --warn-ink: #874006;
   --danger: #b42318;
-  --danger-tint: #fdecea;
-  --danger-border: #e8a39b;
+  --danger-tint: #fdeceb;
+  --danger-border: #eeb0a9;
   --danger-ink: #7a1a10;
   --success: #18794e;
-  --success-tint: #e7f5ee;
-  --success-border: #8fcbae;
+  --success-tint: #e7f5ed;
+  --success-border: #9fd3b8;
   --success-ink: #0e4f32;
   --focus: #0b6e99;
   --on-accent: #ffffff;
   --neutral-chip: #eef0f3;
-  --page-shadow: rgba(0, 0, 0, 0.12);
-  --overlay: rgba(22, 26, 31, 0.45);
+  --page-shadow: rgba(16, 24, 32, 0.14);
+  --card-shadow: rgba(16, 24, 32, 0.05);
+  --overlay: rgba(20, 23, 26, 0.45);
   --token-hover: rgba(11, 110, 153, 0.18);
+  /* The PDF page is always white paper, in both themes, and so are its marks. */
+  --paper: #ffffff;
+  --mark-field: #0b6e99;
+  --mark-warn: #c26a0a;
+  --mark-error: #b42318;
+  --mark-end: #5b6470;
+  --mark-tag-ink: #ffffff;
 
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --r-small: 6px;
-  --r-control: 8px;
-  --r-card: 10px;
+  --r-control: 9px;
+  --r-card: 12px;
   --r-chip: 999px;
 
   --s1: 4px;
@@ -53,4 +68,52 @@
   --s4: 16px;
   --s5: 24px;
   --s6: 32px;
+}
+
+/* Dark theme, following the system setting. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0f1215;
+    --surface: #171b1f;
+    --surface-subtle: #1c2126;
+    --surface-hover: #21272d;
+    --viewer-bg: #0b0d10;
+    --border: #2b3138;
+    --border-subtle: #232930;
+    --border-input: #434b55;
+    --text: #eceff2;
+    --text-2: #c3cad2;
+    --text-muted: #9aa3ad;
+    --sidebar: #13171b;
+    --sidebar-hover: #1e242a;
+    --topbar: #13171b;
+    --topbar-active: #1e242a;
+    --topbar-text: #c3cad2;
+    --accent: #4fb0dd;
+    --accent-hover: #6dc0e7;
+    --accent-tint: #13303e;
+    --accent-border: #22597a;
+    --accent-ink: #a8dcf3;
+    --divider: #4f9ec2;
+    --warn: #f0b45a;
+    --warn-tint: #2f2410;
+    --warn-border: #6e521f;
+    --warn-ink: #f6cf90;
+    --danger: #f2877d;
+    --danger-tint: #36191b;
+    --danger-border: #7c3129;
+    --danger-ink: #f8b6af;
+    --success: #4cc38a;
+    --success-tint: #11291e;
+    --success-border: #2b6c4b;
+    --success-ink: #94ddb7;
+    --focus: #6dc0e7;
+    --on-accent: #06202d;
+    --neutral-chip: #232930;
+    --page-shadow: rgba(0, 0, 0, 0.55);
+    --card-shadow: rgba(0, 0, 0, 0);
+    --overlay: rgba(0, 0, 0, 0.6);
+    --token-hover: rgba(79, 176, 221, 0.25);
+  }
 }

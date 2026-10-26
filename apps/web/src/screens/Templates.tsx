@@ -3,7 +3,16 @@ import { S } from '../strings';
 import { app, useApp } from '../app/store';
 import { navigate } from '../app/router';
 import { now, refresh } from '../app/session';
-import { Banner, Dialog, DropZone, dateTime, downloadBlob, fileBytes } from '../components/ui';
+import {
+  Banner,
+  Dialog,
+  DropZone,
+  dateTime,
+  downloadBlob,
+  fileBytes,
+  ActionButton,
+} from '../components/ui';
+import { LayersIcon } from '../components/Icons';
 import { archiveTemplate, saveVersion, type TemplateInfo } from '../workspace/store';
 import { importFiles } from './Settings';
 import { lastRuns } from './lastRuns';
@@ -78,97 +87,103 @@ export function TemplatesScreen() {
       </div>
       {msg ? <Banner tone={msg.tone}>{msg.text}</Banner> : null}
       {!s.templates.length ? (
-        <section class="card stack">
+        <section class="card empty">
+          <span class="empty-icon">
+            <LayersIcon size={22} />
+          </span>
+          <h2 class="card-title">{S.templates.emptyTitle}</h2>
           <p>{S.templates.empty}</p>
-          <div class="row">
-            <button type="button" class="btn btn-primary" onClick={() => setCreating(true)}>
-              {S.templates.emptyButton}
-            </button>
-          </div>
+          <button type="button" class="btn btn-primary" onClick={() => setCreating(true)}>
+            {S.templates.emptyButton}
+          </button>
         </section>
       ) : (
-        <section class="card">
-          <div class="table-wrap" tabIndex={0}>
-            <table class="data">
-              <thead>
-                <tr>
-                  <th scope="col">{S.templates.colName}</th>
-                  <th scope="col">{S.templates.colVersion}</th>
-                  <th scope="col">{S.templates.colSaved}</th>
-                  <th scope="col">{S.templates.colSamples}</th>
-                  <th scope="col">{S.templates.colLastRun}</th>
-                  <th scope="col">
-                    <span class="sr-only">{S.templates.open}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {s.templates.map((t) => (
-                  <tr key={t.id}>
-                    <td>
-                      <strong>{t.latest.name}</strong>
-                      <div class="caption mono">{t.id}</div>
-                      {t.hasDraft ? <div class="caption">{S.templates.draft}</div> : null}
-                    </td>
-                    <td class="mono">v{t.latest.version}</td>
-                    <td>
-                      {t.latest.savedAt
-                        ? S.templates.savedBy(t.latest.savedBy ?? '', dateTime(t.latest.savedAt))
-                        : S.common.none}
-                    </td>
-                    <td class="num">{t.samples.length}</td>
-                    <td>{runs[t.id] ?? S.templates.noRuns}</td>
-                    <td>
-                      <div class="row">
-                        <button
-                          type="button"
-                          class="btn btn-small"
-                          onClick={() => navigate({ view: 'mapper', template: t.id })}
-                        >
-                          {S.templates.open}
-                        </button>
-                        <button
-                          type="button"
-                          class="btn btn-small"
-                          onClick={() => navigate({ view: 'test', template: t.id })}
-                        >
-                          {S.templates.test}
-                        </button>
-                        <button
-                          type="button"
-                          class="btn btn-small btn-text"
-                          onClick={() => void duplicate(t)}
-                        >
-                          {S.templates.duplicate}
-                        </button>
-                        <button
-                          type="button"
-                          class="btn btn-small btn-text"
-                          onClick={() =>
-                            downloadBlob(
-                              `${t.id}.v${t.latest.version}.json`,
-                              `${JSON.stringify(t.latest, null, 2)}\n`,
-                              'application/json',
-                            )
-                          }
-                        >
-                          {S.templates.exportJson}
-                        </button>
-                        <button
-                          type="button"
-                          class="btn btn-small btn-text"
-                          onClick={() => void archive(t)}
-                        >
-                          {S.templates.archive}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <div class="card-grid">
+          {s.templates.map((t) => (
+            <article class="card tpl-card" key={t.id} aria-labelledby={`tpl-${t.id}`}>
+              <div class="tpl-head">
+                <div class="grow">
+                  <h2 class="card-title" id={`tpl-${t.id}`}>
+                    {t.latest.name}
+                  </h2>
+                  <div class="caption mono">{t.id}</div>
+                </div>
+                <span class="chip chip-accent">v{t.latest.version}</span>
+              </div>
+              <dl class="meta">
+                <div>
+                  <dt>{S.templates.colSamples}</dt>
+                  <dd>{t.samples.length}</dd>
+                </div>
+                <div>
+                  <dt>{S.templates.colSaved}</dt>
+                  <dd>
+                    {t.latest.savedAt ? dateTime(t.latest.savedAt) : S.common.none}
+                    {t.latest.savedBy ? (
+                      <span class="caption block">{S.templates.byWhom(t.latest.savedBy)}</span>
+                    ) : null}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{S.templates.colLastRun}</dt>
+                  <dd>{runs[t.id] ?? S.templates.noRuns}</dd>
+                </div>
+              </dl>
+              {t.hasDraft ? <span class="chip chip-warn">{S.templates.draft}</span> : null}
+              <div class="tpl-actions">
+                <div class="row">
+                  <button
+                    type="button"
+                    class="btn btn-small btn-primary"
+                    onClick={() => navigate({ view: 'mapper', template: t.id })}
+                  >
+                    {S.templates.open}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-small"
+                    onClick={() => navigate({ view: 'test', template: t.id })}
+                  >
+                    {S.templates.test}
+                  </button>
+                </div>
+                <div class="row">
+                  <ActionButton
+                    busyLabel={S.busy.duplicating}
+                    class="btn btn-small btn-text"
+                    aria-label={`${S.templates.duplicate} ${t.latest.name}`}
+                    onAction={() => duplicate(t)}
+                  >
+                    {S.templates.duplicate}
+                  </ActionButton>
+                  <button
+                    type="button"
+                    class="btn btn-small btn-text"
+                    aria-label={`${S.templates.exportJson} ${t.latest.name}`}
+                    onClick={() =>
+                      downloadBlob(
+                        `${t.id}.v${t.latest.version}.json`,
+                        `${JSON.stringify(t.latest, null, 2)}
+`,
+                        'application/json',
+                      )
+                    }
+                  >
+                    {S.templates.exportJson}
+                  </button>
+                  <ActionButton
+                    busyLabel={S.busy.archiving}
+                    class="btn btn-small btn-text"
+                    aria-label={`${S.templates.archive} ${t.latest.name}`}
+                    onAction={() => archive(t)}
+                  >
+                    {S.templates.archive}
+                  </ActionButton>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
       )}
       {creating ? (
         <Dialog title={S.templates.newTitle} onClose={() => setCreating(false)}>

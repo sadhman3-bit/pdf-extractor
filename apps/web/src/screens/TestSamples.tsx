@@ -13,7 +13,7 @@ import { S } from '../strings';
 import { app, useApp } from '../app/store';
 import { navigate, useRoute } from '../app/router';
 import { now, refresh } from '../app/session';
-import { Banner, DropZone, fileBytes } from '../components/ui';
+import { Banner, DropZone, fileBytes, ActionButton, Working } from '../components/ui';
 import { CheckIcon, XIcon } from '../components/Icons';
 import { PageView, usePdf } from '../components/PageView';
 import { documentText } from '../lib/pipeline';
@@ -200,10 +200,10 @@ export function TestScreen() {
           >
             {S.test.backToMapper}
           </button>
-          <button
-            type="button"
+          <ActionButton
+            busyLabel={S.busy.saving}
             class="btn btn-primary"
-            onClick={async () => {
+            onAction={async () => {
               const saved = await saveVersion(ws, template, s.user, now());
               await idbDel(`draft:${template.id}`);
               setTemplate(saved);
@@ -213,15 +213,27 @@ export function TestScreen() {
             }}
           >
             {S.mapper.saveTemplate}
-          </button>
+          </ActionButton>
         </div>
       </div>
       {msg ? <Banner tone="success">{msg}</Banner> : null}
       <section class="card stack" aria-labelledby="summary">
-        <h2 id="summary" class="card-title" aria-live="polite">
-          {busy ? S.common.loading : S.test.summary(passed, total, runs.length)}
-        </h2>
+        <div class="summary-line">
+          {busy ? (
+            <Working label={S.test.running(info.samples.length)} />
+          ) : (
+            <>
+              <span class={`summary-icon ${passed === total ? 'is-pass' : 'is-fail'}`}>
+                {passed === total ? <CheckIcon size={18} /> : <XIcon size={18} />}
+              </span>
+              <h2 id="summary" class="card-title" aria-live="polite">
+                {S.test.summary(passed, total, runs.length)}
+              </h2>
+            </>
+          )}
+        </div>
         <DropZone
+          compact
           onFiles={async (files) => {
             for (const f of files) await addSample(ws, info.id, f.name, await fileBytes(f));
             await refresh();
@@ -234,7 +246,7 @@ export function TestScreen() {
           <p>{S.test.noSamples}</p>
         </section>
       ) : (
-        <div class="split">
+        <>
           <section class="card" aria-label={S.test.title}>
             <div class="table-wrap" tabIndex={0}>
               <table class="data">
@@ -243,19 +255,19 @@ export function TestScreen() {
                     <th scope="col">{S.test.rowItem}</th>
                     {runs.map((r) => (
                       <th key={r.name} scope="col">
-                        <div class="row">
+                        <div class="row nowrap">
                           <span class="mono">{r.name}</span>
-                          <button
-                            type="button"
+                          <ActionButton
+                            busyLabel={S.busy.removing}
                             class="icon-btn"
                             aria-label={S.test.removeSample(r.name)}
-                            onClick={async () => {
+                            onAction={async () => {
                               await removeSample(ws, info.id, r.name);
                               await refresh();
                             }}
                           >
                             <XIcon size={14} />
-                          </button>
+                          </ActionButton>
                         </div>
                       </th>
                     ))}
@@ -282,42 +294,43 @@ export function TestScreen() {
               </table>
             </div>
           </section>
-          <div class="stack">
-            <section class="card stack" aria-labelledby="diag-title">
-              <h2 id="diag-title" class="card-title">
-                {S.test.diagnostics}
-              </h2>
-              {!allFixes.length ? <p class="muted small">{S.common.none}</p> : null}
-              {allFixes.map(({ sample, fix }) => (
-                <div class="field-row suggested" key={`${sample}-${fix.field}`}>
-                  <div class="grow">
-                    <div>{S.test.addLabelFix(fix.label, fix.field)}</div>
-                    <div class="caption mono">
-                      {runs[sample]?.name} · {humanize(fix.field)}
+          {allFixes.length ? (
+            <div class="split">
+              <section class="card stack" aria-labelledby="diag-title">
+                <h2 id="diag-title" class="card-title">
+                  {S.test.diagnostics}
+                </h2>
+                {allFixes.map(({ sample, fix }) => (
+                  <div class="field-row suggested" key={`${sample}-${fix.field}`}>
+                    <div class="grow">
+                      <div>{S.test.addLabelFix(fix.label, fix.field)}</div>
+                      <div class="caption mono">
+                        {runs[sample]?.name} · {humanize(fix.field)}
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      class="btn btn-small btn-text"
+                      onClick={() => setFocusFix({ sample, fix })}
+                    >
+                      {S.test.snippetTitle}
+                    </button>
+                    <ActionButton
+                      busyLabel={S.busy.applying}
+                      class="btn btn-small btn-primary"
+                      onAction={() => applyFix(fix)}
+                    >
+                      {S.test.apply}
+                    </ActionButton>
                   </div>
-                  <button
-                    type="button"
-                    class="btn btn-small btn-text"
-                    onClick={() => setFocusFix({ sample, fix })}
-                  >
-                    {S.test.snippetTitle}
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-small btn-primary"
-                    onClick={() => void applyFix(fix)}
-                  >
-                    {S.test.apply}
-                  </button>
-                </div>
-              ))}
-            </section>
-            {shown && runs[shown.sample] ? (
-              <Snippet bytes={runs[shown.sample]!.bytes} fix={shown.fix} />
-            ) : null}
-          </div>
-        </div>
+                ))}
+              </section>
+              {shown && runs[shown.sample] ? (
+                <Snippet bytes={runs[shown.sample]!.bytes} fix={shown.fix} />
+              ) : null}
+            </div>
+          ) : null}
+        </>
       )}
     </>
   );

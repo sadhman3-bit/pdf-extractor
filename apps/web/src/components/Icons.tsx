@@ -81,3 +81,44 @@ export const ScanIcon = (p: P) => (
     <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10" />
   </Svg>
 );
+export const LayersIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="M12 3 3 8l9 5 9-5z" />
+    <path d="m3 13 9 5 9-5" />
+  </Svg>
+);
+export const PointerIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="m5 3 6 16 2.5-6.5L20 10z" />
+  </Svg>
+);
+export const FlaskIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="M9 3h6M10 3v6L5 19a1.5 1.5 0 0 0 1.3 2h11.4a1.5 1.5 0 0 0 1.3-2L14 9V3" />
+    <path d="M7.5 15h9" />
+  </Svg>
+);
+export const InboxIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="M4 13h4l1.5 3h5L16 13h4" />
+    <path d="M5.5 5h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z" />
+  </Svg>
+);
+export const EyeCheckIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="M2 12s3.5-7 10-7 10 7 10 7" />
+    <path d="M2 12s3.5 7 10 7c1 0 2-.2 2.8-.5" />
+    <circle cx="12" cy="12" r="3" />
+    <path d="m16 19 2 2 4-4" />
+  </Svg>
+);
+export const MenuIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </Svg>
+);
+export const SwitchIcon = (p: P) => (
+  <Svg {...p}>
+    <path d="m8 9 4-4 4 4M8 15l4 4 4-4" />
+  </Svg>
+);

@@ -2,8 +2,8 @@ import { useState } from 'preact/hooks';
 import { strToU8, unzipSync, zipSync, strFromU8 } from 'fflate';
 import { S } from '../strings';
 import { app, useApp } from '../app/store';
-import { chooseFolder, refresh, now } from '../app/session';
-import { Dialog, downloadBlob, Banner } from '../components/ui';
+import { refresh, now } from '../app/session';
+import { Dialog, downloadBlob, Banner, ActionButton } from '../components/ui';
 import { importTemplate, saveSettings } from '../workspace/store';
 import { local } from '../lib/local';
 
@@ -51,6 +51,8 @@ export function SettingsDialog() {
   const close = () => app.set({ settingsOpen: false });
   const t = Number(threshold);
   const valid = Number.isFinite(t) && t >= 0.5 && t <= 1;
+  // Folder settings and template export need a folder that is set up.
+  const workspace = !s.basic && !!s.ws && s.phase === 'ready';
   return (
     <Dialog title={S.settings.title} onClose={close}>
       <form
@@ -77,7 +79,7 @@ export function SettingsDialog() {
             onInput={(e) => setName((e.target as HTMLInputElement).value)}
           />
         </label>
-        {!s.basic ? (
+        {workspace ? (
           <>
             <label class="field">
               {S.settings.threshold}
@@ -111,44 +113,43 @@ export function SettingsDialog() {
             <button
               type="button"
               class="btn"
-              onClick={async () => {
-                close();
-                await chooseFolder();
-              }}
+              onClick={() => app.set({ settingsOpen: false, phase: 'choose' })}
             >
               {S.settings.changeFolder}
             </button>
           ) : null}
         </div>
       </form>
-      <div class="row">
-        <button
-          type="button"
-          class="btn"
-          onClick={() => void exportAllTemplates()}
-          disabled={!s.templates.length}
-        >
-          {S.settings.exportTemplates}
-        </button>
-        <label class="btn">
-          {S.settings.importTemplates}
-          <input
-            type="file"
-            class="sr-only"
-            accept=".json,.zip,application/json,application/zip"
-            multiple
-            onChange={async (e) => {
-              const files = [...((e.target as HTMLInputElement).files ?? [])];
-              try {
-                const n = await importFiles(files);
-                setMsg(S.templates.imported(n));
-              } catch {
-                setMsg(S.templates.importFailed);
-              }
-            }}
-          />
-        </label>
-      </div>
+      {workspace || s.basic ? (
+        <div class="row">
+          <ActionButton
+            busyLabel={S.busy.exporting}
+            class="btn"
+            onAction={() => exportAllTemplates()}
+            disabled={!s.templates.length}
+          >
+            {S.settings.exportTemplates}
+          </ActionButton>
+          <label class="btn">
+            {S.settings.importTemplates}
+            <input
+              type="file"
+              class="sr-only"
+              accept=".json,.zip,application/json,application/zip"
+              multiple
+              onChange={async (e) => {
+                const files = [...((e.target as HTMLInputElement).files ?? [])];
+                try {
+                  const n = await importFiles(files);
+                  setMsg(S.templates.imported(n));
+                } catch {
+                  setMsg(S.templates.importFailed);
+                }
+              }}
+            />
+          </label>
+        </div>
+      ) : null}
       <p class="caption">
         {S.settings.version(__APP_VERSION__)}
         {repoUrl() ? (

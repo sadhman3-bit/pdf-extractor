@@ -1,6 +1,7 @@
 import type { ComponentChildren, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { S } from '../strings';
+import { app } from '../app/store';
 import { AlertIcon, CheckIcon, InfoIcon, QuestionIcon, UploadIcon, XIcon } from './Icons';
 
 export type Tone = 'success' | 'warn' | 'danger' | 'neutral' | 'accent';
@@ -48,6 +49,152 @@ export function Banner({
       <div class="grow">{children}</div>
       {action}
     </div>
+  );
+}
+
+/** A small spinning ring. Decorative: pair it with visible text. */
+export function Spinner({ size = 16 }: { size?: number }) {
+  return (
+    <span
+      class="spinner"
+      aria-hidden="true"
+      ref={(el) => {
+        if (el) {
+          el.style.width = `${size}px`;
+          el.style.height = `${size}px`;
+        }
+      }}
+    />
+  );
+}
+
+/** Seconds since this component appeared, ticking once a second. */
+function useElapsed(): number {
+  const [secs, setSecs] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const t = window.setInterval(() => setSecs(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+  return secs;
+}
+
+/**
+ * "Something is happening" line: spinner, what is happening, seconds so far, and
+ * a note when it runs long, so nobody mistakes a slow step for a stuck one.
+ */
+export function Working({ label, slowAfter = 10 }: { label: string; slowAfter?: number }) {
+  const secs = useElapsed();
+  return (
+    <div class="working" role="status">
+      <Spinner />
+      <span>{label}</span>
+      {secs >= 2 ? <span class="caption">{S.common.elapsed(secs)}</span> : null}
+      {secs >= slowAfter ? <p class="caption working-slow">{S.common.slow}</p> : null}
+    </div>
+  );
+}
+
+let toastId = 0;
+
+/** Shows a short confirmation ("Saved as version 3") for a few seconds, and announces it. */
+export function toast(text: string): void {
+  const id = ++toastId;
+  app.set({ toasts: [...app.get().toasts, { id, text }].slice(-3) });
+  app.announce(text);
+  window.setTimeout(() => app.set({ toasts: app.get().toasts.filter((t) => t.id !== id) }), 4000);
+}
+
+export function Toasts() {
+  const { toasts } = useAppToasts();
+  if (!toasts.length) return null;
+  return (
+    <div class="toasts" aria-hidden="true">
+      {toasts.map((t) => (
+        <div class="toast" key={t.id}>
+          <span class="toast-icon">
+            <CheckIcon size={14} />
+          </span>
+          {t.text}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function useAppToasts() {
+  const [s, set] = useState(app.get());
+  useEffect(() => app.subscribe(() => set(app.get())), []);
+  return s;
+}
+
+/** Reports a failed action at the top of the page instead of failing silently. */
+export function reportProblem(what: string, e: unknown): void {
+  const err = e as Error;
+  app.set({
+    problem: {
+      message: S.common.failed(what),
+      detail: `${err?.name ?? 'Error'}: ${err?.message ?? String(e)}${
+        err?.stack
+          ? `
+${err.stack}`
+          : ''
+      }`,
+    },
+  });
+}
+
+/**
+ * A button for a slow action. While it runs it shows a spinner and `busyLabel`,
+ * and can't be pressed twice. If the action throws, the error is reported at the
+ * top of the page and the button comes back.
+ */
+export function ActionButton({
+  onAction,
+  busyLabel,
+  children,
+  class: cls = 'btn',
+  disabled,
+  ...rest
+}: {
+  onAction: () => Promise<unknown> | unknown;
+  busyLabel?: string;
+  children: ComponentChildren;
+  class?: string;
+  disabled?: boolean;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  title?: string;
+}) {
+  const [busy, setBusy] = useState(false);
+  const alive = useRef(true);
+  useEffect(
+    () => () => {
+      alive.current = false;
+    },
+    [],
+  );
+  return (
+    <button
+      type="button"
+      {...rest}
+      class={cls}
+      disabled={disabled || busy}
+      aria-busy={busy || undefined}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          await onAction();
+        } catch (e) {
+          reportProblem(busyLabel?.replace(/…$/, '') ?? S.common.working, e);
+        } finally {
+          if (alive.current) setBusy(false);
+        }
+      }}
+    >
+      {busy ? <Spinner /> : null}
+      {busy && busyLabel ? busyLabel : children}
+    </button>
   );
 }
 
@@ -99,16 +246,19 @@ export function DropZone({
   onFiles,
   multiple = true,
   label,
+  compact = false,
 }: {
   onFiles: (f: File[]) => void;
   multiple?: boolean;
   label?: string;
+  /** A slim one-line drop bar instead of the large drop area. */
+  compact?: boolean;
 }) {
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   return (
     <div
-      class={over ? 'dropzone over' : 'dropzone'}
+      class={`dropzone${compact ? ' compact' : ''}${over ? ' over' : ''}`}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);

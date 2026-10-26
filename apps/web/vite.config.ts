@@ -39,7 +39,7 @@ function cspPlugin(): Plugin {
 function themeColorPlugin(): Plugin {
   return {
     name: 'pdfx-theme-color',
-    transformIndexHtml: (html) => html.replace('%THEME_COLOR%', token('topbar')),
+    transformIndexHtml: (html) => html.replace('%THEME_COLOR%', token('brand')),
   };
 }
 
@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => ({
         name: 'PDF Extractor',
         short_name: 'PDF Extractor',
         description: 'Turn supplier PDFs into identical, checked CSV and JSON tables.',
-        theme_color: token('topbar'),
+        theme_color: token('brand'),
         background_color: token('bg'),
         display: 'standalone',
         start_url: '/pdf-extractor/',

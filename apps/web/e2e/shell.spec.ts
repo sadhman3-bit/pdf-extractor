@@ -57,8 +57,8 @@ test('a template saves and reloads; Templates screen passes axe', async ({ page 
   await firstRun(page);
   await seed(page, templateFiles('northline-fuel-statement', [2]));
   await page.reload();
-  await expect(page.getByRole('cell', { name: /Northline Fuel statement/ })).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'v2' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Northline Fuel statement/ })).toBeVisible();
+  await expect(page.locator('.tpl-card').getByText('v2', { exact: true })).toBeVisible();
   await expectNoAxe(page);
 });
 

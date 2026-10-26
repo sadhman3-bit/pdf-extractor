@@ -1,6 +1,7 @@
 {
   "name": "pdf-extractor",
   "version": "1.0.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.34.6",
@@ -20,7 +21,8 @@
     "e2e": "pnpm build:test && playwright test",
     "fixtures": "pnpm --filter @pdfx/fixtures generate",
     "goldens": "pnpm --filter @pdfx/fixtures goldens",
-    "perf": "pnpm --filter @pdfx/fixtures perf"
+    "perf": "pnpm --filter @pdfx/fixtures perf",
+    "screenshots": "pnpm build:test && playwright test -c playwright.screens.config.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
@@ -35,5 +37,10 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.0",
     "vitest": "5.0.5"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sadhman3-bit/pdf-extractor.git"
+  },
+  "homepage": "https://sadhman3-bit.github.io/pdf-extractor/"
 }

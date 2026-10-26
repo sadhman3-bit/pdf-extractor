@@ -21,8 +21,13 @@ export async function missingFolders(ws: Workspace): Promise<string[]> {
   return out;
 }
 
-export async function createFolders(ws: Workspace): Promise<void> {
-  for (const d of BOOTSTRAP_DIRS) await ws.mkdir(d);
+/** Creates the folder tree, calling `onStep` before each folder (and before settings.json). */
+export async function createFolders(ws: Workspace, onStep?: (path: string) => void): Promise<void> {
+  for (const d of BOOTSTRAP_DIRS) {
+    onStep?.(d);
+    await ws.mkdir(d);
+  }
+  onStep?.(SETTINGS_FILE);
   if (!(await ws.exists(SETTINGS_FILE))) await saveSettings(ws, DEFAULT_SETTINGS);
 }
 

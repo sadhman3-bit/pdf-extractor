@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'apps/web/e2e',
+  // Screenshots for design review and the README: `pnpm screenshots`.
+  testIgnore: '**/screenshots.spec.ts',
   timeout: 120_000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

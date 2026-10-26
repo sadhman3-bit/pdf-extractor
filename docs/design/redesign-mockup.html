@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDF Extractor redesign</title>
+    <style>
+      :root {
+        --bg: #f4f5f7;
+        --surface: #ffffff;
+        --surface-2: #f8f9fb;
+        --sidebar: #fbfbfc;
+        --border: #e3e6ea;
+        --border-strong: #cfd4da;
+        --text: #15181c;
+        --text-2: #4a525c;
+        --muted: #6b7380;
+        --accent: #0b6e99;
+        --accent-hover: #095a7e;
+        --accent-tint: #e8f3f9;
+        --accent-ink: #0a4a66;
+        --on-accent: #ffffff;
+        --success: #18794e;
+        --success-tint: #e8f6ee;
+        --warn: #9a5b06;
+        --warn-tint: #fdf3e1;
+        --warn-border: #f0c98a;
+        --danger: #b42318;
+        --danger-tint: #fdeceb;
+        --shadow: 0 1px 2px rgba(16, 24, 32, 0.05), 0 1px 1px rgba(16, 24, 32, 0.03);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f1114;
+          --surface: #171a1e;
+          --surface-2: #1d2126;
+          --sidebar: #13161a;
+          --border: #2a2f36;
+          --border-strong: #3a414a;
+          --text: #eceef1;
+          --text-2: #b8bfc8;
+          --muted: #8b939d;
+          --accent: #3aa3d4;
+          --accent-hover: #5cb5df;
+          --accent-tint: #13303f;
+          --accent-ink: #9fd5ee;
+          --on-accent: #06202d;
+          --success: #4cc38a;
+          --success-tint: #12291e;
+          --warn: #f0b45a;
+          --warn-tint: #2e2310;
+          --warn-border: #6b4f1d;
+          --danger: #f2877d;
+          --danger-tint: #33181a;
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 'IBM Plex Sans',
+          system-ui,
+          sans-serif;
+        padding: 24px 16px 48px;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .intro {
+        color: var(--text-2);
+        margin: 4px 0 0;
+      }
+      .label {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 8px;
+        text-transform: none;
+      }
+      .frame {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: var(--shadow);
+      }
+      .app {
+        display: flex;
+        min-height: 420px;
+      }
+      .sidebar {
+        width: 210px;
+        flex: none;
+        background: var(--sidebar);
+        border-right: 1px solid var(--border);
+        padding: 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        padding: 2px 8px 14px;
+      }
+      .brand .logo {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: var(--accent);
+        color: var(--on-accent);
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+      }
+      .ws {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 10px;
+        padding: 8px 10px;
+        margin-bottom: 12px;
+      }
+      .ws small {
+        display: block;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .ws div {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        color: var(--text-2);
+        font-size: 13.5px;
+      }
+      .nav.on {
+        background: var(--accent-tint);
+        color: var(--accent-ink);
+        font-weight: 600;
+      }
+      .nav .count {
+        margin-left: auto;
+        font-size: 11px;
+        background: var(--warn-tint);
+        color: var(--warn);
+        border-radius: 999px;
+        padding: 1px 7px;
+        font-weight: 600;
+      }
+      .ico {
+        width: 16px;
+        height: 16px;
+        border: 1.8px solid currentColor;
+        border-radius: 4px;
+        opacity: 0.8;
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+        padding: 22px 26px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .head h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 2px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: var(--shadow);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        padding: 0 14px;
+        border-radius: 9px;
+        border: 1px solid var(--border-strong);
+        background: var(--surface);
+        color: var(--text);
+        font: inherit;
+        font-weight: 500;
+        font-size: 13.5px;
+        white-space: nowrap;
+      }
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--on-accent);
+      }
+      .spin {
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spin {
+          animation-duration: 2.4s;
+        }
+      }
+      .bar {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+      .bar > span {
+        display: block;
+        height: 100%;
+        width: 58%;
+        background: var(--accent);
+        border-radius: 999px;
+      }
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .tile {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      .tile small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .tile b {
+        display: block;
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        font-weight: 500;
+        border-radius: 999px;
+        padding: 2px 9px;
+      }
+      .ok {
+        background: var(--success-tint);
+        color: var(--success);
+      }
+      .rev {
+        background: var(--warn-tint);
+        color: var(--warn);
+      }
+      .run {
+        background: var(--accent-tint);
+        color: var(--accent-ink);
+      }
+      .bad {
+        background: var(--danger-tint);
+        color: var(--danger);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th {
+        text-align: left;
+        font-weight: 500;
+        color: var(--muted);
+        font-size: 12px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      .mono {
+        font-family: 'IBM Plex Mono', ui-monospace, monospace;
+        font-size: 12.5px;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+        gap: 14px;
+      }
+      .seg {
+        display: inline-flex;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 3px;
+        gap: 2px;
+        font-size: 12.5px;
+      }
+      .seg span {
+        padding: 5px 10px;
+        border-radius: 7px;
+        color: var(--text-2);
+      }
+      .seg .on {
+        background: var(--surface);
+        color: var(--text);
+        font-weight: 500;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+      .page {
+        background: var(--viewer, var(--surface-2));
+        border-radius: 10px;
+        padding: 14px;
+      }
+      .paper {
+        background: #ffffff;
+        color: #1d2228;
+        border-radius: 4px;
+        padding: 18px 20px;
+        font-size: 12px;
+        line-height: 2;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+      .mapped {
+        outline: 2px solid #0b6e99;
+        border-radius: 3px;
+        padding: 0 3px;
+      }
+      .sugg {
+        outline: 2px dashed #d08a1c;
+        border-radius: 3px;
+        padding: 0 3px;
+      }
+      .tag {
+        font-size: 10px;
+        font-weight: 600;
+        background: #fdf3e1;
+        color: #8a4f04;
+        border-radius: 4px;
+        padding: 1px 5px;
+        margin-left: 4px;
+      }
+      .table-box {
+        outline: 2px solid #0b6e99;
+        border-radius: 4px;
+        padding: 4px 8px;
+        margin-top: 6px;
+      }
+      .field {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .field:last-child {
+        border-bottom: 0;
+      }
+      .rule {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .stickybar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .setup {
+        display: flex;
+        justify-content: center;
+        padding: 30px 16px;
+      }
+      .setup .inner {
+        width: 100%;
+        max-width: 520px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .steps {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--muted);
+        flex-wrap: wrap;
+      }
+      .steps .line {
+        width: 22px;
+        height: 1px;
+        background: var(--border-strong);
+      }
+      .num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--border-strong);
+        margin-right: 6px;
+      }
+      .steps .done .num {
+        background: var(--success-tint);
+        color: var(--success);
+        border-color: transparent;
+      }
+      .steps .now {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .steps .now .num {
+        background: var(--accent);
+        color: var(--on-accent);
+        border-color: var(--accent);
+      }
+      .folders {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .folders div {
+        display: grid;
+        grid-template-columns: 18px 130px 1fr 18px;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .folders div:last-child {
+        border-bottom: 0;
+      }
+      .folders .is-now {
+        background: var(--accent-tint);
+      }
+      .check {
+        color: var(--success);
+        font-weight: 700;
+      }
+      .toasts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .toast {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .toast .grow {
+        flex: 1;
+      }
+      @media (max-width: 760px) {
+        .sidebar {
+          display: none;
+        }
+        .tiles {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .split {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .folders div {
+          grid-template-columns: 18px 1fr 18px;
+        }
+        .folders div span:nth-child(3) {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div>
+        <h1>PDF Extractor: proposed redesign</h1>
+        <p class="intro">
+          A static mockup of the new look. It follows your system's light or dark setting.
+        </p>
+      </div>
+
+      <section>
+        <p class="label">1 · App layout and Process inbox, while it's running</p>
+        <div class="frame app">
+          <nav class="sidebar" aria-label="Main">
+            <div class="brand"><span class="logo">P</span>PDF Extractor</div>
+            <div class="ws">
+              <small>Workspace folder</small>
+              <div>
+                <span class="dot"></span>PDF Extractor<span
+                  style="margin-left: auto; color: var(--muted)"
+                  >⌄</span
+                >
+              </div>
+            </div>
+            <span class="nav"><span class="ico"></span>Templates</span>
+            <span class="nav"><span class="ico"></span>Mapper</span>
+            <span class="nav"><span class="ico"></span>Test on samples</span>
+            <span class="nav on"><span class="ico"></span>Process inbox</span>
+            <span class="nav"><span class="ico"></span>Review<span class="count">3</span></span>
+            <span class="nav" style="margin-top: auto"><span class="ico"></span>Settings</span>
+          </nav>
+          <main class="main">
+            <div class="head">
+              <div>
+                <h2>Process inbox</h2>
+                <div class="sub">Reads Inbox/ · writes Output/</div>
+              </div>
+              <span class="btn">Stop after this file</span>
+            </div>
+            <div class="card" style="display: flex; flex-direction: column; gap: 10px">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                  font-size: 13.5px;
+                "
+              >
+                <span style="display: flex; align-items: center; gap: 8px; color: var(--accent-ink)"
+                  ><span class="spin"></span>Reading page 1 of 2 with OCR ·
+                  northline-card2-scan.pdf</span
+                >
+                <span class="sub" style="margin: 0">File 4 of 6 · 0:12</span>
+              </div>
+              <div class="bar"><span></span></div>
+            </div>
+            <div class="tiles">
+              <div class="tile"><small>Extracted</small><b>3</b></div>
+              <div class="tile"><small>Needs review</small><b>1</b></div>
+              <div class="tile"><small>Unknown supplier</small><b>0</b></div>
+              <div class="tile"><small>Rows written</small><b>61</b></div>
+            </div>
+            <div class="card" style="padding: 0">
+              <table>
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Template</th>
+                    <th>Status</th>
+                    <th>Detail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">northline-sep26.pdf</td>
+                    <td>Northline · v2</td>
+                    <td><span class="pill ok">✓ Extracted</span></td>
+                    <td class="rule">6 rows · 3 of 3 checks</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">apex-fleet-sep26.pdf</td>
+                    <td>Apex Fleet · v1</td>
+                    <td><span class="pill rev">! Needs review</span></td>
+                    <td class="rule">
+                      Short by $9.00 · <a style="color: var(--accent)">Review</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="mono">northline-card2-scan.pdf</td>
+                    <td>Northline · v2</td>
+                    <td>
+                      <span class="pill run"
+                        ><span class="spin" style="width: 10px; height: 10px"></span>Reading</span
+                      >
+                    </td>
+                    <td class="rule">Scanned · OCR</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">ridgeway-88231.pdf</td>
+                    <td>—</td>
+                    <td>
+                      <span class="pill" style="background: var(--surface-2); color: var(--muted)"
+                        >Waiting</span
+                      >
+                    </td>
+                    <td class="rule"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </main>
+        </div>
+      </section>
+
+      <section>
+        <p class="label">2 · Mapper: the page on the left, fields on the right, save bar on top</p>
+        <div
+          class="frame"
+          style="padding: 18px 20px; display: flex; flex-direction: column; gap: 14px"
+        >
+          <div class="stickybar">
+            <div>
+              <div class="sub" style="margin: 0">Templates /</div>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  font-size: 18px;
+                  font-weight: 600;
+                "
+              >
+                Northline Fuel statement
+                <span class="pill" style="background: var(--surface-2); color: var(--muted)"
+                  >Draft · saved 20:05</span
+                >
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <span class="btn">Test on samples</span
+              ><span class="btn primary">Save version 3</span>
+            </div>
+          </div>
+          <div class="split">
+            <div
+              class="card"
+              style="padding: 12px; display: flex; flex-direction: column; gap: 10px"
+            >
+              <div style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap">
+                <span class="seg"
+                  ><span class="on">Click a value</span><span>Map table row</span
+                  ><span>Set end marker</span></span
+                ><span class="sub" style="margin: 0">Page 1 of 2 · 100%</span>
+              </div>
+              <div class="page">
+                <div class="paper">
+                  <div style="font-weight: 700; font-size: 14px">NORTHLINE FUEL</div>
+                  <div>Statement No: <span class="mapped">ST-48213</span></div>
+                  <div>Statement Date: <span class="mapped">30/09/2026</span></div>
+                  <div>
+                    Total GST: <span class="sugg">$38.56</span><span class="tag">Suggested</span>
+                  </div>
+                  <div>Total Due: <span class="mapped">$424.18</span></div>
+                  <div class="table-box">
+                    Date · Card · Site · Product · Litres · Amount
+                    <span class="tag" style="background: #e8f3f9; color: #0a4a66"
+                      >Transactions · 6 rows</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <div
+                class="card"
+                style="background: var(--warn-tint); border-color: var(--warn-border)"
+              >
+                <div style="font-size: 13px; color: var(--warn); font-weight: 500">
+                  Suggested: TotalGST = 38.56
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px">
+                  <span class="btn" style="height: 32px">Accept</span
+                  ><span
+                    class="btn"
+                    style="
+                      height: 32px;
+                      border-color: transparent;
+                      background: transparent;
+                      color: var(--warn);
+                    "
+                    >Dismiss</span
+                  >
+                </div>
+              </div>
+              <div class="card">
+                <div style="font-weight: 600; margin-bottom: 4px">Fields</div>
+                <div class="field">
+                  <div>
+                    <div class="mono">StatementNo</div>
+                    <div class="rule">Right of ‘Statement No’ · text</div>
+                  </div>
+                  <span class="mono">ST-48213</span>
+                </div>
+                <div class="field">
+                  <div>
+                    <div class="mono">StatementDate</div>
+                    <div class="rule">Right of ‘Statement Date’ · date</div>
+                  </div>
+                  <span class="mono">2026-09-30</span>
+                </div>
+                <div class="field">
+                  <div>
+                    <div class="mono">TotalDue</div>
+                    <div class="rule">Right of ‘Total Due’ · currency</div>
+                  </div>
+                  <span class="mono">424.18</span>
+                </div>
+              </div>
+              <div class="card">
+                <div style="font-weight: 600; margin-bottom: 6px">Checks</div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px">
+                  <span>Amounts add up to TotalDue</span><span class="pill ok">✓ Pass</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <p class="label">3 · Setup: steps, live folder progress, and always a way back</p>
+        <div class="frame setup">
+          <div class="inner">
+            <div class="steps">
+              <span class="done"><span class="num">✓</span>Choose folder</span
+              ><span class="line"></span>
+              <span class="now"><span class="num">2</span>Create folders</span
+              ><span class="line"></span>
+              <span><span class="num">3</span>Your name</span>
+            </div>
+            <div
+              class="card"
+              style="padding: 22px 24px; display: flex; flex-direction: column; gap: 14px"
+            >
+              <div style="font-size: 18px; font-weight: 600">Set up “PDF Extractor”</div>
+              <div class="sub" style="margin: 0; font-size: 14px">
+                The app adds these folders. Nothing already in the folder is changed.
+              </div>
+              <div class="folders">
+                <div>
+                  <span>📁</span><span class="mono">Inbox/</span
+                  ><span class="rule">PDFs waiting to be processed</span
+                  ><span class="check">✓</span>
+                </div>
+                <div class="is-now">
+                  <span>📁</span><span class="mono">Processed/</span
+                  ><span class="rule">Finished PDFs, by month</span
+                  ><span class="spin" style="color: var(--accent)"></span>
+                </div>
+                <div>
+                  <span>📁</span><span class="mono">Exceptions/</span
+                  ><span class="rule">PDFs that need a person</span><span></span>
+                </div>
+                <div>
+                  <span>📁</span><span class="mono">Output/</span
+                  ><span class="rule">CSV and JSON results</span><span></span>
+                </div>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  color: var(--accent-ink);
+                  font-size: 13px;
+                "
+              >
+                <span class="spin"></span>Creating Processed/ (2 of 9) · 3 s
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <span class="btn primary"><span class="spin"></span>Creating folders…</span
+                ><span class="btn">Choose a different folder</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <p class="label">4 · Messages: success, working, and failure (with a way forward)</p>
+        <div class="toasts">
+          <div class="toast">
+            <span class="pill ok">✓</span><span class="grow">Saved as version 3</span>
+          </div>
+          <div class="toast">
+            <span class="spin" style="color: var(--accent)"></span><span class="grow">Saving…</span>
+          </div>
+          <div
+            class="toast"
+            style="
+              border-color: var(--danger);
+              background: var(--danger-tint);
+              color: var(--danger);
+            "
+          >
+            <span class="grow"
+              >Couldn’t create Output/. Check you can save files in this folder.</span
+            ><span class="btn" style="height: 30px">Try again</span
+            ><span class="btn" style="height: 30px">Details</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

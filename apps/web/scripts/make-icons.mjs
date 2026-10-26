@@ -6,8 +6,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const DARK = rgb('topbar');
-const BLUE = rgb('brand-icon');
+const DARK = rgb('brand');
+const BLUE = rgb('brand');
 const WHITE = rgb('on-accent');
 
 function crc32(buf) {
@@ -70,6 +70,6 @@ function draw(size) {
 for (const s of [192, 512]) writeFileSync(join(out, `icon-${s}.png`), draw(s));
 writeFileSync(
   join(out, 'icon.svg'),
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="${token('topbar')}"/><path d="M18 13h19l9 9v29H18z" fill="${token('on-accent')}"/><path d="M37 13v9h9" fill="${token('topbar-text')}"/><path d="M23 32h18M23 40h18" stroke="${token('brand-icon')}" stroke-width="3"/></svg>\n`,
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="${token('brand')}"/><path d="M18 13h19l9 9v29H18z" fill="${token('on-accent')}"/><path d="M37 13v9h9" fill="${token('brand-fold')}"/><path d="M23 32h18M23 40h18" stroke="${token('brand')}" stroke-width="3"/></svg>\n`,
 );
 console.log('icons written');

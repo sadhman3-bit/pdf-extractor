@@ -2,27 +2,29 @@
 
 These steps need a person: they involve your GitHub account, your SharePoint site and your work PC. Do them in order.
 
-## 1. Publish the code on GitHub
+## 1. The code and the live app
 
-The repository was built locally and has no remote yet.
+The code is published at https://github.com/sadhman3-bit/pdf-extractor under the MIT licence, and GitHub Pages serves the app at https://sadhman3-bit.github.io/pdf-extractor/.
 
-1. On GitHub, create an empty **public** repository called `pdf-extractor` (don't add a README or .gitignore; the code has them). The code has no licence file yet: choose one and add a `LICENSE` file if others may reuse it.
-2. In a terminal in the project folder:
+- Every push to `main` runs the **CI** workflow (lint, typecheck, unit tests, build and end-to-end tests) and the **Deploy** workflow, which republishes the app. Check both on the repository's **Actions** tab.
+- Pages is set to **Settings → Pages → Build and deployment → Source: GitHub Actions**. If the site ever stops updating, check that setting and re-run **Deploy** from the Actions tab.
+- The app is built for the `/pdf-extractor/` path. If you rename the repository, change `base` in `apps/web/vite.config.ts` to match.
 
-   ```
-   git remote add origin https://github.com/<owner>/pdf-extractor.git
-   git push -u origin main --tags
-   ```
+To work on the code on another PC:
 
-3. Open the repository's **Actions** tab and check that the **CI** workflow runs green (lint, typecheck, unit tests, build and end-to-end tests).
+```
+git clone https://github.com/sadhman3-bit/pdf-extractor.git
+cd pdf-extractor
+pnpm install
+```
 
-## 2. Turn on GitHub Pages
+## 2. Repository settings worth turning on
 
-1. In the repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-2. Re-run the **Deploy** workflow from the Actions tab (or push any commit).
-3. The app goes live at `https://<owner>.github.io/pdf-extractor/`. Open it and check you see "Welcome to PDF Extractor".
+In the repository's **Settings**:
 
-The app is built for the `/pdf-extractor/` path. If you name the repository differently, change `base` in `apps/web/vite.config.ts` to match.
+1. **Code security → Private vulnerability reporting:** turn it on, so people can report security problems privately (see `SECURITY.md`).
+2. **Code security → Dependabot alerts:** turn it on to hear about vulnerable dependencies.
+3. **Branches → Add branch ruleset** for `main`: require the **CI** check to pass before merging pull requests.
 
 ## 3. Create the shared folder
 
@@ -32,7 +34,7 @@ The app is built for the `/pdf-extractor/` path. If you name the repository diff
 
 ## 4. First run on the work PC
 
-1. Open `https://<owner>.github.io/pdf-extractor/` in **Chrome or Edge**.
+1. Open `https://sadhman3-bit.github.io/pdf-extractor/` in **Chrome or Edge**.
 2. Choose **Get started → Choose folder** and pick the synced `PDF Extractor` folder. Allow the browser to view and edit files.
 3. Choose **Create folders**, then enter your name.
 4. Optional: install the app from the address bar so it opens in its own window and works offline.
@@ -52,7 +54,7 @@ Use real sample PDFs on the work PC. They stay on that PC and in SharePoint; not
 
 ## 7. Check the work network
 
-Open `https://<owner>.github.io/pdf-extractor/` on a work PC on the office network and on VPN. If it's blocked, ask IT to allow `<owner>.github.io` (it only serves the app's static files; no data is sent to it).
+Open `https://sadhman3-bit.github.io/pdf-extractor/` on a work PC on the office network and on VPN. If it's blocked, ask IT to allow `sadhman3-bit.github.io` (it only serves the app's static files; no data is sent to it).
 
 ## 8. Tell your manager
 

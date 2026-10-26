@@ -25,6 +25,10 @@ export interface AppState {
   basicFiles: { name: string; bytes: Uint8Array }[];
   /** A file waiting to become a new template's first sample. */
   pendingSample: { name: string; bytes: Uint8Array; fromException?: string } | null;
+  /** An action that failed, shown at the top of the page with its details. */
+  problem: { message: string; detail: string } | null;
+  /** Short confirmations shown in the corner for a few seconds. */
+  toasts: { id: number; text: string }[];
 }
 
 const initial: AppState = {
@@ -44,6 +48,8 @@ const initial: AppState = {
   slowRead: null,
   basicFiles: [],
   pendingSample: null,
+  problem: null,
+  toasts: [],
 };
 
 let state: AppState = initial;

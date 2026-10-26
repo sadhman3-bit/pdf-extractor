@@ -83,29 +83,33 @@ export function FieldsPanel(props: {
         <div class="stack" aria-label={S.mapper.suggestions} role="group">
           {props.suggestions.map((s) => (
             <div class="field-row suggested" key={s.rule.id}>
-              <span class="tag tag-warn">{S.mapper.suggested}</span>
               <div class="grow">
-                <div class="field-name">{s.rule.name}</div>
+                <div class="row nowrap">
+                  <span class="field-name">{s.rule.name}</span>
+                  <span class="tag tag-warn">{S.mapper.suggested}</span>
+                </div>
                 <div class="caption">{ruleText(s.rule)}</div>
                 <div class="field-value">{s.value}</div>
               </div>
-              <button
-                type="button"
-                class="btn btn-small"
-                onClick={() => props.onAccept(s)}
-                aria-label={`${S.common.accept} ${s.rule.name}`}
-              >
-                <CheckIcon size={14} />
-                {S.common.accept}
-              </button>
-              <button
-                type="button"
-                class="btn btn-small btn-text"
-                onClick={() => props.onDismiss(s)}
-                aria-label={`${S.common.dismiss} ${s.rule.name}`}
-              >
-                {S.common.dismiss}
-              </button>
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="btn btn-small"
+                  onClick={() => props.onAccept(s)}
+                  aria-label={`${S.common.accept} ${s.rule.name}`}
+                >
+                  <CheckIcon size={14} />
+                  {S.common.accept}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-small btn-text"
+                  onClick={() => props.onDismiss(s)}
+                  aria-label={`${S.common.dismiss} ${s.rule.name}`}
+                >
+                  {S.common.dismiss}
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -120,7 +124,7 @@ export function FieldsPanel(props: {
               <div class="grow">
                 <button
                   type="button"
-                  class="btn-text btn field-name"
+                  class="field-toggle field-name"
                   aria-expanded={open}
                   onClick={() => props.onEdit(open ? null : f.id)}
                 >

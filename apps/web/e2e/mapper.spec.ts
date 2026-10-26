@@ -32,7 +32,7 @@ test('maps Northline header fields from scratch; output equals the golden', asyn
   expect(out.fields).toEqual(goldenJson('northline-sep26').fields);
   // Templates library lists it and passes axe.
   await page.goto('./?view=templates');
-  await expect(page.getByRole('cell', { name: 'v1' })).toBeVisible();
+  await expect(page.locator('.tpl-card').getByText('v1', { exact: true })).toBeVisible();
   await expectNoAxe(page);
 });
 

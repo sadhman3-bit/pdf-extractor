@@ -22,7 +22,15 @@ import { S } from '../strings';
 import { app, useApp } from '../app/store';
 import { navigate, useRoute } from '../app/router';
 import { now, refresh } from '../app/session';
-import { Banner, Dialog, DropZone, Segmented, fileBytes, timeHM } from '../components/ui';
+import {
+  Banner,
+  Dialog,
+  DropZone,
+  Segmented,
+  fileBytes,
+  timeHM,
+  ActionButton,
+} from '../components/ui';
 import { PageView, usePdf, type Divider, type Mark, type Zoom } from '../components/PageView';
 import { documentText } from '../lib/pipeline';
 import { idbDel, idbGet, idbSet } from '../lib/idb';
@@ -71,6 +79,9 @@ function emptyTemplate(id: string, name: string, fp: Template['fingerprint']): T
   };
 }
 
+type Panel = 'fields' | 'table' | 'checks' | 'fingerprint' | 'preview';
+const PANELS: Panel[] = ['fields', 'table', 'checks', 'fingerprint', 'preview'];
+
 export function MapperScreen() {
   const s = useApp();
   const route = useRoute();
@@ -96,6 +107,7 @@ export function MapperScreen() {
   const [changing, setChanging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
+  const [panel, setPanel] = useState<Panel>('fields');
   // The exception this template was created from, offered for a re-run after saving.
   const [sourceFile, setSourceFile] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
@@ -317,6 +329,7 @@ export function MapperScreen() {
       );
       app.announce(S.mapper.table.rowsFound(0));
       setMode('value');
+      setPanel('table');
       return;
     }
     if (mode === 'end') {
@@ -328,6 +341,7 @@ export function MapperScreen() {
       setTable({ ...table, end: { labels: [label], match: 'starts-with' } });
       app.announce(S.mapper.endMarkerSet(label));
       setMode('value');
+      setPanel('table');
       return;
     }
     // Click a value
@@ -368,6 +382,7 @@ export function MapperScreen() {
     }
     const inf = inferField(layout, sel, names);
     if (!inf) return;
+    setPanel('fields');
     setDraft({ ...draft, fields: [...draft.fields, inf.rule] });
     setEditing(inf.rule.id);
     app.announce(`${inf.rule.name}: ${inf.value}`);
@@ -459,6 +474,12 @@ export function MapperScreen() {
   };
 
   const fpParts = draft.fingerprint.mustContain.map((x) => `“${x}”`).join(', ');
+  const panelCount = (p: Panel): number | null => {
+    if (p === 'fields') return draft.fields.length + suggestions.length;
+    if (p === 'table') return tableResult?.found ? tableResult.rows.length : null;
+    if (p === 'checks') return (draft.checks ?? []).filter((c) => c.enabled !== false).length;
+    return null;
+  };
   const origin = route.template ? true : false;
 
   return (
@@ -481,7 +502,7 @@ export function MapperScreen() {
           <div class="row">
             <input
               type="text"
-              class="page-title"
+              class="title-input"
               aria-label={S.mapper.nameLabel}
               value={draft.name}
               onInput={(e) => setDraft({ ...draft, name: (e.target as HTMLInputElement).value })}
@@ -505,9 +526,9 @@ export function MapperScreen() {
           >
             {S.mapper.testOnSamples}
           </button>
-          <button type="button" class="btn btn-primary" onClick={() => void save()}>
+          <ActionButton busyLabel={S.busy.saving} class="btn btn-primary" onAction={() => save()}>
             {S.mapper.saveTemplate}
-          </button>
+          </ActionButton>
         </div>
       </div>
 
@@ -515,10 +536,10 @@ export function MapperScreen() {
         <Banner
           tone="warn"
           action={
-            <button
-              type="button"
+            <ActionButton
+              busyLabel={S.busy.opening}
               class="btn"
-              onClick={async () => {
+              onAction={async () => {
                 await takeLock(
                   ws,
                   `template:${draft.id}`,
@@ -531,7 +552,7 @@ export function MapperScreen() {
               }}
             >
               {S.common.openAnyway}
-            </button>
+            </ActionButton>
           }
         >
           {S.common.inUse(lock.user, timeHM(lock.since))}
@@ -551,17 +572,17 @@ export function MapperScreen() {
               >
                 {S.mapper.resume}
               </button>
-              <button
-                type="button"
+              <ActionButton
+                busyLabel={S.busy.discarding}
                 class="btn"
-                onClick={async () => {
+                onAction={async () => {
                   await discardDraft(ws, draft.id);
                   await idbDel(`draft:${draft.id}`);
                   setResume(null);
                 }}
               >
                 {S.mapper.discard}
-              </button>
+              </ActionButton>
             </div>
           }
         >
@@ -572,17 +593,17 @@ export function MapperScreen() {
         <Banner
           tone="success"
           action={
-            <button
-              type="button"
+            <ActionButton
+              busyLabel={S.busy.opening}
               class="btn btn-primary"
-              onClick={async () => {
+              onAction={async () => {
                 await idbDel(`origin:${draft.id}`);
                 setSourceFile(null);
                 navigate({ view: 'review', file: sourceFile });
               }}
             >
               {S.mapper.backToFile}
-            </button>
+            </ActionButton>
           }
         >
           {S.mapper.createdFrom(sourceFile)}
@@ -602,7 +623,7 @@ export function MapperScreen() {
       ) : null}
 
       <div class="split">
-        <section class="card stack" aria-label={sample?.name ?? S.mapper.title}>
+        <section class="card stack mapper-page" aria-label={sample?.name ?? S.mapper.title}>
           <div class="viewer-toolbar">
             <Segmented<Mode>
               label={S.mapper.modes}
@@ -677,95 +698,124 @@ export function MapperScreen() {
         </section>
 
         <div class="stack">
-          <FieldsPanel
-            draft={draft}
-            result={result}
-            suggestions={suggestions}
-            editing={editing}
-            repick={repick}
-            onAccept={(sg) => {
-              setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
-              app.announce(`${S.common.accept}: ${sg.rule.name}`);
-            }}
-            onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
-            onEdit={setEditing}
-            onRepick={(id) => {
-              setMode('value');
-              setRepick(repick === id ? null : id);
-            }}
-            onChange={updateField}
-            onRemove={(id) => {
-              setDraft({ ...draft, fields: draft.fields.filter((f) => f.id !== id) });
-              setEditing(null);
-            }}
-            onAddPreset={(name) => {
-              const p = PRESETS.find((x) => x.name === name)!;
-              const f: FieldRule = {
-                id: `f${Date.now().toString(36)}`,
-                name: p.name,
-                type: p.type,
-                required: true,
-                anchor: { labels: [...p.labels], match: 'exact' },
-                direction: 'right',
-              };
-              setDraft({ ...draft, fields: [...draft.fields, f] });
-              setEditing(f.id);
-            }}
-            onRegion={(id, on) => {
-              const f = draft.fields.find((x) => x.id === id)!;
-              const r = result?.fields[f.name];
-              const box = r?.boxes[0];
-              const pg = pages?.[(box?.page ?? 1) - 1];
-              if (!on || !box || !pg) {
-                const { region: _r, ...rest } = f;
-                updateField(rest);
-                return;
-              }
-              const pad = 4;
-              updateField({
-                ...f,
-                region: {
-                  page: box.page,
-                  x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
-                  y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
-                  x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
-                  y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
-                },
-              });
-            }}
-          />
-          {tableSuggestion && !table ? (
-            <Banner
-              tone="warn"
-              action={
-                <button
-                  type="button"
-                  class="btn btn-small"
-                  onClick={() => setTable(tableSuggestion.rule)}
+          <div class="tabs" role="tablist" aria-label={S.mapper.panels}>
+            {PANELS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                role="tab"
+                id={`tab-${p}`}
+                aria-selected={panel === p}
+                aria-controls="mapper-panel"
+                class={panel === p ? 'tab on' : 'tab'}
+                onClick={() => setPanel(p)}
+              >
+                {S.mapper.panel[p]}
+                {panelCount(p) !== null ? <span class="tab-count">{panelCount(p)}</span> : null}
+              </button>
+            ))}
+          </div>
+          <div id="mapper-panel" role="tabpanel" aria-labelledby={`tab-${panel}`} class="stack">
+            {panel === 'fields' ? (
+              <FieldsPanel
+                draft={draft}
+                result={result}
+                suggestions={suggestions}
+                editing={editing}
+                repick={repick}
+                onAccept={(sg) => {
+                  setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
+                  app.announce(`${S.common.accept}: ${sg.rule.name}`);
+                }}
+                onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
+                onEdit={setEditing}
+                onRepick={(id) => {
+                  setMode('value');
+                  setRepick(repick === id ? null : id);
+                }}
+                onChange={updateField}
+                onRemove={(id) => {
+                  setDraft({ ...draft, fields: draft.fields.filter((f) => f.id !== id) });
+                  setEditing(null);
+                }}
+                onAddPreset={(name) => {
+                  const p = PRESETS.find((x) => x.name === name)!;
+                  const f: FieldRule = {
+                    id: `f${Date.now().toString(36)}`,
+                    name: p.name,
+                    type: p.type,
+                    required: true,
+                    anchor: { labels: [...p.labels], match: 'exact' },
+                    direction: 'right',
+                  };
+                  setDraft({ ...draft, fields: [...draft.fields, f] });
+                  setEditing(f.id);
+                }}
+                onRegion={(id, on) => {
+                  const f = draft.fields.find((x) => x.id === id)!;
+                  const r = result?.fields[f.name];
+                  const box = r?.boxes[0];
+                  const pg = pages?.[(box?.page ?? 1) - 1];
+                  if (!on || !box || !pg) {
+                    const { region: _r, ...rest } = f;
+                    updateField(rest);
+                    return;
+                  }
+                  const pad = 4;
+                  updateField({
+                    ...f,
+                    region: {
+                      page: box.page,
+                      x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
+                      y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
+                      x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
+                      y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
+                    },
+                  });
+                }}
+              />
+            ) : null}
+            {panel === 'table' || panel === 'fields' ? (
+              tableSuggestion && !table ? (
+                <Banner
+                  tone="warn"
+                  action={
+                    <button
+                      type="button"
+                      class="btn btn-small"
+                      onClick={() => setTable(tableSuggestion.rule)}
+                    >
+                      {S.common.accept}
+                    </button>
+                  }
                 >
-                  {S.common.accept}
-                </button>
-              }
-            >
-              {`${S.mapper.suggested}: ${S.mapper.table.title} (${tableSuggestion.rule.columns.map((c) => c.name).join(', ')})`}
-            </Banner>
-          ) : null}
-          <TablePanel
-            table={table}
-            rows={tableResult?.rows.length ?? 0}
-            onChange={(t) => setTable(t)}
-            onRemove={() => setTable(null)}
-          />
-          <ChecksPanel
-            draft={draft}
-            result={result}
-            onChange={(checks) => setDraft({ ...draft, checks })}
-          />
-          <FingerprintPanel
-            draft={draft}
-            onChange={(fingerprint) => setDraft({ ...draft, fingerprint })}
-          />
-          <PreviewPanel csv={csv} />
+                  {`${S.mapper.suggested}: ${S.mapper.table.title} (${tableSuggestion.rule.columns.map((c) => c.name).join(', ')})`}
+                </Banner>
+              ) : null
+            ) : null}
+            {panel === 'table' ? (
+              <TablePanel
+                table={table}
+                rows={tableResult?.rows.length ?? 0}
+                onChange={(t) => setTable(t)}
+                onRemove={() => setTable(null)}
+              />
+            ) : null}
+            {panel === 'checks' ? (
+              <ChecksPanel
+                draft={draft}
+                result={result}
+                onChange={(checks) => setDraft({ ...draft, checks })}
+              />
+            ) : null}
+            {panel === 'fingerprint' ? (
+              <FingerprintPanel
+                draft={draft}
+                onChange={(fingerprint) => setDraft({ ...draft, fingerprint })}
+              />
+            ) : null}
+            {panel === 'preview' ? <PreviewPanel csv={csv} /> : null}
+          </div>
         </div>
       </div>
 
@@ -777,16 +827,16 @@ export function MapperScreen() {
                 .find((t) => t.id === draft.id)!
                 .samples.map((n) => (
                   <li key={n}>
-                    <button
-                      type="button"
+                    <ActionButton
+                      busyLabel={S.busy.loadingSample}
                       class="btn btn-text mono"
-                      onClick={async () => {
+                      onAction={async () => {
                         setChanging(false);
                         await loadSample(n, await sampleBytes(ws, draft.id, n));
                       }}
                     >
                       {n}
-                    </button>
+                    </ActionButton>
                   </li>
                 ))}
             </ul>

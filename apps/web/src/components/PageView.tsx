@@ -138,7 +138,10 @@ export function PageView(props: {
   useEffect(() => {
     if (!pdfPage || !canvas.current) return;
     const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    void renderPage(pdfPage, canvas.current, scale * ratio).catch(() => undefined);
+    // Resizing re-renders; cancel the render still in flight for the old size.
+    const r = renderPage(pdfPage, canvas.current, scale * ratio);
+    r.promise.catch(() => undefined);
+    return () => r.cancel();
   }, [pdfPage, scale]);
 
   useEffect(() => {

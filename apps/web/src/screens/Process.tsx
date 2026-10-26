@@ -6,7 +6,7 @@ import { app, useApp } from '../app/store';
 import { navigate, useRoute } from '../app/router';
 import { now, refresh } from '../app/session';
 import { testHooks } from '../app/testing';
-import { Banner, downloadBlob, fileBytes } from '../components/ui';
+import { Banner, downloadBlob, fileBytes, ActionButton, Working } from '../components/ui';
 import { StatusChip, type AnyStatus } from '../components/StatusChip';
 import { ScanIcon, DocIcon } from '../components/Icons';
 import { extractBytes, sha256, type Progress } from '../lib/pipeline';
@@ -256,31 +256,47 @@ function FolderProcess({ fromTeams }: { fromTeams: boolean }) {
           </p>
         </div>
         <div class="row">
-          {running ? (
+          {running ? null : (
             <>
-              <div class="stack">
-                <span aria-live="polite">{S.process.progress(index, rows.length)}</span>
-                <div
-                  class="progress"
-                  role="progressbar"
-                  aria-valuemin={0}
-                  aria-valuemax={rows.length}
-                  aria-valuenow={index}
-                  aria-label={S.process.progress(index, rows.length)}
-                >
-                  <span
-                    style={{
-                      width: `${(100 * Math.max(0, index - 1)) / Math.max(1, rows.length)}%`,
-                    }}
-                  />
-                </div>
-                {ocr?.ocrPage ? (
-                  <span class="caption">{S.process.ocrProgress(ocr.ocrPage)}</span>
-                ) : null}
-              </div>
+              {elapsed !== null ? (
+                <span class="caption">{S.process.finished(elapsed.toFixed(1))}</span>
+              ) : null}
+              <ActionButton busyLabel={S.busy.refreshing} class="btn" onAction={() => load()}>
+                {S.process.refresh}
+              </ActionButton>
+              {inbox.length ? (
+                <button type="button" class="btn btn-primary" onClick={() => void run()}>
+                  {S.process.processN(inbox.length)}
+                </button>
+              ) : (
+                <span class="status-note">{S.process.nothing}</span>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      {running ? (
+        <section class="card run-card" aria-label={S.process.runLabel}>
+          <div class="run-line">
+            <Working
+              label={
+                ocr?.ocrPage
+                  ? S.process.ocrNow(
+                      ocr.ocrPage,
+                      ocr.ocrPages ?? ocr.ocrPage,
+                      rows[index - 1]?.file ?? '',
+                    )
+                  : S.process.readingNow(rows[index - 1]?.file ?? '')
+              }
+              slowAfter={90}
+            />
+            <div class="row">
+              <span class="caption" aria-live="polite">
+                {S.process.progress(index, rows.length)}
+              </span>
               <button
                 type="button"
-                class="btn"
+                class="btn btn-small"
                 disabled={cancelling}
                 onClick={() => {
                   cancel.current = true;
@@ -289,27 +305,24 @@ function FolderProcess({ fromTeams }: { fromTeams: boolean }) {
               >
                 {cancelling ? S.process.cancelling : S.process.cancel}
               </button>
-            </>
-          ) : (
-            <>
-              {elapsed !== null ? (
-                <span class="caption">{S.process.finished(elapsed.toFixed(1))}</span>
-              ) : null}
-              <button type="button" class="btn" onClick={() => void load()}>
-                {S.process.refresh}
-              </button>
-              <button
-                type="button"
-                class="btn btn-primary"
-                disabled={!inbox.length}
-                onClick={() => void run()}
-              >
-                {inbox.length ? S.process.processN(inbox.length) : S.process.nothing}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+          </div>
+          <div
+            class="progress"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={rows.length}
+            aria-valuenow={Math.max(0, index - 1)}
+            aria-label={S.process.progress(index, rows.length)}
+          >
+            <span
+              style={{
+                width: `${(100 * Math.max(0, index - 1)) / Math.max(1, rows.length)}%`,
+              }}
+            />
+          </div>
+        </section>
+      ) : null}
       {failure ? <Banner tone="danger">{failure}</Banner> : null}
       <Tiles inbox={inbox.length} rows={rows} />
       {rows.length ? (
@@ -430,32 +443,32 @@ function BasicProcess() {
       {rows.length ? <FilesTable rows={rows} /> : null}
       {rows.length && !running ? (
         <section class="card row">
-          <button
-            type="button"
+          <ActionButton
+            busyLabel={S.busy.preparing}
             class="btn"
-            onClick={async () => {
+            onAction={async () => {
               const files = await outputs();
               const csvs = Object.entries(files).filter(([n]) => n.endsWith('.csv'));
               for (const [n, c] of csvs) downloadBlob(n, c, 'text/csv');
             }}
           >
             {S.basic.downloadCsv}
-          </button>
-          <button
-            type="button"
+          </ActionButton>
+          <ActionButton
+            busyLabel={S.busy.preparing}
             class="btn"
-            onClick={async () => {
+            onAction={async () => {
               const files = await outputs();
               for (const [n, c] of Object.entries(files).filter(([n]) => n.endsWith('.json')))
                 downloadBlob(n, c, 'application/json');
             }}
           >
             {S.basic.downloadJson}
-          </button>
-          <button
-            type="button"
+          </ActionButton>
+          <ActionButton
+            busyLabel={S.busy.preparing}
             class="btn btn-primary"
-            onClick={async () => {
+            onAction={async () => {
               const files = await outputs();
               downloadBlob(
                 'pdf-extractor-results.zip',
@@ -465,11 +478,11 @@ function BasicProcess() {
             }}
           >
             {S.basic.downloadZip}
-          </button>
-          <button
-            type="button"
+          </ActionButton>
+          <ActionButton
+            busyLabel={S.busy.preparing}
             class="btn"
-            onClick={async () => {
+            onAction={async () => {
               const XLSX = await import('xlsx');
               const wb = XLSX.utils.book_new();
               const files = await outputs();
@@ -487,7 +500,7 @@ function BasicProcess() {
             }}
           >
             {S.basic.downloadXlsx}
-          </button>
+          </ActionButton>
         </section>
       ) : null}
     </>

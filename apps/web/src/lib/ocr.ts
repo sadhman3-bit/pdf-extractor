@@ -40,7 +40,7 @@ export async function terminateOcr(): Promise<void> {
 /** Renders a page at 3× on the main thread and reads it with tesseract.js. */
 export async function ocrPage(page: PdfPage, pageNo: number): Promise<PageText> {
   const canvas = document.createElement('canvas');
-  await renderPage(page, canvas, OCR_SCALE);
+  await renderPage(page, canvas, OCR_SCALE).promise;
   const vp = page.getViewport({ scale: 1 });
   const w = await getOcrWorker();
   const res = await w.recognize(canvas, {}, { blocks: true, text: false });

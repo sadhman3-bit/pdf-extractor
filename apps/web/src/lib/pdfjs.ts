@@ -37,17 +37,37 @@ export async function readPages(
 }
 
 /** Renders one page into a canvas at `scale` (CSS pixels per point × device pixel ratio). */
-export async function renderPage(
+/** The page colour from tokens.css (white in both themes). */
+function paper(): string {
+  return getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || 'white';
+}
+
+/**
+ * Renders a page into `canvas`. The page is drawn off screen and copied over only
+ * when finished, so a resize mid-render never shows a half-drawn or garbled page.
+ * Call `cancel` before starting another render of the same canvas.
+ */
+export function renderPage(
   page: PdfPage,
   canvas: HTMLCanvasElement,
   scale: number,
-): Promise<void> {
+): { promise: Promise<void>; cancel: () => void } {
   const viewport = page.getViewport({ scale });
-  canvas.width = Math.ceil(viewport.width);
-  canvas.height = Math.ceil(viewport.height);
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas is not available');
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+  const off = document.createElement('canvas');
+  off.width = Math.ceil(viewport.width);
+  off.height = Math.ceil(viewport.height);
+  const ctx = off.getContext('2d');
+  if (!ctx)
+    return { promise: Promise.reject(new Error('Canvas is not available')), cancel: () => {} };
+  ctx.fillStyle = paper();
+  ctx.fillRect(0, 0, off.width, off.height);
+  const task = page.render({ canvas: off, canvasContext: ctx, viewport });
+  const promise = task.promise.then(() => {
+    canvas.width = off.width;
+    canvas.height = off.height;
+    canvas.getContext('2d')?.drawImage(off, 0, 0);
+    off.width = 0;
+    off.height = 0;
+  });
+  return { promise, cancel: () => task.cancel() };
 }

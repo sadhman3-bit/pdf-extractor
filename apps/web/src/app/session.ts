@@ -76,7 +76,10 @@ async function connect(h: FileSystemDirectoryHandle, kind: 'fs' | 'opfs'): Promi
   app.set({ phase: 'ready' });
 }
 
-export async function chooseFolder(): Promise<'ok' | 'cancelled' | 'unsupported'> {
+/** 'failed' carries the browser's message, for example when a protected folder was picked. */
+export type ChooseResult = 'ok' | 'cancelled' | 'unsupported' | { failed: string };
+
+export async function chooseFolder(): Promise<ChooseResult> {
   let h: FileSystemDirectoryHandle | null;
   let kind: 'fs' | 'opfs' = 'fs';
   if (testHooks()) {
@@ -86,29 +89,30 @@ export async function chooseFolder(): Promise<'ok' | 'cancelled' | 'unsupported'
     if (!hasFolderAccess()) return 'unsupported';
     try {
       h = await pickFolder();
-    } catch {
-      return 'unsupported';
+    } catch (e) {
+      return { failed: String((e as Error)?.message ?? e) };
     }
   }
   if (!h) return 'cancelled';
   await idbSet(HANDLE_KEY, h);
   await idbSet(`${HANDLE_KEY}-kind`, kind);
   const ws = makeWorkspace(h, kind);
-  app.set({
-    ws,
-    handle: h,
-    folderName: ws.name,
-    connected: true,
-    missing: await missingFolders(ws),
-    phase: 'confirm',
-  });
+  const missing = await missingFolders(ws);
+  app.set({ ws, handle: h, folderName: ws.name, connected: true, missing });
+  // A folder that is already set up needs no "create folders" step.
+  if (missing.length) app.set({ phase: 'confirm' });
+  else if (!app.get().user) app.set({ phase: 'name' });
+  else {
+    await refresh();
+    app.set({ phase: 'ready' });
+  }
   return 'ok';
 }
 
-export async function confirmFolders(): Promise<void> {
+export async function confirmFolders(onStep?: (path: string) => void): Promise<void> {
   const { ws } = app.get();
   if (!ws) return;
-  await createFolders(ws);
+  await createFolders(ws, onStep);
   app.set({ missing: [] });
   if (!app.get().user) app.set({ phase: 'name' });
   else {

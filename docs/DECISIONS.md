@@ -68,3 +68,14 @@ Measured on 2026-10-24 on the build machine (Windows 10, Node 22.16, Chromium fr
 | One scanned page through OCR under 8 s | 5.3 to 7.7 s per page across runs (10.5 to 15.4 s for the 2-page scan, including starting the OCR engine) | Met, with little margin on a busy machine |
 
 OCR is the tightest. Starting the OCR engine is paid once per run, so longer runs average lower per page. On a slower PC, switching the language data to tesseract's "fast" model would roughly halve OCR time at some cost in accuracy; that's left as a later option.
+
+## Interface redesign (after 1.0.0)
+
+- The top bar became a sidebar: the working folder (with "Change folder"), navigation with a review count, and Settings, which now works at every step including setup. Narrow screens get a header with a menu button, and the sidebar slides in.
+- Light and dark themes follow the system setting. Both are defined in `tokens.css`, and the contrast test checks every text pair in both. The PDF page and its marks stay on white paper in both themes (`--paper`, `--mark-*`).
+- Every slow button uses `ActionButton`: a spinner and an "…ing" label while it runs, and if it fails, a message at the top of the page with the error details instead of a button left greyed out. Unhandled failures anywhere are shown the same way. Short confirmations appear as toasts.
+- Setup ticks off each folder as it's created, shows how long it has been running, and offers "Choose a different folder" at every step. A folder that's already set up skips the create step. If the folder window doesn't appear (some embedded browsers can't show it), the app says so after a few seconds and offers basic mode.
+- Pages render off screen and replace the visible page only when finished; a resize cancels the render in flight. Overlapping renders of one canvas had produced upside-down, garbled pages.
+- The Mapper's side panel is split into tabs (Fields, Table, Checks, Fingerprint, Preview), and it switches to the tab you're working on. The page view stays in view while you scroll.
+- `pnpm screenshots` captures every screen in light and dark mode into `docs/screenshots`, for design review and the README. The normal e2e run ignores it.
+- The project is open source under the MIT licence; bundled third-party software, fonts and OCR data are listed with their licences in `THIRD_PARTY_NOTICES.md`.
