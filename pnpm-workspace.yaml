@@ -5,3 +5,7 @@ packages:
 
 onlyBuiltDependencies:
   - esbuild
+
+overrides:
+  # Build-time only (vite-plugin-pwa → workbox-build → terser); fixes GHSA low-severity XSS.
+  serialize-javascript: 7.1.3
