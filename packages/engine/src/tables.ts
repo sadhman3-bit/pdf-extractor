@@ -2,7 +2,7 @@ import type { BBox, DocLayout, Line, Token } from './types';
 import type { ColumnRule, TableRule } from './template';
 import { TOLERANCES } from './tolerances';
 import { normToken, normTokens } from './normalize';
-import { bboxOf, cx } from './layout';
+import { bboxOf, cx, furnitureLines, phrases } from './layout';
 import { lineMatches } from './anchor';
 import { applyCleaners, parseValue, type Value } from './parse';
 import type { SourceBox } from './fields';
@@ -199,6 +199,16 @@ export function extractTable(
   const groupValues: Record<string, string> = {};
   const raw: RawRow[] = [];
   let ended = false;
+  const furniture = furnitureLines(layout);
+  // Lines without a row start join the row above, but never across a group heading.
+  let joinable = false;
+  const colOf = (t: Token) => {
+    const c = cx(t);
+    return bounds.find((b) => c >= b.x0 && c < b.x1);
+  };
+  const lone = (line: Line) =>
+    phrases(line).length === 1 &&
+    !line.tokens.some((t) => rowStart && colOf(t)?.name === rowStart.column);
 
   for (let pi = startPage; pi < layout.pages.length && !ended; pi++) {
     const p = layout.pages[pi]!;
@@ -219,16 +229,22 @@ export function extractTable(
         break;
       }
       if (skip.some((re) => re.test(line.text))) continue;
-      const g = groups.find(({ re }) => re.test(line.text));
+      if (furniture.has(line)) continue;
+      const g = groups.find(
+        ({ g, re }) =>
+          re.test(line.text) &&
+          (!g.lone || lone(line)) &&
+          (g.x0 === undefined || Math.abs(line.x0 - g.x0) <= TOLERANCES.indent),
+      );
       if (g) {
         const m = g.re.exec(line.text)!;
         groupValues[g.g.name] = (m[g.g.capture ?? 0] ?? m[0]).trim();
+        joinable = false;
         continue;
       }
       const cells = new Map<string, Token[]>();
       for (const t of line.tokens) {
-        const c = cx(t);
-        const col = bounds.find((b) => c >= b.x0 && c < b.x1);
+        const col = colOf(t);
         if (!col) continue;
         const arr = cells.get(col.name) ?? [];
         arr.push(t);
@@ -245,7 +261,8 @@ export function extractTable(
         : true;
       if (startsRow) {
         raw.push({ cells, groups: { ...groupValues }, page: p.page });
-      } else if (wrapped === 'join' && raw.length) {
+        joinable = true;
+      } else if (wrapped === 'join' && joinable && raw.length) {
         const prev = raw[raw.length - 1]!;
         for (const [name, toks] of cells) {
           const arr = prev.cells.get(name) ?? [];

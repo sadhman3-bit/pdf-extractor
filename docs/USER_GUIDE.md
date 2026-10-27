@@ -64,11 +64,14 @@ You need one sample PDF from the supplier.
    - **Change a field:** click its value on the page (it opens that field rather than adding a second one), or click its name in the list. Pointing at a field in the list outlines its value on the page.
    - **Remove a field:** choose the **×** on its row. **Undo** in the message at the bottom of the screen puts it back.
 4. **Suggestions.** Dashed amber boxes are values the app thinks you'll want; they're listed under **Suggestions** below your fields. **Accept** or **Dismiss** each one, choose **Accept all**, or simply click one on the page to accept it.
-5. **Map the table** (if the document has one). Choose **Map table row** and click any cell in the first row. The app finds the header, the columns and their types, and outlines the table with its row count. Then:
-   - Rename the table (for example `Transactions`) and check each column's name and type.
-   - Choose **Set end marker** and click the line where the table ends (for example "Subtotal").
-   - Drag the dashed column dividers if a column is cut in the wrong place (or focus a divider and use the arrow keys).
-   - Turn on **Continues on the next page** for tables that run over several pages, and add **Skip lines matching** patterns for page footers.
+5. **Map the table** (if the document has one). Choose **Map a table** and click the table's header row. The app finds the columns and their types, and outlines the table with its row count. Totals that repeat for each group (such as "Total for 02 5550 0160" after every phone number) are skipped automatically, and page headers and footers that repeat on every page are ignored. Then click any line in the table and say what it is under **What is this line?**:
+   - **A heading:** copies the heading onto each row below it, as its own CSV column. "Telephone 02 5550 0160" gives a Telephone column with the number; a heading without numbers ("Services and equipment rental") gives a Section column, and one in capitals (a company name) gives a Company column.
+   - **Not a row: skip lines like this.**
+   - **A new column starts at "…":** click the first word of a value that has no heading of its own, such as a quantity or a period, to make it a column.
+   - **The table ends here:** for example at "Call details".
+   - **This is the header row:** start the table again from this line.
+
+   Each choice applies to every line like it on every page, and the message at the bottom has **Undo**. Rename the table (for example `Items`) and the columns in the Table panel; **×** removes a column or a heading. Drag a column divider by its grip above the header (or focus it and use the arrow keys).
 6. **Checks.** The app offers sensible checks, such as "the amounts add up to the total" and "GST is the total ÷ 11". Turn them on or off, or add your own (see `TEMPLATE_FORMAT.md` for the expression language).
 7. The **CSV preview** at the bottom shows exactly what will be written.
 8. Choose **Save template**. Each save creates a new version; old versions are kept.

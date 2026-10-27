@@ -18,6 +18,12 @@ export const TOLERANCES = {
   regionConfidence: 0.7,
   /** On continuation pages without a repeated header, skip this fraction of the page top. */
   pageTopSkip: 0.08,
+  /** Page headers and footers: lines in this top or bottom share of the page… */
+  furnitureMargin: 0.1,
+  /** …repeated at the same height on at least this share of pages (and 3 pages). */
+  furniturePages: 0.6,
+  /** How far a heading may sit from its example's indent, in points. */
+  indent: 4,
   /** A page with fewer text tokens than this needs OCR. */
   ocrMinTokens: 10,
   /** Diagnostics look for alternate labels within this fraction of page height of the hint. */

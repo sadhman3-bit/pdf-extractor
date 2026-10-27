@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   PRESETS,
+  addColumnAt,
   buildLayout,
   extractWith,
   inferField,
+  groupFor,
   inferTable,
   parseTemplate,
   phrases,
   suggestFields,
   suggestFingerprint,
+  skipPatternFor,
   suggestTable,
   toCsv,
   valueTokens,
@@ -54,6 +57,7 @@ import {
   ChecksPanel,
   FieldsPanel,
   FingerprintPanel,
+  LinePanel,
   PreviewPanel,
   TablePanel,
 } from './MapperPanels';
@@ -124,6 +128,8 @@ export function MapperScreen() {
   const [panel, setPanel] = useState<Panel>('fields');
   // A field or suggestion pointed at in the list, outlined on the page.
   const [hot, setHot] = useState<string | null>(null);
+  // A word clicked on a line of the mapped table, waiting for "what is this line?".
+  const [lineAt, setLineAt] = useState<Token | null>(null);
   // The exception this template was created from, offered for a re-run after saving.
   const [sourceFile, setSourceFile] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
@@ -335,25 +341,13 @@ export function MapperScreen() {
   const onToken = (t: Token, shift: boolean) => {
     if (!layout) return;
     if (mode === 'table') {
-      const inf = inferTable(layout, t, table?.name ?? 'Items');
-      if (!inf) {
-        setMessage({ tone: 'warn', text: S.mapper.table.notFound });
+      setPanel('table');
+      if (table) {
+        setLineAt(t);
+        setSelected(lineOf(t)?.tokens ?? [t]);
         return;
       }
-      setMessage(null);
-      setTable(
-        table
-          ? {
-              ...inf.rule,
-              id: table.id,
-              name: table.name,
-              ...(table.groups?.length ? { groups: table.groups } : {}),
-            }
-          : inf.rule,
-      );
-      app.announce(S.mapper.table.rowsFound(0));
-      setMode('value');
-      setPanel('table');
+      startTable(t);
       return;
     }
     if (mode === 'end') {
@@ -404,6 +398,74 @@ export function MapperScreen() {
     pick(valueTokens(layout, t));
   };
 
+  const lineOf = (t: Token) =>
+    layout?.pages.find((p) => p.page === t.page)?.lines.find((l) => l.tokens.includes(t));
+
+  /** Builds the table from a click on its header (or first row), keeping its name and headings. */
+  const startTable = (t: Token, asHeader = false) => {
+    if (!layout) return;
+    const inf = inferTable(layout, t, table?.name ?? 'Items', asHeader);
+    if (!inf) {
+      setMessage({ tone: 'warn', text: S.mapper.table.notFound });
+      return;
+    }
+    setMessage({ tone: 'success', text: S.mapper.table.started });
+    setTable(
+      table
+        ? {
+            ...inf.rule,
+            id: table.id,
+            name: table.name,
+            ...(table.groups?.length ? { groups: table.groups } : {}),
+          }
+        : inf.rule,
+    );
+    setLineAt(null);
+    setSelected([]);
+  };
+
+  /** Changes the table from the line panel, with an undo. */
+  const changeTable = (next: TableRule, text: string) => {
+    const prev = table;
+    setTable(next);
+    setLineAt(null);
+    setSelected([]);
+    toast(text, {
+      label: S.mapper.undo,
+      run: () => {
+        const cur = latest.current;
+        if (!cur || !prev) return;
+        setDraft({ ...cur, tables: [prev, ...(cur.tables ?? []).slice(1)] });
+      },
+    });
+  };
+
+  const removeColumn = (name: string) => {
+    if (!table) return;
+    const bounds = tableResult?.bounds ?? [];
+    const i = bounds.findIndex((b) => b.name === name);
+    const left = i > 0 ? bounds[i - 1]!.name : null;
+    const gone = bounds[i];
+    // The column to the left takes over the removed column's space.
+    const columns = table.columns
+      .filter((c) => c.name !== name)
+      .map((c) =>
+        c.name === left && c.x1 !== undefined && gone
+          ? Number.isFinite(gone.x1)
+            ? { ...c, x1: gone.x1 }
+            : (({ x1: _x1, ...rest }) => rest)(c)
+          : c,
+      );
+    const rowStart =
+      table.rowStart?.column === name
+        ? { column: columns[0]!.name, pattern: '\\S' }
+        : table.rowStart;
+    changeTable(
+      { ...table, columns, ...(rowStart ? { rowStart } : {}) },
+      S.mapper.table.columnRemoved(name),
+    );
+  };
+
   /** Maps the chosen words: re-picks the field waiting for it, or adds a new field. */
   const pick = (sel: Token[]) => {
     if (!layout || !sel.length) return;
@@ -448,6 +510,7 @@ export function MapperScreen() {
 
   /** What a click on a word would take, shown on hover. */
   const expand = (t: Token): Token[] => {
+    if (layout && mode === 'table' && table) return lineOf(t)?.tokens ?? [t];
     if (!layout || mode !== 'value') return [t];
     const f = repick ? undefined : fieldAt(t);
     if (f) {
@@ -475,6 +538,62 @@ export function MapperScreen() {
         setDraft({ ...cur, fields });
       },
     });
+  };
+
+  const linePanel = (t: Token) => {
+    const line = lineOf(t);
+    if (!layout || !table || !line) return null;
+    const taken = [...table.columns.map((c) => c.name), ...(table.groups ?? []).map((g) => g.name)];
+    const group = groupFor(line, taken);
+    const m = new RegExp(group.pattern).exec(line.text);
+    const split = tableResult?.found ? addColumnAt(layout, table, tableResult.bounds, t) : null;
+    const phrase = phrases(line).find((p) => p.tokens.includes(t))!;
+    const from = phrase.tokens.indexOf(t);
+    const close = () => {
+      setLineAt(null);
+      setSelected([]);
+    };
+    return (
+      <LinePanel
+        text={line.text}
+        group={{ name: group.name, value: (m?.[group.capture ?? 0] ?? line.text).trim() }}
+        column={
+          split
+            ? phrase.tokens
+                .slice(from)
+                .map((x) => x.text)
+                .join(' ')
+            : null
+        }
+        onGroup={() =>
+          changeTable(
+            { ...table, groups: [...(table.groups ?? []), group] },
+            S.mapper.table.groupAdded(group.name),
+          )
+        }
+        onSkip={() => {
+          const pattern = skipPatternFor(line);
+          const skip = table.skip ?? [];
+          changeTable(
+            { ...table, skip: skip.includes(pattern) ? skip : [...skip, pattern] },
+            S.mapper.table.skipAdded,
+          );
+        }}
+        onColumn={() => {
+          if (!split) return setMessage({ tone: 'warn', text: S.mapper.table.cantSplit });
+          changeTable(split.rule, S.mapper.table.columnAdded(split.column.name));
+        }}
+        onEnd={() => {
+          const label = phrases(line)[0]!.text.replace(/\s*[:#]+$/, '');
+          changeTable(
+            { ...table, end: { labels: [label], match: 'starts-with' } },
+            S.mapper.table.endAdded(label),
+          );
+        }}
+        onHeader={() => startTable(t, true)}
+        onClose={close}
+      />
+    );
   };
 
   // Marks for the current page.
@@ -736,6 +855,7 @@ export function MapperScreen() {
               onChange={(m) => {
                 setMode(m);
                 setRepick(null);
+                setLineAt(null);
               }}
               options={[
                 { value: 'value', label: S.mapper.modeValue },
@@ -907,12 +1027,14 @@ export function MapperScreen() {
                 </Banner>
               ) : null
             ) : null}
+            {panel === 'table' && table && lineAt ? linePanel(lineAt) : null}
             {panel === 'table' ? (
               <TablePanel
                 table={table}
                 rows={tableResult?.rows.length ?? 0}
                 onChange={(t) => setTable(t)}
                 onRemove={() => setTable(null)}
+                onRemoveColumn={removeColumn}
               />
             ) : null}
             {panel === 'checks' ? (

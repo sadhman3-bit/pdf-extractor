@@ -89,3 +89,16 @@ Feedback was that mapping felt clunky: fields were hard to remove, and clicks pi
 - **Clicking a mapped value opens its field** instead of adding a duplicate; clicking a suggested value accepts it.
 - **Remove from the row** (×), with Undo in a toast.
 - **Quieter page:** labels show only on the field being edited or pointed at in the list, so tags no longer cover neighbouring values. Fields are listed before suggestions, which gained **Accept all**, and the rarely needed field settings sit under **More options**.
+
+## Mapper redesign, phase 1: grouped tables (after 1.0.0)
+
+The approved redesign plan (six phases) starts by making long, grouped bills such as telco service summaries work on the existing screen.
+
+- **Repeating totals are skipped, not the end.** `inferTable` used the first line starting with "Total" as the end marker. A total whose leading words repeat ("Total for 02 …") now becomes a skip pattern; only a total that appears once ends the table.
+- **Headings by example.** Clicking a line in table mode asks what it is. `groupFor` writes the rule: leading words before the first number capture the rest ("Telephone (.+)"); a heading without numbers matches any line that stands alone at the same indent (`lone`, `x0`), with capitals (company) and ordinary text (section) kept apart. A wrapped description line sits at a different indent, so it still joins its row.
+- **No joining across headings.** Lines after a heading no longer glue onto the previous group's last row.
+- **Columns without a heading.** `addColumnAt` starts a column at any word, reaching right as far as text starting there, and re-guesses the changed columns' types from the extracted values.
+- **Page furniture.** `furnitureLines` treats lines in the top or bottom 10 % of the page whose text (numbers aside) repeats at the same height on at least 60 % of pages (and 3 pages) as page headers and footers; tables ignore them. Restricting it to the margins keeps the first table line on each page from being mistaken for furniture.
+- **No suggestions from repeating labels.** A label that repeats on page 1 belongs to rows, so `suggestFields` skips it.
+- **Dividers don't block words.** The dashed divider line ignores the pointer; it's dragged by a grip above the header. Before, its 14 px hit area covered words such as the first word of a period.
+- **Fixture.** `summit-voice-jan26.pdf` (synthetic) has companies, phone-number headings, two sections, items over two or three lines, credits printed "-90.91" and "90.91CR", a per-service total, a footer on every page and a Call details section.

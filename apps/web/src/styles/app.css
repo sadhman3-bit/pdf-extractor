@@ -971,22 +971,26 @@ table.data input {
   top: -2px;
   left: -2px;
 }
+.divider-line {
+  position: absolute;
+  margin-left: -1px;
+  border-left: 2px dashed var(--divider);
+  pointer-events: none;
+}
 .divider-handle {
   position: absolute;
   width: 14px;
+  height: 16px;
   margin-left: -7px;
   cursor: col-resize;
-  background: transparent;
+  background: var(--divider);
   border: 0;
+  border-radius: var(--r-small);
   padding: 0;
 }
-.divider-handle::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: 0;
-  bottom: 0;
-  border-left: 2px dashed var(--divider);
+.divider-handle:hover,
+.divider-handle:focus-visible {
+  background: var(--accent);
 }
 .viewer-toolbar {
   display: flex;
@@ -1534,4 +1538,27 @@ details.more > summary:focus-visible {
 }
 details.more[open] > summary {
   margin-bottom: var(--s3);
+}
+
+/* Mapper: what is this line? */
+.line-text {
+  margin: 0;
+  padding: var(--s2);
+  border-radius: var(--r-small);
+  background: var(--surface-subtle);
+  overflow-wrap: anywhere;
+}
+.line-choices .btn {
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+  height: auto;
+  min-height: 36px;
+}
+.group-row {
+  flex-wrap: nowrap;
+}
+.group-row input {
+  flex: 1;
+  min-width: 0;
 }

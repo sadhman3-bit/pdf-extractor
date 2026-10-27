@@ -13,8 +13,13 @@ import {
   extractField,
   applyEdits,
   processDocument,
+  addColumnAt,
+  furnitureLines,
+  groupFor,
+  skipPatternFor,
   type DocLayout,
 } from '@pdfx/engine';
+import { summitIncl, summitServices } from './docs';
 import { readPdfNode } from '@pdfx/pdf/node';
 import { PDF_DIR, loadTemplateSets } from './goldens';
 
@@ -169,5 +174,69 @@ describe('review edits', () => {
     ]);
     const bad = applyEdits(ex, t, [{ table: 'Transactions', row: 3, column: 'Amount', to: 'abc' }]);
     expect(bad.extraction.status).toBe('review');
+  });
+});
+
+describe('mapping a grouped service summary', () => {
+  it('builds rows with headings, skipped totals, extra columns and an end', async () => {
+    const l = await layoutOf('summit-voice-jan26.pdf');
+    expect(l.pages.length).toBeGreaterThanOrEqual(3);
+    const line = (start: string) =>
+      l.pages.flatMap((p) => p.lines).find((x) => x.text.startsWith(start))!;
+    let rule = inferTable(l, token(l, 'Summary'))!.rule;
+    // A per-service total repeats, so it is skipped rather than ending the table.
+    expect(rule.end).toBeUndefined();
+    expect(rule.skip).toContain(skipPatternFor(line('Total for')));
+    const telephone = groupFor(line('Telephone'), []);
+    const section = groupFor(line('Services and'), ['Telephone']);
+    const company = groupFor(line('BRIGHTWATER LOGISTICS'), ['Telephone', 'Section']);
+    expect([telephone.name, section.name, company.name]).toEqual([
+      'Telephone',
+      'Section',
+      'Company',
+    ]);
+    rule = { ...rule, groups: [telephone, section, company] };
+    let t = extractTable(l, rule);
+    const period = line('Rental').tokens.find((x) => x.text === '25')!;
+    rule = addColumnAt(l, rule, t.bounds, period)!.rule;
+    t = extractTable(l, rule);
+    rule = addColumnAt(l, rule, t.bounds, token(l, 'Main'))!.rule;
+    rule = { ...rule, end: { labels: [line('Call details').text], match: 'starts-with' } };
+    t = extractTable(l, rule);
+    const items = summitServices().flatMap((s) =>
+      s.sections.flatMap((sec) => sec.items.map((it) => ({ s, sec, it }))),
+    );
+    expect(items.some(({ it }) => it.cr)).toBe(true);
+    expect(items.some(({ it }) => it.wrap)).toBe(true);
+    expect(t.rows).toHaveLength(items.length);
+    t.rows.forEach((r, i) => {
+      const { s, sec, it } = items[i]!;
+      expect(r.cells.Item!.raw).toBe(it.code);
+      expect(r.cells.ServiceSummary!.value).toBe(it.qty);
+      // A wrapped description line joins the description; it is not a section heading.
+      expect(r.cells.Column6!.raw).toBe(
+        [it.description, it.wrap, it.label].filter(Boolean).join(' '),
+      );
+      expect(r.cells.Column5!.raw).toBe(it.period);
+      // Credits read as negative, whether printed "-90.91" or "90.91CR".
+      expect(r.cells.ExclGST!.value).toBe(it.excl);
+      expect(r.cells.InclGST!.value).toBe(summitIncl(it));
+      expect(r.groups).toEqual({
+        Telephone: `${s.number} ${s.avc}`,
+        Section: sec.title,
+        Company: s.company,
+      });
+    });
+  });
+
+  it('ignores page headers and footers, and suggests no per-service totals', async () => {
+    const l = await layoutOf('summit-voice-jan26.pdf');
+    const furniture = [...furnitureLines(l)].map((x) => x.text);
+    expect(furniture.filter((x) => x.startsWith('Summit Voice Pty Ltd'))).toHaveLength(
+      l.pages.length,
+    );
+    expect(furniture.some((x) => x.startsWith('Telephone'))).toBe(false);
+    const names = suggestFields(l).map((f) => f.rule.name);
+    expect(names.filter((n) => n.startsWith('TotalFor'))).toEqual([]);
   });
 });

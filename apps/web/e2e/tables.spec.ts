@@ -17,7 +17,7 @@ async function mapField(page: Page, words: string[], name: string): Promise<void
 
 async function mapTable(page: Page, cell: string, name: string, end: string): Promise<void> {
   const modes = page.getByRole('group', { name: 'Mapping mode' });
-  await modes.getByRole('button', { name: 'Map table row' }).click();
+  await modes.getByRole('button', { name: 'Map a table' }).click();
   await tok(page, cell).click();
   await expect(page.getByRole('textbox', { name: 'Table name' })).toBeVisible();
   await page.getByRole('textbox', { name: 'Table name' }).fill(name);
@@ -64,4 +64,33 @@ test('maps the COA results table through the interface; output equals the golden
   await mapField(page, ['PO-55102'], 'PONumber');
   await mapTable(page, 'Appearance', 'Results', 'Conclusion:');
   await saveAndCompare(page, 'harbourside-coa-a2391.pdf');
+});
+
+test('maps a grouped service summary by clicking lines', async ({ page }) => {
+  await ready(page);
+  await startFromSample(page, 'summit-voice-jan26.pdf');
+  const modes = page.getByRole('group', { name: 'Mapping mode' });
+  await modes.getByRole('button', { name: 'Map a table' }).click();
+  await tok(page, 'Summary').click();
+  await expect(page.getByText('Table found. Now click any line in it')).toBeVisible();
+  const choose = async (word: string, choice: RegExp) => {
+    await tok(page, word).click();
+    await expect(page.getByRole('heading', { name: 'What is this line?' })).toBeVisible();
+    await page.getByRole('button', { name: choice }).click();
+  };
+  await choose('Telephone', /^A heading: copy “02 5550 0160 AVC000055510432”/);
+  await choose('Services', /^A heading: copy “Services and equipment rental”/);
+  await choose('25', /^A new column starts at “25 Dec to 24 Jan”$/);
+  // 26 items, then the call details on the last page: end the table there.
+  for (let i = 0; i < 6 && !(await tok(page, 'Call').count()); i++)
+    await page.getByRole('button', { name: 'Next page' }).click();
+  await choose('Call', /^The table ends here$/);
+  await expect(page.getByText('Items · 26 rows')).toBeVisible();
+  // Undo puts the end back; removing a column works too.
+  // The newest toast's Undo removes the end again.
+  await page.getByRole('button', { name: 'Undo' }).last().click();
+  await expect(page.getByText('Items · 30 rows')).toBeVisible();
+  await page.getByRole('button', { name: 'Remove column Column5' }).click();
+  await expect(page.getByRole('button', { name: 'Remove column Column5' })).toHaveCount(0);
+  await expectNoAxe(page);
 });

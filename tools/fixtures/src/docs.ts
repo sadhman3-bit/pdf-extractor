@@ -737,3 +737,189 @@ export function coaPages(m: Metrics): PageLayout[] {
   footer(p, `Harbourside Chemicals · COA ${COA.lot}`, 1, 1);
   return [p.build()];
 }
+
+// ---------------------------------------------------------------- Summit Voice
+
+export interface SummitItem {
+  code: string;
+  qty: number;
+  description: string;
+  /** A second description line under the first (wrapped text). */
+  wrap?: string;
+  /** Second line: an optional label, the period and the amounts (excl GST). */
+  label?: string;
+  period: string;
+  excl: number;
+  /** Credits print as "90.91CR" instead of "-90.91". */
+  cr?: boolean;
+}
+
+export interface SummitSection {
+  title: string;
+  items: SummitItem[];
+}
+
+export interface SummitService {
+  company: string;
+  number: string;
+  avc: string;
+  sections: SummitSection[];
+}
+
+export const SUMMIT_COMPANIES = ['BRIGHTWATER LOGISTICS PTY LTD', 'BRIGHTWATER FREIGHT PTY LTD'];
+
+/**
+ * A telco service summary: companies, then phone numbers, then sections of items.
+ * Items take two lines (some three, when the description wraps); credits print
+ * either negative or with CR; each service ends with a "Total for" line.
+ */
+export function summitServices(count = 12): SummitService[] {
+  const plans: Omit<SummitItem, 'code'>[] = [
+    {
+      qty: 1,
+      description: 'Main Business Number',
+      label: 'Rental',
+      period: '25 Dec to 24 Jan',
+      excl: 0,
+    },
+    { qty: 1, description: 'Calls to 13 Numbers - Discount', period: '25 Nov to 24 Dec', excl: 0 },
+    {
+      qty: 1,
+      description: 'Business Voice Plus @ 50.00 per month',
+      wrap: 'including voicemail and call forwarding',
+      label: 'Rental',
+      period: '25 Dec to 24 Jan',
+      excl: 45.45,
+    },
+    {
+      qty: 2,
+      description: 'Hunt Group Member',
+      label: 'Rental',
+      period: '25 Dec to 24 Jan',
+      excl: 9.09,
+    },
+    { qty: 1, description: 'Voicemail to Email', period: '25 Dec to 24 Jan', excl: 4.55 },
+  ];
+  const out: SummitService[] = [];
+  let code = 101;
+  const next = (k: number) => `SVC${code++}${'ABCDEFGH'[k % 8]}`;
+  for (let s = 0; s < count; s++) {
+    const items: SummitItem[] = [];
+    const n = 1 + (s % 3);
+    for (let k = 0; k < n; k++)
+      items.push({ ...plans[(s + k * 2) % plans.length]!, code: next(s + k) });
+    const sections: SummitSection[] = [{ title: 'Services and equipment rental', items }];
+    if (s % 5 === 2)
+      sections.push({
+        title: 'One-off charges and credits',
+        items: [
+          {
+            code: next(s),
+            qty: 1,
+            description: 'Early termination credit',
+            period: '25 Dec to 24 Jan',
+            excl: -90.91,
+            cr: s % 2 === 0,
+          },
+        ],
+      });
+    out.push({
+      company: SUMMIT_COMPANIES[s < count / 2 ? 0 : 1]!,
+      number: `02 5550 ${pad(160 + s * 7, 4)}`,
+      avc: `AVC0000555${pad(10432 + s * 311, 5)}`,
+      sections,
+    });
+  }
+  return out;
+}
+
+/** Incl GST for an item, as printed. */
+export const summitIncl = (it: SummitItem) => r2(it.excl * 1.1);
+
+export const SUMMIT_CALLS: [string, string, string, string, number][] = [
+  ['02/01/2026', '09:14', '0491 570 156', '2:31', 0.45],
+  ['02/01/2026', '11:02', '02 5550 1188', '0:48', 0.25],
+  ['03/01/2026', '15:40', '0491 570 110', '6:05', 1.1],
+];
+
+export function summitPages(m: Metrics, count = 12): PageLayout[] {
+  const services = summitServices(count);
+  const out: PageBuilder[] = [];
+  let p!: PageBuilder;
+  let y = 0;
+  const top = (first: boolean) => {
+    p = new PageBuilder(m);
+    out.push(p);
+    p.text(50, 50, 'SUMMIT VOICE', 16, 'bold');
+    p.text(50, 66, 'Tax invoice   Account 4471 2093   Bill date 26/01/2026', 9);
+    p.rule(50, 545, 80);
+    p.text(50, 104, 'Item', 9);
+    p.text(95, 104, 'Service Summary', 13, 'bold');
+    p.right(470, 104, 'Excl GST $', 9, 'bold');
+    p.right(545, 104, 'Incl GST $', 9, 'bold');
+    y = 104;
+    if (first) {
+      y += 24;
+      p.text(95, y, 'BRIGHTWATER LOGISTICS PTY LTD', 9, 'bold');
+    }
+  };
+  top(true);
+  let company = SUMMIT_COMPANIES[0];
+  const amount = (n: number, cr?: boolean) =>
+    cr && n < 0 ? `${money(-n)}CR` : n < 0 ? `-${money(-n)}` : money(n);
+  for (const s of services) {
+    const items = s.sections.flatMap((x) => x.items);
+    const need = 46 + s.sections.length * 13 + items.reduce((n, it) => n + (it.wrap ? 39 : 26), 0);
+    if (y + need > 760) top(false);
+    if (s.company !== company) {
+      company = s.company;
+      y += 26;
+      p.text(95, y, company, 9, 'bold');
+    }
+    y += 26;
+    p.text(95, y, `Telephone ${s.number} ${s.avc}`, 9, 'bold');
+    let excl = 0;
+    let incl = 0;
+    for (const sec of s.sections) {
+      y += 13;
+      p.text(95, y, sec.title, 9);
+      for (const it of sec.items) {
+        const inc = summitIncl(it);
+        excl = r2(excl + it.excl);
+        incl = r2(incl + inc);
+        y += 13;
+        p.text(50, y, it.code, 8).right(112, y, String(it.qty), 9).text(120, y, it.description, 9);
+        if (it.wrap) {
+          y += 13;
+          p.text(120, y, it.wrap, 9);
+        }
+        y += 13;
+        if (it.label) p.text(130, y, it.label, 9);
+        p.text(290, y, it.period, 9);
+        p.right(470, y, amount(it.excl, it.cr), 9).right(545, y, amount(inc, it.cr), 9);
+      }
+    }
+    y += 13;
+    p.right(400, y, `Total for ${s.number}`, 9, 'bold');
+    p.right(470, y, `$${money(excl)}`, 9, 'bold').right(545, y, `$${money(incl)}`, 9, 'bold');
+  }
+  // A different section after the summary: the table should end before it.
+  if (y + 30 > 700) top(false);
+  y += 30;
+  p.text(95, y, 'Call details', 13, 'bold');
+  y += 18;
+  p.text(50, y, 'Date', 9, 'bold')
+    .text(120, y, 'Time', 9, 'bold')
+    .text(180, y, 'Number', 9, 'bold');
+  p.text(300, y, 'Duration', 9, 'bold').right(545, y, 'Amount', 9, 'bold');
+  for (const [d, t, n, dur, a] of SUMMIT_CALLS) {
+    y += 13;
+    p.text(50, y, d, 9).text(120, y, t, 9).text(180, y, n, 9).text(300, y, dur, 9);
+    p.right(545, y, money(a), 9);
+  }
+  out.forEach((b, i) => {
+    footer(b, 'Summit Voice · Account 4471 2093', i + 1, out.length);
+    b.text(50, 826, 'Summit Voice Pty Ltd · Enquiries 13 55 50 · summitvoice.example', 7);
+  });
+  return out.map((b) => b.build());
+}

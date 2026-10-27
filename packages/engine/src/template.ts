@@ -78,6 +78,10 @@ export const groupSchema = z.looseObject({
   name: z.string().min(1),
   pattern: z.string().min(1),
   capture: z.number().int().min(0).optional(),
+  /** Only lines that are one block of text with nothing in the row-start column. */
+  lone: z.boolean().optional(),
+  /** Only lines starting within a few points of this x (the heading's indent). */
+  x0: z.number().optional(),
 });
 export type GroupRule = z.infer<typeof groupSchema>;
 

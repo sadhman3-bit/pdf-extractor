@@ -96,3 +96,33 @@ export function bboxOf(
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
+
+const furnitureCache = new WeakMap<DocLayout, Set<Line>>();
+
+/**
+ * Page headers and footers: lines near the top or bottom of the page whose text
+ * (numbers aside) repeats at the same height on most pages. Tables ignore them.
+ */
+export function furnitureLines(layout: DocLayout): Set<Line> {
+  const cached = furnitureCache.get(layout);
+  if (cached) return cached;
+  const out = new Set<Line>();
+  const n = layout.pages.length;
+  if (n >= 3) {
+    const byKey = new Map<string, Line[]>();
+    for (const p of layout.pages) {
+      const m = p.height * TOLERANCES.furnitureMargin;
+      for (const l of p.lines) {
+        if (l.cy > m && l.cy < p.height - m) continue;
+        const key = `${Math.round(l.cy / 3)}|${l.text.replace(/\d+/g, '#')}`;
+        const arr = byKey.get(key) ?? [];
+        if (arr[arr.length - 1]?.page !== l.page) arr.push(l);
+        byKey.set(key, arr);
+      }
+    }
+    const need = Math.max(3, Math.ceil(n * TOLERANCES.furniturePages));
+    for (const ls of byKey.values()) if (ls.length >= need) ls.forEach((l) => out.add(l));
+  }
+  furnitureCache.set(layout, out);
+  return out;
+}

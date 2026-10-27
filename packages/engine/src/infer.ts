@@ -1,7 +1,16 @@
 // Mapper helpers: guessing rules from clicks, suggestions on a new sample, and
 // one-click fixes for samples that fail. Pure functions over the layout.
 import type { BBox, DocLayout, Line, Phrase, Token } from './types';
-import type { ColumnRule, Direction, FieldRule, FieldType, TableRule, Template } from './template';
+import type {
+  ColumnRule,
+  Direction,
+  FieldRule,
+  FieldType,
+  GroupRule,
+  TableRule,
+  Template,
+} from './template';
+import { extractTable, type ColumnBounds } from './tables';
 import { bboxOf, cx, cy, phrases } from './layout';
 import { normalize, normTokens } from './normalize';
 import { guessDateFormat, inferType, parseDate, parseNumber, DATE_GUESS_FORMATS } from './parse';
@@ -209,7 +218,15 @@ export function suggestFields(layout: DocLayout, existing: FieldRule[] = []): In
   const usedLabels = new Set(existing.flatMap((f) => f.anchor.labels.map(normalize)));
   const page = layout.pages[0];
   if (!page) return out;
+  // Labels that repeat on the page ("Total for 02 5550 0160", "Total for 02 5550 0167")
+  // belong to table rows or groups, not to the bill as a whole.
+  const repeats = new Map<string, number>();
   for (const line of page.lines) {
+    const l = leadingLabel(line);
+    if (l) repeats.set(l, (repeats.get(l) ?? 0) + 1);
+  }
+  for (const line of page.lines) {
+    if ((repeats.get(leadingLabel(line)) ?? 0) > 1) continue;
     const ps = phrases(line);
     for (let i = 0; i < ps.length - 1; i++) {
       const p = ps[i]!;
@@ -323,6 +340,8 @@ export function inferTable(
   layout: DocLayout,
   clicked: Token,
   name = 'Items',
+  /** The clicked line is the header, whatever is above it. */
+  asHeader = false,
 ): InferredTable | null {
   const page = layout.pages.find((p) => p.page === clicked.page);
   if (!page) return null;
@@ -332,7 +351,10 @@ export function inferTable(
   // A first row of plain text looks like a header too, so prefer a header-like
   // line just above whose columns line up with the clicked row.
   const above = page.lines.slice(Math.max(0, idx - 4), idx).reverse();
-  let header: Line | undefined = above.find((l) => isHeaderish(l) && alignsWith(l, line));
+  let header: Line | undefined =
+    asHeader && phrases(line).length >= 2
+      ? line
+      : above.find((l) => isHeaderish(l) && alignsWith(l, line));
   if (!header && isHeaderish(line)) header = line;
   if (!header) header = above.find(isHeaderish);
   if (!header) return null;
@@ -393,26 +415,29 @@ export function inferTable(
   });
   const startCol = columns.find((c) => c.type === 'date') ?? columns[0]!;
   const firstVal = firstRow ? (cellsOf(firstRow)[columns.indexOf(startCol)] ?? '') : '';
-  const datePattern = (v: string) =>
-    v
-      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      .replace(/\d/g, '\\d')
-      .replace(/(\\d)+/g, (m) => `\\d{${m.length / 2}}`);
   const rowStart =
     startCol.type === 'date' && firstVal
-      ? { column: startCol.name, pattern: `^${datePattern(firstVal)}$` }
+      ? { column: startCol.name, pattern: `^${shapeOf(firstVal)}$` }
       : { column: startCol.name, pattern: '\\S' };
   const amount = [...columns].reverse().find((c) => c.type === 'currency' || c.type === 'number');
   if (amount && amount.type === 'currency') amount.required = true;
   startCol.required = true;
   // End marker: the first line below the rows that starts with Subtotal/Total.
+  // A total that repeats ("Total for 02 5550 0165") closes a group, not the table: skip it.
   let end: TableRule['end'];
+  const skip = ['Page \\d+ of \\d+$'];
+  const all = layout.pages.flatMap((p) => p.lines);
   for (const l of page.lines.slice(idx + 1)) {
     const first = phrases(l)[0];
-    if (first && /^(sub)?total/i.test(first.text)) {
-      end = { labels: [labelText(first).split(' ')[0]!], match: 'starts-with' };
-      break;
+    if (!first || !/^(sub)?total/i.test(first.text)) continue;
+    const label = leadingLabel(l);
+    if (label && all.filter((x) => leadingLabel(x) === label).length > 1) {
+      const pattern = skipPatternFor(l);
+      if (!skip.includes(pattern)) skip.push(pattern);
+      continue;
     }
+    end = { labels: [labelText(first).split(' ')[0]!], match: 'starts-with' };
+    break;
   }
   const rule: TableRule = {
     id: `t${Date.now().toString(36)}`,
@@ -423,11 +448,153 @@ export function inferTable(
     rowStart,
     wrappedLines: 'join',
     ...(end ? { end } : {}),
-    skip: ['Page \\d+ of \\d+$'],
+    skip,
     continuesOnNextPage: true,
     groups: [],
   };
   return { rule, headerLine: header };
+}
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** A pattern for text of the same shape: "12/03/2026" → "\d{2}/\d{2}/\d{4}". */
+function shapeOf(v: string): string {
+  return escapeRe(v)
+    .replace(/\d/g, '\\d')
+    .replace(/(\\d)+/g, (m) => `\\d{${m.length / 2}}`);
+}
+
+/** Words at the start of a line before the first number: "Total for 02 5550" → "Total for". */
+export function leadingLabel(line: Line): string {
+  const out: string[] = [];
+  for (const t of line.tokens) {
+    if (/[\d$€£]/.test(t.text)) break;
+    out.push(t.text);
+  }
+  return out.join(' ').replace(/\s*[:#]+$/, '');
+}
+
+/** A skip pattern for lines like this one. */
+export function skipPatternFor(line: Line): string {
+  const label = leadingLabel(line);
+  if (label && label === line.text.trim()) return `^${escapeRe(label)}$`;
+  if (label) return `^${escapeRe(label)}(?=\\s|$)`;
+  return `^${shapeOf(phrases(line)[0]!.text)}`;
+}
+
+/**
+ * A group rule that copies a heading line like this one onto the rows below it.
+ * "Telephone 02 5550 0165" captures the number. A heading without numbers matches
+ * any such line standing alone at the same indent; capitals ("BRIGHTWATER PTY LTD")
+ * and ordinary text ("Services and equipment rental") are kept apart.
+ */
+export function groupFor(line: Line, taken: string[]): GroupRule {
+  const unique = (n: string) => {
+    let x = n;
+    for (let i = 2; taken.includes(x); i++) x = `${n}${i}`;
+    return x;
+  };
+  const label = leadingLabel(line);
+  if (label && label === line.text.trim()) {
+    const caps = !/[a-z]/.test(label);
+    return {
+      name: unique(caps ? 'Company' : 'Section'),
+      pattern: caps ? '^[^a-z\\d]+$' : '^(?=.*[a-z])[^\\d]+$',
+      capture: 0,
+      lone: true,
+      x0: Math.round(line.x0 * 10) / 10,
+    };
+  }
+  if (label)
+    return {
+      name: unique(nameFromLabel(label)),
+      pattern: `^${escapeRe(label)}\\s+(.+)$`,
+      capture: 1,
+    };
+  return { name: unique('Group'), pattern: `^${shapeOf(phrases(line)[0]!.text)}`, capture: 0 };
+}
+
+/**
+ * Starts a new column at a word of a table row: the column it sits in now ends
+ * just before it, and the new one reaches as far right as text starting there.
+ */
+export function addColumnAt(
+  layout: DocLayout,
+  rule: TableRule,
+  bounds: ColumnBounds[],
+  t: Token,
+): { rule: TableRule; column: ColumnRule } | null {
+  const c = cx(t);
+  const i = bounds.findIndex((b) => c >= b.x0 && c < b.x1);
+  const b = bounds[i];
+  const page = layout.pages.find((p) => p.page === t.page);
+  if (!b || !page) return null;
+  const x0 = t.x0 - 1;
+  if (x0 <= b.x0) return null;
+  const next = bounds[i + 1];
+  let x1 = Number.isFinite(b.x1) ? b.x1 : page.width;
+  let text = '';
+  for (const l of page.lines) {
+    for (const p of phrases(l)) {
+      const k = p.tokens.findIndex((x) => Math.abs(x.x0 - t.x0) <= 3);
+      if (k < 0) continue;
+      x1 = Math.max(x1, p.x1 + 2);
+      if (p.tokens.includes(t))
+        text = p.tokens
+          .slice(k)
+          .map((x) => x.text)
+          .join(' ');
+    }
+  }
+  if (next && Number.isFinite(next.x1)) x1 = Math.min(x1, (next.x0 + next.x1) / 2);
+  const taken = new Set([
+    ...rule.columns.map((x) => x.name),
+    ...(rule.groups ?? []).map((g) => g.name),
+  ]);
+  let n = rule.columns.length + 1;
+  while (taken.has(`Column${n}`)) n++;
+  const name = `Column${n}`;
+  const type = inferType(text || t.text);
+  const column: ColumnRule = {
+    name,
+    header: name,
+    type,
+    ...(type === 'date' ? { dateFormats: [guessDateFormat(text) ?? 'DD/MM/YYYY'] } : {}),
+    x0,
+    x1,
+  };
+  const columns: ColumnRule[] = [];
+  for (const col of rule.columns) {
+    if (col.name === b.name) columns.push({ ...col, x1: x0 }, column);
+    else if (next && col.name === next.name) columns.push({ ...col, x0: x1 });
+    else columns.push(col);
+  }
+  const out = retype(layout, { ...rule, columns }, [b.name, name, ...(next ? [next.name] : [])]);
+  return { rule: out, column: out.columns.find((x) => x.name === name)! };
+}
+
+/** Sets the type of changed text columns whose values are now all numbers or all dates. */
+function retype(layout: DocLayout, rule: TableRule, names: string[]): TableRule {
+  const rows = extractTable(layout, rule).rows;
+  const columns = rule.columns.map((col) => {
+    if (!names.includes(col.name) || (col.type ?? 'text') !== 'text') return col;
+    const vals = rows.map((r) => r.cells[col.name]?.raw.trim() ?? '').filter(Boolean);
+    if (!vals.length) return col;
+    const types = vals.map((v) => inferType(v));
+    if (types.every((x) => x === 'date'))
+      return {
+        ...col,
+        type: 'date' as const,
+        dateFormats: [guessDateFormat(vals[0]!) ?? 'DD/MM/YYYY'],
+      };
+    if (types.every((x) => x === 'number' || x === 'currency'))
+      return {
+        ...col,
+        type: vals.every((v) => /^-?\d+$/.test(v)) ? ('integer' as const) : ('currency' as const),
+      };
+    return col;
+  });
+  return { ...rule, columns };
 }
 
 /** A table suggestion: a header line followed by 3+ aligned lines with a date or number column. */

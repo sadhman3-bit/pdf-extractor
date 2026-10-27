@@ -454,16 +454,80 @@ function FieldEditor({
 
 // ---------------------------------------------------------------- table
 
+/** Choices for a clicked line of a mapped table. */
+export function LinePanel({
+  text,
+  group,
+  column,
+  onGroup,
+  onSkip,
+  onColumn,
+  onEnd,
+  onHeader,
+  onClose,
+}: {
+  text: string;
+  group: { name: string; value: string };
+  /** Text from the clicked word to the end of its phrase, when a column can start there. */
+  column: string | null;
+  onGroup: () => void;
+  onSkip: () => void;
+  onColumn: () => void;
+  onEnd: () => void;
+  onHeader: () => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView?.({ block: 'nearest' });
+  }, [text]);
+  return (
+    <section ref={ref} class="card stack" aria-labelledby="line-title">
+      <div class="card-head">
+        <h2 id="line-title" class="card-title">
+          {S.mapper.table.lineTitle}
+        </h2>
+        <button type="button" class="icon-btn" aria-label={S.common.close} onClick={onClose}>
+          <XIcon size={14} />
+        </button>
+      </div>
+      <p class="mono small line-text">{text}</p>
+      <div class="stack line-choices">
+        <button type="button" class="btn" onClick={onGroup}>
+          {S.mapper.table.asGroup(group.name, group.value)}
+        </button>
+        <button type="button" class="btn" onClick={onSkip}>
+          {S.mapper.table.asSkip}
+        </button>
+        {column ? (
+          <button type="button" class="btn" onClick={onColumn}>
+            {S.mapper.table.asColumn(column)}
+          </button>
+        ) : null}
+        <button type="button" class="btn" onClick={onEnd}>
+          {S.mapper.table.asEnd}
+        </button>
+        <button type="button" class="btn btn-text" onClick={onHeader}>
+          {S.mapper.table.asHeader}
+        </button>
+      </div>
+      <p class="caption">{S.mapper.table.lineHint}</p>
+    </section>
+  );
+}
+
 export function TablePanel({
   table,
   rows,
   onChange,
   onRemove,
+  onRemoveColumn,
 }: {
   table: TableRule | undefined;
   rows: number;
   onChange: (t: TableRule) => void;
   onRemove: () => void;
+  onRemoveColumn: (name: string) => void;
 }) {
   if (!table) {
     return (
@@ -512,6 +576,9 @@ export function TablePanel({
                 <th scope="col">{S.mapper.table.colName}</th>
                 <th scope="col">{S.mapper.table.colType}</th>
                 <th scope="col">{S.mapper.table.colRequired}</th>
+                <th scope="col">
+                  <span class="sr-only">{S.common.remove}</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -566,6 +633,18 @@ export function TablePanel({
                         set({ columns });
                       }}
                     />
+                  </td>
+                  <td>
+                    {table.columns.length > 1 ? (
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        aria-label={S.mapper.table.removeColumn(c.name)}
+                        onClick={() => onRemoveColumn(c.name)}
+                      >
+                        <XIcon size={14} />
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -659,7 +738,7 @@ export function TablePanel({
       <fieldset class="stack">
         <legend class="field">{S.mapper.table.groups}</legend>
         {(table.groups ?? []).map((g, i) => (
-          <div class="grid-2" key={i}>
+          <div class="row group-row" key={i}>
             <input
               type="text"
               aria-label={S.mapper.table.groupName}
@@ -688,6 +767,14 @@ export function TablePanel({
                 set({ groups });
               }}
             />
+            <button
+              type="button"
+              class="icon-btn"
+              aria-label={S.mapper.table.removeGroup(g.name)}
+              onClick={() => set({ groups: (table.groups ?? []).filter((_, k) => k !== i) })}
+            >
+              <XIcon size={14} />
+            </button>
           </div>
         ))}
         <button

@@ -213,7 +213,7 @@ export const S = {
     noTemplate: 'Open a template from the Templates screen, or start a new one.',
     modes: 'Mapping mode',
     modeValue: 'Click a value',
-    modeTable: 'Map table row',
+    modeTable: 'Map a table',
     modeEnd: 'Set end marker',
     zoom: 'Zoom',
     zoomFit: 'Fit width',
@@ -231,7 +231,8 @@ export const S = {
     modeHint: {
       value:
         'Click a value to map it. Drag a box to take several words together. Click a mapped value to edit it.',
-      table: 'Click any cell in the first row of the table.',
+      table:
+        'Click the table’s header row to start. Then click any line in the table to say what it is: a heading, a line to skip, or where a new column starts.',
       end: 'Click the line where the table ends, for example “Subtotal”.',
     },
     noLabel:
@@ -272,7 +273,25 @@ export const S = {
     },
     table: {
       title: 'Table',
-      none: 'No table mapped. Choose “Map table row” and click any cell in the first row.',
+      none: 'No table mapped. Choose “Map table row” and click the table’s header row.',
+      started: 'Table found. Now click any line in it to say what it is.',
+      lineTitle: 'What is this line?',
+      lineHint: 'Your choice applies to every line like it, on every page.',
+      asGroup: (name: string, value: string) =>
+        `A heading: copy “${value}” onto each row below (column ${name})`,
+      asSkip: 'Not a row: skip lines like this',
+      asColumn: (text: string) => `A new column starts at “${text}”`,
+      asEnd: 'The table ends here',
+      asHeader: 'This is the header row (start the table again)',
+      cantSplit:
+        'That word already starts a column. Click a word further right to start a new column there.',
+      groupAdded: (name: string) => `Heading copied onto each row as ${name}`,
+      skipAdded: 'Lines like this are skipped',
+      columnAdded: (name: string) => `New column ${name}. Rename it below.`,
+      endAdded: (label: string) => `The table ends at “${label}”`,
+      removeColumn: (name: string) => `Remove column ${name}`,
+      removeGroup: (name: string) => `Remove ${name}`,
+      columnRemoved: (name: string) => `Removed column ${name}`,
       name: 'Table name',
       header: 'Starts after (header labels)',
       columns: (n: number) => `Columns (${n})`,
@@ -289,7 +308,7 @@ export const S = {
       wrappedJoin: 'Join to the row above',
       wrappedIgnore: 'Ignore',
       skip: 'Skip lines matching (one pattern per line)',
-      groups: 'Group lines (pattern with one capture group)',
+      groups: 'Headings copied onto each row (pattern with one capture group)',
       groupName: 'Group column name',
       groupPattern: 'Group pattern',
       addGroup: 'Add group',

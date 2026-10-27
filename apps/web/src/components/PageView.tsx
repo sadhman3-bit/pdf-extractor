@@ -344,39 +344,48 @@ export function PageView(props: {
   );
 }
 
+/** A column divider: a dashed line that never blocks clicks on words, dragged by its grip above the table. */
 function DividerHandle({ d, scale }: { d: Divider; scale: number }) {
   const drag = useRef<{ startX: number; startPt: number } | null>(null);
   return (
-    <button
-      type="button"
-      class="divider-handle"
-      aria-label={d.label}
-      style={{
-        left: `${d.x * scale}px`,
-        top: `${d.y0 * scale}px`,
-        height: `${Math.max(20, (d.y1 - d.y0) * scale)}px`,
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-          e.preventDefault();
-          e.stopPropagation();
-          d.onMove(Math.round((d.x + (e.key === 'ArrowRight' ? 2 : -2)) * 100) / 100);
-        }
-      }}
-      onPointerDown={(e) => {
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        drag.current = { startX: e.clientX, startPt: d.x };
-      }}
-      onPointerMove={(e) => {
-        if (!drag.current) return;
-        d.onMove(
-          Math.round((drag.current.startPt + (e.clientX - drag.current.startX) / scale) * 100) /
-            100,
-        );
-      }}
-      onPointerUp={() => {
-        drag.current = null;
-      }}
-    />
+    <>
+      <div
+        class="divider-line"
+        aria-hidden="true"
+        style={{
+          left: `${d.x * scale}px`,
+          top: `${d.y0 * scale}px`,
+          height: `${Math.max(20, (d.y1 - d.y0) * scale)}px`,
+        }}
+      />
+      <button
+        type="button"
+        class="divider-handle"
+        aria-label={d.label}
+        title={d.label}
+        style={{ left: `${d.x * scale}px`, top: `${d.y0 * scale - 18}px` }}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            e.stopPropagation();
+            d.onMove(Math.round((d.x + (e.key === 'ArrowRight' ? 2 : -2)) * 100) / 100);
+          }
+        }}
+        onPointerDown={(e) => {
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          drag.current = { startX: e.clientX, startPt: d.x };
+        }}
+        onPointerMove={(e) => {
+          if (!drag.current) return;
+          d.onMove(
+            Math.round((drag.current.startPt + (e.clientX - drag.current.startX) / scale) * 100) /
+              100,
+          );
+        }}
+        onPointerUp={() => {
+          drag.current = null;
+        }}
+      />
+    </>
   );
 }
