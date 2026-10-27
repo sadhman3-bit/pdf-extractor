@@ -155,8 +155,33 @@ export function TestScreen() {
     return (
       <>
         <h1 class="page-title">{S.test.title}</h1>
-        <section class="card">
-          <p>{S.test.noTemplate}</p>
+        <section class="card stack">
+          <p>{app.get().templates.length ? S.test.pickTemplate : S.test.noTemplate}</p>
+          {app.get().templates.length ? (
+            <ul class="list-plain stack">
+              {app.get().templates.map((t) => (
+                <li key={t.id}>
+                  <button
+                    type="button"
+                    class="btn"
+                    onClick={() => navigate({ view: 'test', template: t.id })}
+                  >
+                    {S.test.testTemplate(t.latest.name)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div class="row">
+              <button
+                type="button"
+                class="btn btn-primary"
+                onClick={() => navigate({ view: 'templates' })}
+              >
+                {S.test.goTemplates}
+              </button>
+            </div>
+          )}
         </section>
       </>
     );

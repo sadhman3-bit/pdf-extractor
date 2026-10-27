@@ -592,6 +592,7 @@ label.field,
   font-weight: 500;
 }
 input[type='text'],
+input[type='search'],
 input[type='number'],
 input:not([type]),
 select,

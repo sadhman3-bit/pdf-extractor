@@ -152,3 +152,12 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - **Saving says what the template will do.** After **Save template** the banner lists the words it recognises bills by, its columns (and layout), the rows and problems on the sample, the checks that are on, and offers **Test on samples**.
 - **Fixing from Review.** A file a template read with problems has **Fix the … template with this file** in Review. It opens the template in the Mapper with that file added as a sample; saving makes a new version, and files read before keep the version they were read with.
 
+## Mapper redesign, phase 6: usability pass
+
+- **Every screen walked through** (Templates, Mapper, Test, Process, Review, Settings, and the Mapper at phone width) against the five causes from the plan: hidden actions, modes, jargon, no feedback, dead ends. Fixed:
+  - **Test without a template** was a dead end ("Open a template first."). It now lists the templates to test, or points to Templates when there are none.
+  - **The find box** had no input styling (search inputs weren't in the shared input style).
+  - Earlier in this redesign: patterns replaced by plain choices, column breaks on a ruler, line markers, a reload banner instead of a code trace, a summary after saving, column headers that read well in a screen reader.
+- **Keyboard and screen reader.** The new controls are buttons or form fields with names: the ruler (Enter splits the widest column), each break (arrows move, Delete removes), the page strip, find (Enter, Shift+Enter), the table switch and the layout lists. axe reports nothing on any screen.
+- **Screenshots** in `docs/screenshots` were taken again (`pnpm screenshots`).
+
