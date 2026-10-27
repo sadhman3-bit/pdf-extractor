@@ -205,7 +205,6 @@ export const S = {
       table: 'Table',
       checks: 'Checks',
       fingerprint: 'Fingerprint',
-      preview: 'Preview',
     },
     createdFrom: (f: string) => `This template was started from ${f}. Re-run it now to extract it.`,
     backToFile: 'Go to the file to re-run it',
@@ -335,10 +334,27 @@ export const S = {
       abn: 'ABN',
       anyPage: 'Look on any page (not just page 1)',
     },
-    preview: {
-      title: 'CSV preview',
-      rows: (n: number) => `${n} ${n === 1 ? 'row' : 'rows'} in total`,
-      empty: 'Map a field to see the output.',
+    output: {
+      title: 'Output',
+      rows: (n: number) => `${n.toLocaleString('en-AU')} ${n === 1 ? 'row' : 'rows'}`,
+      problems: (n: number) => `${n} ${n === 1 ? 'problem' : 'problems'}`,
+      noProblems: 'No problems',
+      updating: 'Updating…',
+      download: 'Download CSV',
+      larger: 'Larger',
+      smaller: 'Smaller',
+      hide: 'Hide',
+      show: 'Show output',
+      empty: 'Click a value or map a table, and the CSV appears here as you build it.',
+      blank: 'empty',
+      showOnPage: 'Show on the page',
+      shown: (column: string, page: number) => `${column} shown on page ${page}`,
+      cellError: (error: string, raw: string) =>
+        error === 'parse_failed'
+          ? `“${raw}” couldn’t be read as this column’s type`
+          : error === 'required_missing'
+            ? 'Required, but empty on this row'
+            : 'Not found in this PDF',
     },
     resumeTitle: (t: string) => `Resume your draft from ${t}?`,
     resume: 'Resume',

@@ -272,6 +272,7 @@ export function PageView(props: {
     }
   };
 
+  const pointing = useRef(false);
   const sel = new Set(selected);
   const hovered = new Set(hover);
   const focused = flat[focus];
@@ -284,8 +285,15 @@ export function PageView(props: {
       role="group"
       aria-label={props.label ?? S.mapper.viewerLabel(page)}
       onKeyDown={onKey}
+      onPointerDownCapture={() => {
+        pointing.current = true;
+      }}
       onFocus={() => {
-        if (focus < 0 && flat.length && onToken) moveFocus(0);
+        // Tabbing in starts at the first word. A click must not: moving there
+        // scrolls the page out from under the pointer and the click is lost.
+        const byPointer = pointing.current;
+        pointing.current = false;
+        if (!byPointer && focus < 0 && flat.length && onToken) moveFocus(0);
       }}
     >
       <div

@@ -825,7 +825,8 @@ table.data input {
 .toasts {
   position: fixed;
   right: var(--s5);
-  bottom: var(--s5);
+  /* Above the Mapper's output dock while it is open. */
+  bottom: calc(var(--dock-space, 0px) + var(--s5));
   display: flex;
   flex-direction: column;
   gap: var(--s2);
@@ -910,6 +911,7 @@ table.data input {
 }
 .tok {
   position: absolute;
+  scroll-margin-bottom: calc(var(--dock-space, 0px) + var(--s5));
   border: 1px solid transparent;
   border-radius: 2px;
   cursor: pointer;
@@ -970,6 +972,12 @@ table.data input {
   transform: translateY(-100%);
   top: -2px;
   left: -2px;
+}
+/* The table's label sits under it, clear of the column grips above the header. */
+.mark-table > .mark-label {
+  top: auto;
+  bottom: -2px;
+  transform: translateY(100%);
 }
 .divider-line {
   position: absolute;
@@ -1561,4 +1569,107 @@ details.more[open] > summary {
 .group-row input {
   flex: 1;
   min-width: 0;
+}
+
+/* Mapper: output dock, the CSV as it will be written. */
+.output-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: var(--s4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  box-shadow: 0 -4px 16px var(--card-shadow);
+}
+.output-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  padding: var(--s2) var(--s4);
+  border-bottom: 1px solid var(--border);
+}
+.output-head .grow {
+  flex: 1;
+}
+.output-empty {
+  margin: 0;
+  padding: var(--s3) var(--s4);
+}
+.chip-button {
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+.chip-button.on {
+  outline: 2px solid var(--danger);
+  outline-offset: 1px;
+}
+.output-scroll {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.output-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  min-width: 100%;
+}
+.output-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  background: var(--surface-subtle);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.output-table th.col-field {
+  background: var(--accent-tint);
+  color: var(--accent-ink);
+}
+.output-table th.col-group {
+  background: var(--warn-tint);
+  color: var(--warn-ink);
+}
+.output-table .col-type {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.output-table td {
+  height: 28px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  white-space: nowrap;
+  color: var(--text-2);
+}
+.output-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.output-table td.cell-problem {
+  background: var(--danger-tint);
+  color: var(--danger-ink);
+}
+.cell-link {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: inherit;
+  width: 100%;
+}
+.cell-link:hover {
+  text-decoration: underline;
 }

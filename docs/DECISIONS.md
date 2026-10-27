@@ -102,3 +102,11 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - **No suggestions from repeating labels.** A label that repeats on page 1 belongs to rows, so `suggestFields` skips it.
 - **Dividers don't block words.** The dashed divider line ignores the pointer; it's dragged by a grip above the header. Before, its 14 px hit area covered words such as the first word of a period.
 - **Fixture.** `summit-voice-jan26.pdf` (synthetic) has companies, phone-number headings, two sections, items over two or three lines, credits printed "-90.91" and "90.91CR", a per-service total, a footer on every page and a Call details section.
+
+## Mapper redesign, phase 2: live output
+
+- **Output dock instead of the Preview tab.** `outputGrid` (engine) gives the same columns and cells as `toCsv` without the audit columns, plus each cell's problem and source box. The dock draws only the rows in view (28 px rows), so thousands of rows scroll smoothly. It publishes its height as `--dock-space` so toasts and scrolled-to words stay above it.
+- **Previews of long samples run in the worker.** Above 20,000 words (about 40 dense pages) the Mapper loads the layout into the extraction worker once (`load`) and sends only the draft template for each preview (`preview`), debounced by 150 ms; only the newest reply is kept. Smaller samples still extract on the main thread, so the page updates at once. A 222-page synthetic bill (2,663 rows) shows its first output about 0.8 s after the table is mapped, and typing stays responsive. The test build can lower the threshold (`previewWorkerWords`) to exercise the worker path on the normal sample.
+- **Results keep their template.** While a long sample re-extracts, marks and output are looked up through the template the shown result came from, so renaming a field or table doesn't blank them for a moment.
+- **A skipped line closes the row above.** A group's total sits between groups, so lines after it no longer join the last row of the group before.
+- **Clicks no longer lose their target.** Focusing the page by clicking used to move the keyboard cursor to the first word and scroll the viewer there, between pointer down and up, so the click landed elsewhere. Focus from the pointer now leaves the scroll alone; Tab still starts at the first word.

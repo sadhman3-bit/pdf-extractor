@@ -228,7 +228,11 @@ export function extractTable(
         ended = true;
         break;
       }
-      if (skip.some((re) => re.test(line.text))) continue;
+      // A skipped line (such as a group's total) also closes the row above it.
+      if (skip.some((re) => re.test(line.text))) {
+        joinable = false;
+        continue;
+      }
       if (furniture.has(line)) continue;
       const g = groups.find(
         ({ g, re }) =>

@@ -73,7 +73,7 @@ You need one sample PDF from the supplier.
 
    Each choice applies to every line like it on every page, and the message at the bottom has **Undo**. Rename the table (for example `Items`) and the columns in the Table panel; **×** removes a column or a heading. Drag a column divider by its grip above the header (or focus it and use the arrow keys).
 6. **Checks.** The app offers sensible checks, such as "the amounts add up to the total" and "GST is the total ÷ 11". Turn them on or off, or add your own (see `TEMPLATE_FORMAT.md` for the expression language).
-7. The **CSV preview** at the bottom shows exactly what will be written.
+7. **Output**, docked at the bottom of the screen, shows the CSV exactly as it will be written, for every page of the sample, and updates as you click. It shows the number of rows and any problems (cells that couldn't be read, or required values that are empty), in red. Choose the problem count to see only those rows. Click a value to see where it is on the page. **Download CSV** saves the CSV for this sample straight away; **Larger** and **Hide** change the panel's size.
 8. Choose **Save template**. Each save creates a new version; old versions are kept.
 
 Your work is saved as a draft as you go. If the tab closes, opening the template again offers **Resume** or **Discard**.

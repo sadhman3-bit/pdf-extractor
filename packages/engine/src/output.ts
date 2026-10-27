@@ -1,4 +1,5 @@
-import type { Template } from './template';
+import type { FieldType, Template } from './template';
+import type { SourceBox } from './fields';
 import type { Extraction, Reason } from './extract';
 import type { Value } from './parse';
 
@@ -174,4 +175,88 @@ export function toCsv(
 /** Output file base name for a source PDF: the file name without ".pdf". */
 export function baseName(file: string): string {
   return file.replace(/\.pdf$/i, '');
+}
+
+export interface GridColumn {
+  name: string;
+  /** Bill detail (same on every row), table column, or heading copied onto rows. */
+  kind: 'field' | 'column' | 'group';
+  type: FieldType;
+}
+
+export interface GridCell {
+  /** As written to the CSV. */
+  text: string;
+  /** Text read from the page, when it differs from what is written. */
+  raw?: string;
+  error?: 'parse_failed' | 'required_missing' | 'not_found';
+  /** Where the value sits, for showing it on the page. */
+  box?: SourceBox;
+}
+
+export interface OutputGrid {
+  table: string | null;
+  columns: GridColumn[];
+  rows: GridCell[][];
+  /** Cells with an error, counting a bill detail once. */
+  problems: number;
+}
+
+/**
+ * One CSV file as a grid for the Mapper: the same columns and rows as `toCsv`
+ * (without the audit columns), with each cell's problem and source box.
+ */
+export function outputGrid(
+  result: Extraction,
+  t: Template,
+  tableName: string | null = t.tables?.[0]?.name ?? null,
+): OutputGrid {
+  const tb = (t.tables ?? []).find((x) => x.name === tableName);
+  const groups = tb ? groupColumns(t, tb.name) : [];
+  const columns: GridColumn[] = [
+    ...t.fields.map((f) => ({ name: f.name, kind: 'field' as const, type: f.type ?? 'text' })),
+    ...(tb?.columns ?? []).map((c) => ({
+      name: c.name,
+      kind: 'column' as const,
+      type: c.type ?? 'text',
+    })),
+    ...groups.map((g) => ({ name: g, kind: 'group' as const, type: 'text' as const })),
+  ];
+  let problems = 0;
+  const fieldCells: GridCell[] = t.fields.map((f) => {
+    const r = result.fields[f.name];
+    const cell: GridCell = { text: r?.csv ?? '' };
+    if (r?.raw && r.raw !== cell.text) cell.raw = r.raw;
+    if (r?.boxes[0]) cell.box = r.boxes[0];
+    if (r?.error) {
+      cell.error = r.error === 'parse_failed' ? 'parse_failed' : 'not_found';
+      problems++;
+    }
+    return cell;
+  });
+  const rows = tb ? (result.tables[tb.name]?.rows ?? []) : [];
+  if (!rows.length) {
+    return {
+      table: tb?.name ?? null,
+      columns,
+      rows: [[...fieldCells, ...columns.slice(fieldCells.length).map(() => ({ text: '' }))]],
+      problems,
+    };
+  }
+  const out = rows.map((row) => [
+    ...fieldCells,
+    ...tb!.columns.map((c) => {
+      const r = row.cells[c.name];
+      const cell: GridCell = { text: r?.csv ?? '' };
+      if (r && r.raw.trim() !== cell.text) cell.raw = r.raw;
+      if (r?.boxes[0]) cell.box = r.boxes[0];
+      if (r?.error) {
+        cell.error = r.error;
+        problems++;
+      }
+      return cell;
+    }),
+    ...groups.map((g) => ({ text: row.groups[g] ?? '' })),
+  ]);
+  return { table: tb!.name, columns, rows: out, problems };
 }

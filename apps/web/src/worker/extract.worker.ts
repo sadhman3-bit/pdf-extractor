@@ -4,7 +4,16 @@
 import * as pdfjs from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { readPdf, type PdfjsLib } from '@pdfx/pdf';
-import { processDocument, type DocText, type EngineOptions, type TemplateSet } from '@pdfx/engine';
+import {
+  buildLayout,
+  extractWith,
+  processDocument,
+  type DocLayout,
+  type DocText,
+  type EngineOptions,
+  type Template,
+  type TemplateSet,
+} from '@pdfx/engine';
 import type { WorkerRequest, WorkerResponse } from './protocol';
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -19,6 +28,8 @@ const OPTIONS = {
 };
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
+// The Mapper's sample, laid out once and reused for every preview.
+let loaded: { key: string; layout: DocLayout } | null = null;
 
 scope.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
@@ -36,6 +47,16 @@ scope.onmessage = async (e: MessageEvent<WorkerRequest>) => {
             message: r.message,
             detail: r.detail ?? '',
           };
+    } else if (msg.type === 'load') {
+      loaded = { key: msg.key, layout: buildLayout({ pages: msg.pages }) };
+      reply = { id: msg.id, type: 'load' };
+    } else if (msg.type === 'preview') {
+      if (loaded?.key !== msg.key) throw new Error('The sample is not loaded in the worker');
+      reply = {
+        id: msg.id,
+        type: 'preview',
+        extraction: extractWith(loaded.layout, msg.template as Template, msg.opts as EngineOptions),
+      };
     } else {
       reply = {
         id: msg.id,

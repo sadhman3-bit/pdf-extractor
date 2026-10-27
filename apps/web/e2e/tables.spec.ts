@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import type { Page } from '@playwright/test';
 import { test, expect, ready, expectNoAxe, startFromSample, savedTemplate } from './helpers';
 import { extractWithSaved, goldenJson } from './engine';
@@ -92,5 +93,43 @@ test('maps a grouped service summary by clicking lines', async ({ page }) => {
   await expect(page.getByText('Items · 30 rows')).toBeVisible();
   await page.getByRole('button', { name: 'Remove column Column5' }).click();
   await expect(page.getByRole('button', { name: 'Remove column Column5' })).toHaveCount(0);
+  await expectNoAxe(page);
+});
+
+test('the output shows every row, finds a value on the page and downloads the CSV', async ({
+  page,
+}) => {
+  // Run the preview in the worker, as it does for long bills.
+  await page.addInitScript(() => {
+    (window as unknown as { __PDFX_TEST_WORKSPACE__: object }).__PDFX_TEST_WORKSPACE__ = {
+      previewWorkerWords: 0,
+    };
+  });
+  await ready(page);
+  await startFromSample(page, 'summit-voice-jan26.pdf');
+  const output = page.getByRole('region', { name: 'Output' });
+  await expect(output.getByText(/Click a value or map a table/)).toBeVisible();
+  await page
+    .getByRole('group', { name: 'Mapping mode' })
+    .getByRole('button', { name: 'Map a table' })
+    .click();
+  await tok(page, 'Summary').click();
+  await tok(page, 'Telephone').click();
+  await page.getByRole('button', { name: /^A heading/ }).click();
+  await expect(output.getByRole('columnheader', { name: /Telephone/ })).toBeVisible();
+  await expect(output.getByText(/^\d+ rows$/)).toBeVisible();
+  // A value in the output is shown on the page.
+  await output.getByRole('button', { name: /^Item: SVC102B\./ }).click();
+  await expect(page.locator('.tok.tok-selected[data-text="SVC102B"]')).toBeVisible();
+  // The CSV downloads with the same columns.
+  const download = page.waitForEvent('download');
+  await output.getByRole('button', { name: 'Download CSV' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe('summit-voice-jan26.csv');
+  const text = readFileSync(await file.path(), 'utf8');
+  expect(text.split('\r\n')[0]).toContain(
+    'Item,ServiceSummary,ExclGST,InclGST,Telephone,_SourceFile',
+  );
+  expect(text).toContain('SVC102B');
   await expectNoAxe(page);
 });

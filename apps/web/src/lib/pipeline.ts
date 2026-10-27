@@ -6,6 +6,7 @@ import {
   type EngineOptions,
   type Extraction,
   type PageText,
+  type Template,
   type TemplateSet,
 } from '@pdfx/engine';
 import { pagesNeedingOcr } from '@pdfx/pdf';
@@ -74,6 +75,22 @@ export async function runEngine(
 ): Promise<Extraction> {
   const r = await call({ type: 'process', doc: { pages }, sets, opts });
   if (r.type !== 'process') throw new Error('Unexpected reply');
+  return r.extraction;
+}
+
+/** Keeps a document's layout in the worker under `key`, for `previewIn`. */
+export async function loadForPreview(key: string, pages: PageText[]): Promise<void> {
+  await call({ type: 'load', key, pages });
+}
+
+/** Extracts the document loaded under `key` with a draft template, in the worker. */
+export async function previewIn(
+  key: string,
+  template: Template,
+  opts: EngineOptions,
+): Promise<Extraction> {
+  const r = await call({ type: 'preview', key, template, opts });
+  if (r.type !== 'preview') throw new Error('Unexpected reply');
   return r.extraction;
 }
 

@@ -5,7 +5,6 @@ import {
   MATCH_MODES,
   PRESETS,
   defaultChecks,
-  humanize,
   validateExpr,
   type CheckRule,
   type Extraction,
@@ -16,7 +15,6 @@ import {
 } from '@pdfx/engine';
 import { S } from '../strings';
 import { CheckIcon, XIcon } from '../components/Icons';
-import { parseCsv } from '../workspace/csv';
 
 const ruleText = (f: FieldRule) => {
   const label = f.anchor.labels[0] ?? '';
@@ -1004,50 +1002,3 @@ export function FingerprintPanel({
     </section>
   );
 }
-
-// ---------------------------------------------------------------- preview
-
-export function PreviewPanel({ csv }: { csv: string | null }) {
-  const rows = csv ? parseCsv(csv).filter((r) => r.length > 1 || r[0]) : [];
-  const header = rows[0] ?? [];
-  const body = rows.slice(1);
-  const visible = header.filter((h) => !h.startsWith('_'));
-  return (
-    <section class="card stack" aria-labelledby="preview-title">
-      <div class="card-head">
-        <h2 id="preview-title" class="card-title">
-          {S.mapper.preview.title}
-        </h2>
-        {csv ? <span class="caption">{S.mapper.preview.rows(body.length)}</span> : null}
-      </div>
-      {!csv || !visible.length ? (
-        <p class="muted small">{S.mapper.preview.empty}</p>
-      ) : (
-        <div class="table-wrap" tabIndex={0}>
-          <table class="data mono" aria-label={S.mapper.preview.title}>
-            <thead>
-              <tr>
-                {visible.map((h) => (
-                  <th key={h} scope="col">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {body.slice(0, 5).map((r, i) => (
-                <tr key={i}>
-                  {visible.map((h) => (
-                    <td key={h}>{r[header.indexOf(h)]}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
-}
-
-export { humanize };

@@ -3,10 +3,10 @@ import {
   PRESETS,
   addColumnAt,
   buildLayout,
-  extractWith,
   inferField,
   groupFor,
   inferTable,
+  outputGrid,
   parseTemplate,
   phrases,
   suggestFields,
@@ -36,7 +36,10 @@ import {
   timeHM,
   toast,
   ActionButton,
+  downloadBlob,
 } from '../components/ui';
+import { usePreview } from '../lib/preview';
+import { OutputDock } from './MapperOutput';
 import { PageView, usePdf, type Divider, type Mark, type Zoom } from '../components/PageView';
 import { documentText } from '../lib/pipeline';
 import { idbDel, idbGet, idbSet } from '../lib/idb';
@@ -53,14 +56,7 @@ import {
   type Draft,
   type Lock,
 } from '../workspace/store';
-import {
-  ChecksPanel,
-  FieldsPanel,
-  FingerprintPanel,
-  LinePanel,
-  PreviewPanel,
-  TablePanel,
-} from './MapperPanels';
+import { ChecksPanel, FieldsPanel, FingerprintPanel, LinePanel, TablePanel } from './MapperPanels';
 
 type Mode = 'value' | 'table' | 'end';
 
@@ -97,8 +93,8 @@ function emptyTemplate(id: string, name: string, fp: Template['fingerprint']): T
   };
 }
 
-type Panel = 'fields' | 'table' | 'checks' | 'fingerprint' | 'preview';
-const PANELS: Panel[] = ['fields', 'table', 'checks', 'fingerprint', 'preview'];
+type Panel = 'fields' | 'table' | 'checks' | 'fingerprint';
+const PANELS: Panel[] = ['fields', 'table', 'checks', 'fingerprint'];
 
 export function MapperScreen() {
   const s = useApp();
@@ -263,30 +259,28 @@ export function MapperScreen() {
     };
   }, [route.template, ws, nonce]);
 
-  const result = useMemo(() => {
-    if (!draft || !layout) return null;
+  // Long samples extract in the worker; the output and page marks use the newest result.
+  // While a long sample is re-extracting, `basis` is the template the shown result came
+  // from, so renamed fields and tables keep their marks and output until it catches up.
+  const { result, basis, busy } = usePreview(pages, layout, draft, s.settings.confidenceThreshold);
+  const grid = useMemo(() => {
+    if (!result || !basis) return null;
     try {
-      return extractWith(layout, draft, { confidenceThreshold: s.settings.confidenceThreshold });
+      return outputGrid(result, basis);
     } catch {
       return null;
     }
-  }, [draft, layout, s.settings.confidenceThreshold]);
+  }, [result, basis]);
 
-  const csv = useMemo(() => {
-    if (!result || !draft) return null;
-    try {
-      return (
-        toCsv(
-          result,
-          draft,
-          { file: sample?.name ?? '', sha256: '', extractedAt: '' },
-          { bom: false },
-        )[0]?.content ?? null
-      );
-    } catch {
-      return null;
-    }
-  }, [result, draft, sample]);
+  // A value chosen in the output is scrolled into view once its page has rendered.
+  const [reveal, setReveal] = useState(0);
+  useEffect(() => {
+    if (!reveal) return;
+    const id = requestAnimationFrame(() =>
+      document.querySelector('.tok.tok-selected')?.scrollIntoView({ block: 'nearest' }),
+    );
+    return () => cancelAnimationFrame(id);
+  }, [reveal, pageNo]);
 
   const suggestions = useMemo(() => {
     if (!layout || !draft) return [] as InferredField[];
@@ -323,7 +317,10 @@ export function MapperScreen() {
   latest.current = draft;
   const names = draft.fields.map((f) => f.name);
   const table = (draft.tables ?? [])[0];
-  const tableResult = table ? result?.tables[table.name] : undefined;
+  const basisTable = basis?.tables?.find((x) => x.id === table?.id) ?? basis?.tables?.[0];
+  const tableResult = table && basisTable ? result?.tables[basisTable.name] : undefined;
+  const fieldRes = (f: FieldRule) =>
+    result?.fields[basis?.fields.find((x) => x.id === f.id)?.name ?? f.name];
 
   const updateField = (f: FieldRule) =>
     setDraft({ ...draft, fields: draft.fields.map((x) => (x.id === f.id ? f : x)) });
@@ -335,7 +332,7 @@ export function MapperScreen() {
 
   const fieldAt = (t: Token) =>
     draft.fields.find((f) =>
-      (result?.fields[f.name]?.boxes ?? []).some((b) => b.page === t.page && inBox(t, b.bbox)),
+      (fieldRes(f)?.boxes ?? []).some((b) => b.page === t.page && inBox(t, b.bbox)),
     );
 
   const onToken = (t: Token, shift: boolean) => {
@@ -514,7 +511,7 @@ export function MapperScreen() {
     if (!layout || mode !== 'value') return [t];
     const f = repick ? undefined : fieldAt(t);
     if (f) {
-      const boxes = (result?.fields[f.name]?.boxes ?? []).filter((b) => b.page === t.page);
+      const boxes = (fieldRes(f)?.boxes ?? []).filter((b) => b.page === t.page);
       return (pages?.[t.page - 1]?.tokens ?? []).filter((x) => boxes.some((b) => inBox(x, b.bbox)));
     }
     return valueTokens(layout, t);
@@ -600,7 +597,7 @@ export function MapperScreen() {
   const marks: Mark[] = [];
   if (result) {
     for (const f of draft.fields) {
-      for (const b of result.fields[f.name]?.boxes ?? [])
+      for (const b of fieldRes(f)?.boxes ?? [])
         if (b.page === pageNo)
           marks.push({
             bbox: b.bbox,
@@ -987,7 +984,7 @@ export function MapperScreen() {
                 }}
                 onRegion={(id, on) => {
                   const f = draft.fields.find((x) => x.id === id)!;
-                  const r = result?.fields[f.name];
+                  const r = fieldRes(f);
                   const box = r?.boxes[0];
                   const pg = pages?.[(box?.page ?? 1) - 1];
                   if (!on || !box || !pg) {
@@ -1050,10 +1047,32 @@ export function MapperScreen() {
                 onChange={(fingerprint) => setDraft({ ...draft, fingerprint })}
               />
             ) : null}
-            {panel === 'preview' ? <PreviewPanel csv={csv} /> : null}
           </div>
         </div>
       </div>
+
+      <OutputDock
+        grid={grid}
+        busy={busy}
+        onCell={(cell, column) => {
+          const b = cell.box;
+          if (!b) return;
+          setPageNo(b.page);
+          setSelected((pages?.[b.page - 1]?.tokens ?? []).filter((t) => inBox(t, b.bbox)));
+          setReveal((n) => n + 1);
+          app.announce(S.mapper.output.shown(column, b.page));
+        }}
+        onDownload={() => {
+          if (!result) return;
+          const file = toCsv(result, draft, {
+            file: sample?.name ?? '',
+            sha256: '',
+            extractedAt: new Date().toISOString(),
+          })[0];
+          if (file)
+            downloadBlob(`${stem(sample?.name ?? draft.name)}.csv`, file.content, 'text/csv');
+        }}
+      />
 
       {changing ? (
         <Dialog title={S.mapper.changeSample} onClose={() => setChanging(false)}>

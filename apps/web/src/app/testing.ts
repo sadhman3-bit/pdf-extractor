@@ -9,6 +9,8 @@ export interface TestHooks {
   basic?: boolean;
   /** Throw after this processing step (section 3.6) to simulate a crash. */
   crashAfterStep?: number | null;
+  /** Mapper previews run in the worker above this many words (to test that path on a short sample). */
+  previewWorkerWords?: number;
 }
 
 export function testHooks(): TestHooks | null {
