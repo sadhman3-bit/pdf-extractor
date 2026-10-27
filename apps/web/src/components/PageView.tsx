@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import type { BBox, Token } from '@pdfx/engine';
+import type { BBox, LineRoleKind, Token } from '@pdfx/engine';
 import type { PdfDocument, PdfPage } from '@pdfx/pdf';
 import { open, renderPage } from '../lib/pdfjs';
 import { S } from '../strings';
@@ -96,6 +96,8 @@ export function PageView(props: {
   marks?: Mark[];
   selected?: Token[];
   ruler?: Ruler | undefined;
+  /** How each line of the table was read, shown in the page's left margin. */
+  lineMarks?: { y0: number; y1: number; role: LineRoleKind }[];
   /** A small panel drawn on the page under a line (above it near the page foot), from x. */
   overlay?: { bbox: BBox; x: number; node: ComponentChildren } | undefined;
   onToken?: (t: Token, shift: boolean) => void;
@@ -118,6 +120,7 @@ export function PageView(props: {
     marks = [],
     selected = [],
     ruler,
+    lineMarks = [],
     overlay,
     onToken,
     onTokens,
@@ -363,6 +366,17 @@ export function PageView(props: {
           </div>
         ))}
         {band ? <div class="band" style={box(norm(band))} aria-hidden="true" /> : null}
+        {lineMarks.map((m, i) => (
+          <span
+            key={`l${i}`}
+            class={`line-mark line-mark-${m.role}`}
+            style={{ top: `${((m.y0 + m.y1) / 2) * scale - 7}px` }}
+            title={S.mapper.lineRole[m.role].name}
+            aria-hidden="true"
+          >
+            {S.mapper.lineRole[m.role].mark}
+          </span>
+        ))}
         {ruler ? <RulerBar r={ruler} scale={scale} /> : null}
         {overlay && size ? (
           <div

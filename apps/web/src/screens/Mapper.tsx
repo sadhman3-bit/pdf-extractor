@@ -9,6 +9,7 @@ import {
   inferTable,
   looksLikeHeader,
   moveBreak,
+  partColumnFor,
   outputGrid,
   parseTemplate,
   phrases,
@@ -695,7 +696,21 @@ export function MapperScreen() {
     const taken = [...table.columns.map((c) => c.name), ...(table.groups ?? []).map((g) => g.name)];
     const group = groupFor(line, taken);
     const m = new RegExp(group.pattern).exec(line.text);
+    // A later line of a row ("Rental" under a description) can have a column of its own.
+    const role = tableResult?.stats?.lines?.find(
+      (r) => r.page === line.page && Math.abs(r.y0 - line.y0) < 0.5,
+    )?.role;
+    const part = role === 'part' ? partColumnFor(layout, table, line) : null;
     const choices: { label: string; key: string; run: () => void }[] = [
+      ...(part
+        ? [
+            {
+              label: S.mapper.table.asPart(phrases(line)[0]!.text),
+              key: 'L',
+              run: () => changeTable(part.rule, S.mapper.table.partAdded(part.column.name)),
+            },
+          ]
+        : []),
       {
         label: S.mapper.table.asGroup(group.name, (m?.[group.capture ?? 0] ?? line.text).trim()),
         key: 'H',
@@ -1160,6 +1175,7 @@ export function MapperScreen() {
                 marks={marks}
                 selected={selected}
                 ruler={ruler}
+                lineMarks={(tableResult?.stats?.lines ?? []).filter((m) => m.page === pageNo)}
                 overlay={
                   lineAt && lineAt.page === pageNo
                     ? (() => {

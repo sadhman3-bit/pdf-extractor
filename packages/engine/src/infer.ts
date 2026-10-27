@@ -729,11 +729,49 @@ export function removeBreak(layout: DocLayout, rule: TableRule, i: number): Tabl
     ...fixed,
     columns: fixed.columns
       .filter((c) => c.name !== drop.name)
-      .map((c) => (c.name === keep.name ? { ...c, x0: pt(left.x0), x1: pt(right.x1) } : c)),
+      .map((c) =>
+        c.name === keep.name
+          ? { ...c, x0: pt(left.x0), x1: pt(right.x1) }
+          : c.partOf === drop.name
+            ? { ...c, partOf: keep.name }
+            : c,
+      ),
     ...(fixed.rowStart?.column === drop.name
       ? { rowStart: { ...fixed.rowStart, column: keep.name } }
       : {}),
   };
+}
+
+/**
+ * A column for a row's later lines like this one (such as "Rental" under a
+ * description): the words of the line's first column that start where it does.
+ */
+export function partColumnFor(
+  layout: DocLayout,
+  rule: TableRule,
+  line: Line,
+): { rule: TableRule; column: ColumnRule } | null {
+  const f = tableFrame(layout, rule);
+  if (!f) return null;
+  const first = [...line.tokens].sort((a, b) => a.x0 - b.x0)[0];
+  const of = first && f.bounds.find((b) => cx(first) >= b.x0 && cx(first) < b.x1);
+  if (!first || !of || rule.columns.some((c) => c.partOf === of.name)) return null;
+  const taken = new Set([
+    ...rule.columns.map((c) => c.name),
+    ...(rule.groups ?? []).map((g) => g.name),
+  ]);
+  let name = 'Detail';
+  for (let n = 2; taken.has(name); n++) name = `Detail${n}`;
+  const column: ColumnRule = {
+    name,
+    header: name,
+    type: 'text',
+    partOf: of.name,
+    x0: pt(first.x0),
+  };
+  const columns: ColumnRule[] = [];
+  for (const c of rule.columns) columns.push(...(c.name === of.name ? [c, column] : [c]));
+  return { rule: { ...rule, columns }, column };
 }
 
 /** Sets the type of changed text columns whose values are now all numbers or all dates. */

@@ -69,10 +69,13 @@ The Mapper has three parts. **Your CSV**, on the left, lists everything that wil
 5. **Map the table** (if the document has one). Click the table's header row; a menu opens beside it, and **Map the table under this header row** maps it. If the header row has numbers in it (such as "Account Activity · Your Reference 55-10 2047"), choose **Choose the header row on the page** under **Line items** first, then click it. The app outlines the table with its row count and puts a **ruler** along its top, with a break between each pair of columns (placed in the empty gap between them) and each column's name. Totals that repeat for each group (such as "Total for 02 5550 0160" after every phone number) are skipped automatically, and page headers and footers that repeat on every page are ignored. Then click any line in the table: **What is this line?** opens beside it (press the letter shown next to a choice, or Esc to close):
    - **A heading:** copies the heading onto each row below it, as its own CSV column. "Telephone 02 5550 0160" gives a Telephone column with the number; a heading without numbers ("Services and equipment rental") gives a Section column, and one in capitals (a company name) gives a Company column.
    - **Not a row: skip lines like this.**
+   - **A second line: put "…" in a column of its own:** for a line that belongs to the row above but is a separate value, such as "Rental" under a service's description. Lines that start at the same place go into the new column (named `Detail`); wrapped descriptions that start further left stay where they are.
    - **The table ends here:** for example at "Call details".
    - **This is the header row:** start the table again from this line.
 
    - **Add "…" as a bill detail instead:** for a value inside the table area that belongs on every row.
+
+   Beside each line of the table, the page's left margin shows how it was read: **T** header row, **R** a new row, **+** part of the row above, **H** a heading, **–** skipped, **■** where the table ends, and a red **?** for a line that isn't part of any row. Point at a marker for its meaning. A **+** next to something that should be a heading, or a **?**, is the line to click next.
 
    Each choice applies to every line like it on every page. If the app finds a table on its own, **Line items** offers it with **Accept**.
 

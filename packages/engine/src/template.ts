@@ -71,6 +71,11 @@ export const columnSchema = z.looseObject({
   creditMeansNegative: z.boolean().optional(),
   x0: z.number().optional(),
   x1: z.number().optional(),
+  /**
+   * Takes the row's later lines that fall in this other column (and start
+   * within a few points of x0, when set) instead of that column.
+   */
+  partOf: z.string().optional(),
 });
 export type ColumnRule = z.infer<typeof columnSchema>;
 

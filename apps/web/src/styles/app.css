@@ -979,6 +979,38 @@ table.data input {
   bottom: -2px;
   transform: translateY(100%);
 }
+/* How each table line was read, in the page's left margin. */
+.line-mark {
+  position: absolute;
+  left: 4px;
+  width: 16px;
+  height: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface-subtle);
+  border-radius: 3px;
+  pointer-events: none;
+}
+.line-mark-row {
+  color: var(--success-ink);
+  background: var(--success-tint);
+}
+.line-mark-heading {
+  color: var(--warn-ink);
+  background: var(--warn-tint);
+}
+.line-mark-header,
+.line-mark-end {
+  color: var(--accent-ink);
+  background: var(--accent-tint);
+}
+.line-mark-unplaced {
+  color: var(--danger-ink);
+  background: var(--danger-tint);
+}
 /* The ruler along a mapped table's top: click to add a column break, drag one to move it. */
 .ruler {
   position: absolute;

@@ -93,6 +93,13 @@ test('maps a grouped service summary by clicking lines', async ({ page }) => {
   await expect(
     page.locator('.toast').getByText('New column Column5. Rename it on the left.'),
   ).toBeVisible();
+  // The margin shows how each line was read; "Rental" lines are part of the row above.
+  await expect(page.locator('.line-mark-heading').first()).toBeVisible();
+  await expect(page.locator('.line-mark-part').first()).toBeVisible();
+  await choose('Rental', /^A second line: put “Rental”/);
+  await expect(
+    page.getByRole('region', { name: 'Output' }).getByRole('columnheader', { name: /^Detail/ }),
+  ).toBeVisible();
   // 26 items, then the call details on the last page: end the table there.
   for (let i = 0; i < 6 && !(await tok(page, 'Call').count()); i++)
     await page.getByRole('button', { name: 'Next page' }).click();

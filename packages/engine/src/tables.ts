@@ -41,6 +41,17 @@ export interface LineStats {
   /** Lines that were neither a row nor part of one (at most 500 listed). */
   unplaced: SourceBox[];
   unplacedCount: number;
+  /** How each line of the table was read, for markers beside the page (first 20,000). */
+  lines?: LineRole[];
+}
+
+export type LineRoleKind = 'header' | 'row' | 'part' | 'heading' | 'skip' | 'unplaced' | 'end';
+
+export interface LineRole {
+  page: number;
+  y0: number;
+  y1: number;
+  role: LineRoleKind;
 }
 
 export interface TableResult {
@@ -281,7 +292,21 @@ export function extractTable(
     joined: 0,
     unplaced: [],
     unplacedCount: 0,
+    lines: [],
   };
+  const mark = (line: Line, role: LineRoleKind) => {
+    if (stats.lines!.length < 20000)
+      stats.lines!.push({ page: line.page, y0: line.y0, y1: line.y1, role });
+  };
+  // Columns that take a row's later lines from another column ("Rental" under a description).
+  const parts = rule.columns.filter((c) => c.partOf);
+  const partFor = (name: string, toks: Token[]) =>
+    parts.find(
+      (c) =>
+        c.partOf === name &&
+        (c.x0 === undefined ||
+          Math.abs(Math.min(...toks.map((t) => t.x0)) - c.x0) <= TOLERANCES.indent),
+    );
   // Lines without a row start join the row above, but never across a group heading.
   let joinable = false;
   const colOf = (t: Token) => {
@@ -296,6 +321,7 @@ export function extractTable(
     const p = layout.pages[pi]!;
     let lines: Line[];
     if (pi === startPage) {
+      for (const l of p.lines.slice(header.lineIndex, header.lastIndex + 1)) mark(l, 'header');
       lines = p.lines.slice(header.lastIndex + 1);
     } else {
       if (!continues) break;
@@ -307,6 +333,7 @@ export function extractTable(
     for (const line of lines) {
       if (rule.end && lineMatches(line, rule.end.labels, endMode)) {
         result.end = { page: p.page, bbox: [line.x0, line.y0, line.x1, line.y1] };
+        mark(line, 'end');
         ended = true;
         break;
       }
@@ -314,6 +341,7 @@ export function extractTable(
       const si = skip.findIndex((re) => re.test(line.text));
       if (si >= 0) {
         stats.skipped[si] = (stats.skipped[si] ?? 0) + 1;
+        mark(line, 'skip');
         joinable = false;
         continue;
       }
@@ -328,6 +356,7 @@ export function extractTable(
         const m = g.re.exec(line.text)!;
         groupValues[g.g.name] = (m[g.g.capture ?? 0] ?? m[0]).trim();
         stats.headings[g.g.name] = (stats.headings[g.g.name] ?? 0) + 1;
+        mark(line, 'heading');
         joinable = false;
         continue;
       }
@@ -350,17 +379,21 @@ export function extractTable(
         : true;
       if (startsRow) {
         raw.push({ cells, groups: { ...groupValues }, page: p.page });
+        mark(line, 'row');
         joinable = true;
       } else if (wrapped === 'join' && joinable && raw.length) {
         const prev = raw[raw.length - 1]!;
         for (const [name, toks] of cells) {
-          const arr = prev.cells.get(name) ?? [];
+          const to = partFor(name, toks)?.name ?? name;
+          const arr = prev.cells.get(to) ?? [];
           arr.push(...toks);
-          prev.cells.set(name, arr);
+          prev.cells.set(to, arr);
         }
         stats.joined++;
+        mark(line, 'part');
       } else {
         stats.unplacedCount++;
+        mark(line, 'unplaced');
         if (stats.unplaced.length < 500)
           stats.unplaced.push({ page: p.page, bbox: [line.x0, line.y0, line.x1, line.y1] });
       }

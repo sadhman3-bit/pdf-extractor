@@ -15,6 +15,7 @@ import {
   processDocument,
   addColumnAt,
   addBreak,
+  partColumnFor,
   moveBreak,
   removeBreak,
   tableFrame,
@@ -281,6 +282,44 @@ describe('mapping a grouped service summary', () => {
     expect(extractTable(l, removed).rows.map((r) => r.cells.ServiceSummary!.raw)).toEqual(
       extractTable(l, start).rows.map((r) => r.cells.ServiceSummary!.raw),
     );
+  });
+
+  it('marks how each line was read, and puts second lines in a column of their own', async () => {
+    const l = await layoutOf('summit-voice-jan26.pdf');
+    const line = (start: string) =>
+      l.pages.flatMap((p) => p.lines).find((x) => x.text.startsWith(start))!;
+    const first = inferTable(l, token(l, 'Summary'))!.rule;
+    const groups = [
+      groupFor(line('Telephone'), []),
+      groupFor(line('Services and'), ['Telephone']),
+      groupFor(line('BRIGHTWATER LOGISTICS'), ['Telephone', 'Section']),
+    ];
+    const end = { labels: [line('Call details').text], match: 'starts-with' as const };
+    let rule: TableRule = { ...first, groups, end };
+    rule = addBreak(l, rule, line('Rental').tokens.find((x) => x.text === '25')!.x0 - 1)!.rule;
+    const t = extractTable(l, rule);
+    const roleOf = (x: { page: number; y0: number }) =>
+      t.stats!.lines!.find((r) => r.page === x.page && r.y0 === x.y0)?.role;
+    expect(roleOf(line('Item'))).toBe('header');
+    expect(roleOf(line('Telephone'))).toBe('heading');
+    expect(roleOf(line('Total for'))).toBe('skip');
+    expect(roleOf(line('Rental'))).toBe('part');
+    expect(roleOf(line('Call details'))).toBe('end');
+    expect(t.stats!.lines!.filter((r) => r.role === 'row')).toHaveLength(t.rows.length);
+    // "Rental" lines get a column; a wrapped description (further left) stays put.
+    const part = partColumnFor(l, rule, line('Rental'))!;
+    expect(part.column).toMatchObject({ name: 'Detail', partOf: 'ServiceSummary' });
+    const rows = extractTable(l, part.rule).rows;
+    const items = summitServices().flatMap((s) => s.sections.flatMap((sec) => sec.items));
+    rows.forEach((r, i) => {
+      const it = items[i]!;
+      expect(r.cells.Detail!.raw).toBe(it.label ?? '');
+      expect(r.cells.ServiceSummary!.raw).toBe(
+        [it.qty, it.description, it.wrap].filter((x) => x !== undefined && x !== '').join(' '),
+      );
+    });
+    // Only one such column per column.
+    expect(partColumnFor(l, part.rule, line('Rental'))).toBeNull();
   });
 
   it('ignores page headers and footers, and suggests no per-service totals', async () => {

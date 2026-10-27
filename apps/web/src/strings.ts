@@ -224,6 +224,15 @@ export const S = {
       table:
         'Click the ruler above the table to add a column break; drag a break to move it. Click a line in the table to say what it is: a heading, a line to skip, or where the table ends.',
     },
+    lineRole: {
+      header: { mark: 'T', name: 'Header row' },
+      row: { mark: 'R', name: 'A new row' },
+      part: { mark: '+', name: 'Part of the row above' },
+      heading: { mark: 'H', name: 'Heading, copied onto the rows below' },
+      skip: { mark: '–', name: 'Skipped' },
+      unplaced: { mark: '?', name: 'Not part of any row: click it to say what it is' },
+      end: { mark: '■', name: 'The table ends here' },
+    },
     ruler: {
       add: 'Add a column break: click the ruler where the new column starts',
       handle: (left: string, right: string) =>
@@ -333,6 +342,9 @@ export const S = {
       asGroup: (name: string, value: string) =>
         `A heading: copy “${value}” onto each row below (column ${name})`,
       asSkip: 'Not a row: skip lines like this',
+      asPart: (text: string) =>
+        `A second line: put “${text}” and lines like it in a column of their own`,
+      partAdded: (name: string) => `Second lines go into ${name}. Rename it on the left.`,
       asEnd: 'The table ends here',
       asHeader: 'This is the header row (start the table again)',
       asTable: 'Map the table under this header row',
