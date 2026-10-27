@@ -6,12 +6,12 @@ import { app, useApp } from '../app/store';
 import { navigate, useRoute } from '../app/router';
 import { now, refresh } from '../app/session';
 import { testHooks } from '../app/testing';
-import { Banner, downloadBlob, fileBytes, ActionButton, Working } from '../components/ui';
+import { Banner, downloadBlob, fileBytes, ActionButton, Working, DropZone } from '../components/ui';
 import { StatusChip, type AnyStatus } from '../components/StatusChip';
 import { ScanIcon, DocIcon } from '../components/Icons';
 import { extractBytes, sha256, type Progress } from '../lib/pipeline';
 import { terminateOcr } from '../lib/ocr';
-import { DIRS, stem } from '../workspace/paths';
+import { DIRS, stem, uniqueName } from '../workspace/paths';
 import {
   listInbox,
   processFile,
@@ -324,6 +324,23 @@ function FolderProcess({ fromTeams }: { fromTeams: boolean }) {
         </section>
       ) : null}
       {failure ? <Banner tone="danger">{failure}</Banner> : null}
+      {!running ? (
+        <DropZone
+          compact
+          label={S.process.addFiles}
+          onFiles={async (files) => {
+            try {
+              for (const file of files) {
+                const name = await uniqueName(ws, DIRS.inbox, file.name);
+                await ws.write(`${DIRS.inbox}/${name}`, await fileBytes(file));
+              }
+              await load();
+            } catch (e) {
+              setFailure(String(e));
+            }
+          }}
+        />
+      ) : null}
       <Tiles inbox={inbox.length} rows={rows} />
       {rows.length ? (
         <FilesTable
@@ -349,7 +366,10 @@ function FolderProcess({ fromTeams }: { fromTeams: boolean }) {
         ) : (
           <p class="muted small">{S.process.writtenNone}</p>
         )}
-        <p class="caption">{S.process.writtenNote}</p>
+        <details>
+          <summary>{S.process.integrations}</summary>
+          <p class="caption">{S.process.writtenNote}</p>
+        </details>
       </section>
     </>
   );

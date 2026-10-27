@@ -6,6 +6,20 @@ Everything happens in your browser. Your documents are never uploaded (see `PRIV
 
 **Use Chrome or Edge.** Other browsers can't save into folders and run in [basic mode](#basic-mode).
 
+You can also choose **Open a PDF** on the welcome screen to begin straight away. Layouts are saved in this browser. Use Settings to connect a working folder for batch processing, or to return to layouts saved in the browser. Export and import templates to transfer them between these two places.
+
+### Mapping headings and totals into one row
+
+1. Draw around the table and map it, or click its column headings.
+2. Click the service heading and choose **Use this block as Name and extract its number**. The full heading becomes Name, and its number becomes a separate column.
+3. Click the service total and choose **Make lines starting … the rows**. Each heading and its matching total now form one row. Detail lines are left out.
+4. Under **Table start and end**, choose the ending text and its matching method. Turn on the missing-ending check when that ending must be present. Keep page continuation on for totals that fall on a later page.
+5. Check the output, rename columns directly in its header, and click values to see their source. Use **Include in output** to choose extra columns. The order follows the selected list; re-adding a column puts it last.
+
+The app flags missing, duplicate or mismatched totals. Repair the rule and test again before processing files. Under **Block rules**, you can choose the number used to match totals, edit patterns or set the number of lines in a wrapped heading. Ordinary tables still use column dividers and the original heading actions.
+
+Light mode is the default. Settings remembers your choice if you switch to dark. PDF pages keep their original white background.
+
 ## Contents
 
 1. [First run](#1-first-run)

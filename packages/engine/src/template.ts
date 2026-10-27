@@ -110,6 +110,18 @@ export const tableSchema = z.looseObject({
   skip: z.array(z.string()).optional(),
   continuesOnNextPage: z.boolean().optional(),
   groups: z.array(groupSchema).optional(),
+  /** Optional repeating blocks. Old tables keep their original grouping behaviour. */
+  block: z
+    .looseObject({
+      headingPattern: z.string().min(1),
+      headingLines: z.number().int().min(1).max(5).optional(),
+      keyGroup: z.string().optional(),
+      rowKeyPattern: z.string().optional(),
+      rowKeyCapture: z.number().int().min(0).optional(),
+    })
+    .optional(),
+  requireEnd: z.boolean().optional(),
+  outputColumns: z.array(z.string()).optional(),
 });
 export type TableRule = z.infer<typeof tableSchema>;
 

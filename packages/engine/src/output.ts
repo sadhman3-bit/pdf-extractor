@@ -71,7 +71,9 @@ export function toJsonObject(
         const o: Record<string, Value | null> = {};
         for (const c of tb.columns) o[c.name] = row.cells[c.name]?.value ?? null;
         for (const g of groups) o[g] = row.groups[g] ?? null;
-        return o;
+        return tb.outputColumns
+          ? Object.fromEntries(tb.outputColumns.map((n) => [n, o[n] ?? null]))
+          : o;
       });
     }
   }
@@ -125,11 +127,18 @@ export function layoutOrder(
   tableName: string | null,
   names: string[],
 ): (number | null)[] | null {
-  if (!t.layout || tableName !== (t.tables?.[0]?.name ?? null)) return null;
-  return t.layout.columns.map((n) => {
+  const selected = outputNames(t, tableName);
+  if (!selected) return null;
+  return selected.map((n) => {
     const i = names.indexOf(n);
     return i >= 0 ? i : null;
   });
+}
+
+function outputNames(t: Template, tableName: string | null): string[] | undefined {
+  if (t.layout && tableName === (t.tables?.[0]?.name ?? null)) return t.layout.columns;
+  const columns = t.tables?.find((tb) => tb.name === tableName)?.outputColumns;
+  return columns ? [...t.fields.map((f) => f.name), ...columns] : undefined;
 }
 
 /**
@@ -165,7 +174,7 @@ export function toCsv(
     const order = layoutOrder(t, tb?.name ?? null, own);
     const arrange = (cells: string[]) =>
       order ? order.map((i) => (i === null ? '' : cells[i]!)) : cells;
-    const lines = [csvLine([...(order ? t.layout!.columns : own), ...AUDIT_COLUMNS])];
+    const lines = [csvLine([...(order ? outputNames(t, tableName)! : own), ...AUDIT_COLUMNS])];
     const rows = tb ? (result.tables[tb.name]?.rows ?? []) : [];
     if (!tb || !rows.length) {
       lines.push(
@@ -274,7 +283,7 @@ export function outputGrid(
           ...g,
           columns: order.map((i, k) =>
             i === null
-              ? { name: t.layout!.columns[k]!, kind: 'field', type: 'text', missing: true }
+              ? { name: outputNames(t, tableName)![k]!, kind: 'field', type: 'text', missing: true }
               : g.columns[i]!,
           ),
           rows: g.rows.map((r) => order.map((i) => (i === null ? { text: '' } : r[i]!))),
@@ -301,7 +310,10 @@ export function outputGrid(
       }
       return cell;
     }),
-    ...groups.map((g) => ({ text: row.groups[g] ?? '' })),
+    ...groups.map((g) => ({
+      text: row.groups[g] ?? '',
+      ...(row.groupBoxes?.[g] ? { box: row.groupBoxes[g] } : {}),
+    })),
   ]);
   return shape({ table: tb!.name, columns, rows: out, problems });
 }

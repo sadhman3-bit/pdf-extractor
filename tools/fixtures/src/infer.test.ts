@@ -335,8 +335,17 @@ describe('mapping a grouped service summary', () => {
     const end = { labels: [line('Call details').text], match: 'starts-with' as const };
     const rule = { ...first, end, groups: [groupFor(line('Telephone'), [])] };
     const totals = rowsLike(l, rule, line('Total for'))!;
+    const formerlyEnded = rowsLike(
+      l,
+      { ...rule, end: { labels: ['Total for'], match: 'starts-with' }, requireEnd: true },
+      line('Total for'),
+    )!;
+    expect(formerlyEnded.end).toBeUndefined();
+    expect(formerlyEnded.requireEnd).toBe(false);
+    expect(extractTable(l, formerlyEnded).rows).toHaveLength(summitServices().length);
     expect(totals.rowStart).toEqual({ column: 'ServiceSummary', pattern: '^Total for' });
     const rows = extractTable(l, totals).rows;
+    expect(rows.flatMap((r) => Object.values(r.cells).filter((c) => c.error))).toEqual([]);
     const services = summitServices();
     expect(rows).toHaveLength(services.length);
     rows.forEach((r, i) => {

@@ -2140,3 +2140,82 @@ details.more[open] > summary {
   border-top: 2px dashed var(--accent);
   pointer-events: none;
 }
+
+/* The document leads; its selected rules stay alongside it. */
+@media (min-width: 1101px) {
+  .mapper-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+  .mapper-rail {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .mapper-layout > .mapper-page {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+@media (min-width: 901px) {
+  .shell.shell-compact {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+  .shell-compact .nav-text {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-size: 12px;
+  }
+  .shell-compact .nav a,
+  .shell-compact .side-link {
+    width: 84px;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 2px;
+  }
+}
+.bill-details > summary {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 0;
+  cursor: pointer;
+}
+.block-panel {
+  border-color: var(--accent-border);
+}
+.block-panel summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.block-panel details[open] > summary {
+  margin-bottom: var(--s3);
+}
+.output-name {
+  width: 100%;
+  min-width: 90px;
+  max-width: 230px;
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  padding: 4px;
+}
+.output-name:hover,
+.output-name:focus {
+  border-color: var(--border-input);
+}
+.dock-resize {
+  display: flex;
+  max-width: 100px;
+}
+.dock-resize input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.output-issues {
+  padding: 8px 16px;
+  color: var(--danger-ink);
+  background: var(--danger-tint);
+  font-size: 13px;
+}

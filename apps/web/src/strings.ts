@@ -74,6 +74,9 @@ export const S = {
     skipped: 'Skipped (in use)',
   },
   firstRun: {
+    openPdf: 'Open a PDF',
+    openHint:
+      'Start with a PDF. Layouts stay in this browser; connect a working folder later for batch processing.',
     welcomeTitle: 'Welcome to PDF Extractor',
     welcomeBody:
       'Map each supplier’s PDF layout once by clicking on a sample. From then on every PDF from that supplier is read the same way, checked, and saved as CSV and JSON for Power Automate and Power BI.',
@@ -135,7 +138,7 @@ export const S = {
   },
   basic: {
     notice:
-      'This browser can’t save into folders. Use Chrome or Edge for the full app. You can still map templates and extract single files.',
+      'Your layouts are saved in this browser. Open PDFs to map or extract, then download your results. Choose a workspace folder in Settings to save results directly into folders.',
     openFiles: 'Open PDF files',
     openFolder: 'Open a folder of PDFs',
     downloadCsv: 'Download CSV',
@@ -146,6 +149,10 @@ export const S = {
     storageName: 'Browser storage',
   },
   settings: {
+    appearance: 'Appearance',
+    browserLayouts: 'Open layouts saved in this browser',
+    light: 'Light',
+    dark: 'Dark',
     layouts: 'Shared CSV layouts',
     layoutsHint:
       'Templates keep a copy of the layout they use, so removing one here doesn’t change them. Make new layouts in the Mapper.',
@@ -221,6 +228,27 @@ export const S = {
     background: 'Something in the background',
   },
   mapper: {
+    block: {
+      action: 'Use this block as Name and extract its number',
+      added: 'Heading mapped. Now click its total line and use lines like it as rows.',
+      title: 'One block becomes one row',
+      hint: 'The heading supplies Name and its number. The matching total supplies the amounts, even on another page.',
+      name: 'Heading column name',
+      phone: 'Number column name',
+      match: 'Match totals to the heading number',
+      heading: 'New block starts with this pattern',
+      headingLines: 'Lines in the heading block',
+      total: 'Number in the total line (pattern)',
+      endMode: 'Match the table ending',
+      endRequired: 'Flag the file if this ending is missing',
+      boundaries: 'Table start and end',
+      output: 'Include in output',
+      rename: (n: string) => `Rename ${n}`,
+      size: 'Result panel height',
+      issues: 'Needs checking',
+      suggestions: 'Suggested bill details',
+      summary: 'Block rules',
+    },
     title: 'Mapper',
     breadcrumb: 'Templates',
     nameLabel: 'Template name',
@@ -543,7 +571,7 @@ export const S = {
       title: 'Output',
       rows: (n: number) => `${n.toLocaleString('en-AU')} ${n === 1 ? 'row' : 'rows'}`,
       problems: (n: number) => `${n} ${n === 1 ? 'problem' : 'problems'}`,
-      noProblems: 'No problems',
+      noProblems: 'Values read',
       updating: 'Updating…',
       download: 'Download CSV',
       larger: 'Larger',
@@ -568,6 +596,8 @@ export const S = {
     endMarkerSet: (t: string) => `End marker: “${t}”`,
   },
   test: {
+    verificationHint:
+      'Found values are not proof that every intended row was captured. Check the row counts, sample output and totals before using this layout.',
     title: 'Test on samples',
     sub: (n: number) => `${n} ${n === 1 ? 'sample' : 'samples'} in the template’s samples folder`,
     addSamples: 'Add samples',
@@ -591,6 +621,8 @@ export const S = {
     missing: 'missing',
   },
   process: {
+    addFiles: 'Add PDFs to the inbox',
+    integrations: 'Connect to reporting tools',
     title: 'Process inbox',
     fromTeams: 'Opened from your Teams notification',
     paths: (inbox: string, output: string) => `Reads ${inbox} · writes ${output}`,
@@ -632,6 +664,8 @@ export const S = {
     duplicateOf: (path: string) => `Already processed: ${path}`,
   },
   review: {
+    correctionHint:
+      'Edits here correct this file only. Fix the template to change how future files are read.',
     fixTemplate: (name: string) => `Fix the ${name} template with this file`,
     fixTemplateHint:
       'Opens the template in the Mapper with this file as a sample. Saving makes a new version; files read before keep theirs.',

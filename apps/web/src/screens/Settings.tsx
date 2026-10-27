@@ -2,7 +2,8 @@ import { useState } from 'preact/hooks';
 import { strToU8, unzipSync, zipSync, strFromU8 } from 'fflate';
 import { S } from '../strings';
 import { app, useApp } from '../app/store';
-import { refresh, now } from '../app/session';
+import { refresh, now, enterBasic } from '../app/session';
+import { navigate } from '../app/router';
 import { Dialog, downloadBlob, Banner, ActionButton } from '../components/ui';
 import { importTemplate, saveSettings } from '../workspace/store';
 import { local } from '../lib/local';
@@ -48,6 +49,7 @@ export function SettingsDialog() {
   const [threshold, setThreshold] = useState(String(s.settings.confidenceThreshold));
   const [bom, setBom] = useState(s.settings.csvBom);
   const [msg, setMsg] = useState('');
+  const [theme, setTheme] = useState(local.theme());
   const close = () => app.set({ settingsOpen: false });
   const t = Number(threshold);
   const valid = Number.isFinite(t) && t >= 0.5 && t <= 1;
@@ -78,6 +80,20 @@ export function SettingsDialog() {
             value={name}
             onInput={(e) => setName((e.target as HTMLInputElement).value)}
           />
+        </label>
+        <label class="field">
+          {S.settings.appearance}
+          <select
+            value={theme}
+            onChange={(e) => {
+              const v = (e.target as HTMLSelectElement).value as 'light' | 'dark';
+              setTheme(v);
+              local.setTheme(v);
+            }}
+          >
+            <option value="light">{S.settings.light}</option>
+            <option value="dark">{S.settings.dark}</option>
+          </select>
         </label>
         {workspace ? (
           <>
@@ -142,14 +158,25 @@ export function SettingsDialog() {
             {S.common.save}
           </button>
           {!s.basic ? (
-            <button
-              type="button"
+            <ActionButton
+              busyLabel={S.busy.opening}
               class="btn"
-              onClick={() => app.set({ settingsOpen: false, phase: 'choose' })}
+              onAction={async () => {
+                await enterBasic();
+                app.set({ settingsOpen: false });
+                navigate({ view: 'templates' });
+              }}
             >
-              {S.settings.changeFolder}
-            </button>
+              {S.settings.browserLayouts}
+            </ActionButton>
           ) : null}
+          <button
+            type="button"
+            class="btn"
+            onClick={() => app.set({ settingsOpen: false, phase: 'choose' })}
+          >
+            {S.settings.changeFolder}
+          </button>
         </div>
       </form>
       {workspace || s.basic ? (

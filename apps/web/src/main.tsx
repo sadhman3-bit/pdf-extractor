@@ -8,6 +8,9 @@ import '@fontsource/ibm-plex-mono/latin-500.css';
 import './styles/tokens.css';
 import './styles/app.css';
 import { App } from './app/App';
+import { local } from './lib/local';
+
+document.documentElement.dataset.theme = local.theme();
 
 const root = document.getElementById('app');
 if (root) render(<App />, root);

@@ -25,6 +25,7 @@ function makeWorkspace(h: FileSystemDirectoryHandle, kind: 'fs' | 'opfs') {
 }
 
 function basicRequested(): boolean {
+  if (local.basic()) return true;
   if (testHooks()?.basic) return true;
   return !hasFolderAccess() && !testHooks();
 }
@@ -52,6 +53,7 @@ export async function startup(): Promise<void> {
 }
 
 export async function enterBasic(): Promise<void> {
+  local.setBasic(true);
   const h = await opfsRoot('pdfx-basic');
   const ws = new HandleWorkspace(h, 'opfs', S.basic.storageName);
   await createFolders(ws);
@@ -94,6 +96,8 @@ export async function chooseFolder(): Promise<ChooseResult> {
     }
   }
   if (!h) return 'cancelled';
+  local.setBasic(false);
+  app.set({ basic: false });
   await idbSet(HANDLE_KEY, h);
   await idbSet(`${HANDLE_KEY}-kind`, kind);
   const ws = makeWorkspace(h, kind);

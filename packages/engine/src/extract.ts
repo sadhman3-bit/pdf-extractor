@@ -20,6 +20,7 @@ export type ReasonCode =
   | 'parse_failed'
   | 'table_not_found'
   | 'row_parse_failed'
+  | 'block_incomplete'
   | 'check_failed'
   | 'check_unknown'
   | 'low_confidence';
@@ -152,6 +153,8 @@ export function assess(out: Extraction, t: Template, opts: EngineOptions = {}): 
 
   for (const tb of t.tables ?? []) {
     const res = out.tables[tb.name]!;
+    for (const issue of res.issues ?? [])
+      reasons.push({ code: 'block_incomplete', table: tb.name, ...issue });
     if (!res.found) {
       reasons.push({
         code: 'table_not_found',
@@ -230,6 +233,17 @@ export function assess(out: Extraction, t: Template, opts: EngineOptions = {}): 
   }
   for (const tb of t.tables ?? []) {
     out.tables[tb.name]!.rows.forEach((row, i) => {
+      for (const [name, conf] of Object.entries(row.groupConfidence ?? {})) {
+        if (conf < threshold)
+          reasons.push({
+            code: 'low_confidence',
+            message: `Row ${i + 1} ${humanize(name)} was read with low confidence (${Math.round(conf * 100)}%).`,
+            table: tb.name,
+            row: i,
+            column: name,
+            ...row.groupBoxes?.[name],
+          });
+      }
       for (const col of tb.columns) {
         const c = row.cells[col.name]!;
         if (c.value !== null && c.conf < threshold) {

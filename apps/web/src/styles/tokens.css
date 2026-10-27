@@ -70,50 +70,48 @@
   --s6: 32px;
 }
 
-/* Dark theme, following the system setting. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #0f1215;
-    --surface: #171b1f;
-    --surface-subtle: #1c2126;
-    --surface-hover: #21272d;
-    --viewer-bg: #0b0d10;
-    --border: #2b3138;
-    --border-subtle: #232930;
-    --border-input: #434b55;
-    --text: #eceff2;
-    --text-2: #c3cad2;
-    --text-muted: #9aa3ad;
-    --sidebar: #13171b;
-    --sidebar-hover: #1e242a;
-    --topbar: #13171b;
-    --topbar-active: #1e242a;
-    --topbar-text: #c3cad2;
-    --accent: #4fb0dd;
-    --accent-hover: #6dc0e7;
-    --accent-tint: #13303e;
-    --accent-border: #22597a;
-    --accent-ink: #a8dcf3;
-    --divider: #4f9ec2;
-    --warn: #f0b45a;
-    --warn-tint: #2f2410;
-    --warn-border: #6e521f;
-    --warn-ink: #f6cf90;
-    --danger: #f2877d;
-    --danger-tint: #36191b;
-    --danger-border: #7c3129;
-    --danger-ink: #f8b6af;
-    --success: #4cc38a;
-    --success-tint: #11291e;
-    --success-border: #2b6c4b;
-    --success-ink: #94ddb7;
-    --focus: #6dc0e7;
-    --on-accent: #06202d;
-    --neutral-chip: #232930;
-    --page-shadow: rgba(0, 0, 0, 0.55);
-    --card-shadow: rgba(0, 0, 0, 0);
-    --overlay: rgba(0, 0, 0, 0.6);
-    --token-hover: rgba(79, 176, 221, 0.25);
-  }
+/* Dark theme is an explicit saved choice. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1215;
+  --surface: #171b1f;
+  --surface-subtle: #1c2126;
+  --surface-hover: #21272d;
+  --viewer-bg: #0b0d10;
+  --border: #2b3138;
+  --border-subtle: #232930;
+  --border-input: #434b55;
+  --text: #eceff2;
+  --text-2: #c3cad2;
+  --text-muted: #9aa3ad;
+  --sidebar: #13171b;
+  --sidebar-hover: #1e242a;
+  --topbar: #13171b;
+  --topbar-active: #1e242a;
+  --topbar-text: #c3cad2;
+  --accent: #4fb0dd;
+  --accent-hover: #6dc0e7;
+  --accent-tint: #13303e;
+  --accent-border: #22597a;
+  --accent-ink: #a8dcf3;
+  --divider: #4f9ec2;
+  --warn: #f0b45a;
+  --warn-tint: #2f2410;
+  --warn-border: #6e521f;
+  --warn-ink: #f6cf90;
+  --danger: #f2877d;
+  --danger-tint: #36191b;
+  --danger-border: #7c3129;
+  --danger-ink: #f8b6af;
+  --success: #4cc38a;
+  --success-tint: #11291e;
+  --success-border: #2b6c4b;
+  --success-ink: #94ddb7;
+  --focus: #6dc0e7;
+  --on-accent: #06202d;
+  --neutral-chip: #232930;
+  --page-shadow: rgba(0, 0, 0, 0.55);
+  --card-shadow: rgba(0, 0, 0, 0);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --token-hover: rgba(79, 176, 221, 0.25);
 }

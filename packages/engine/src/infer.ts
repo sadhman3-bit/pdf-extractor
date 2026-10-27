@@ -21,7 +21,7 @@ import { bboxOf, cx, cy, furnitureLines, phrases } from './layout';
 import { normalize, normTokens } from './normalize';
 import { guessDateFormat, inferType, parseDate, parseNumber, DATE_GUESS_FORMATS } from './parse';
 import { findAbns } from './fingerprint';
-import { findAnchors } from './anchor';
+import { findAnchors, lineMatches } from './anchor';
 import { TOLERANCES } from './tolerances';
 import { fieldDefaults } from './template';
 
@@ -537,6 +537,34 @@ export function groupFor(line: Line, taken: string[]): GroupRule {
   return { name: unique('Group'), pattern: `^${shapeOf(phrases(line)[0]!.text)}`, capture: 0 };
 }
 
+/** A whole heading and its first numeric identifier, kept together until its total. */
+export function blockFromHeading(rule: TableRule, line: Line): TableRule {
+  const label = leadingLabel(line) || phrases(line)[0]!.text;
+  const headingPattern = `^${escapeRe(label)}(?=\\s|$)`;
+  const number = /(?:\+?\d[\d ()-]{6,}\d)/.exec(line.text.slice(label.length));
+  const pattern = number
+    ? `^${escapeRe(label)}\\s+([+\\d][\\d ()-]{6,}\\d)(?=\\s|$)`
+    : headingPattern;
+  const groups: GroupRule[] = [{ name: 'Name', pattern: headingPattern, capture: 0 }];
+  // Capture 0 of an anchored prefix would lose the remainder of the heading.
+  groups[0]!.pattern = `${headingPattern}.*$`;
+  if (number) groups.push({ name: 'PhoneNumber', pattern, capture: 1 });
+  return {
+    ...rule,
+    groups,
+    block: {
+      headingPattern,
+      ...(number
+        ? {
+            keyGroup: 'PhoneNumber',
+            rowKeyPattern: '([+\\d][\\d ()-]{6,}\\d)(?=\\s|$)',
+            rowKeyCapture: 1,
+          }
+        : {}),
+    },
+  };
+}
+
 /**
  * Starts a new column at a word of a table row: the column it sits in now ends
  * just before it, and the new one reaches as far right as text starting there.
@@ -873,15 +901,32 @@ export function rowsLike(layout: DocLayout, rule: TableRule, line: Line): TableR
   // Columns stay where they are: no longer skipping these lines would move the gaps.
   const out = {
     ...fixEdges(rule, f),
+    ...(rule.end && lineMatches(line, rule.end.labels, rule.end.match ?? 'starts-with')
+      ? { end: undefined, requireEnd: false }
+      : {}),
     rowStart: { column: col.name, pattern },
+    columns: fixEdges(rule, f).columns.map((c) =>
+      c.name === rule.rowStart?.column && c.name !== col.name ? { ...c, required: false } : c,
+    ),
     wrappedLines: 'ignore' as const,
     skip: (rule.skip ?? []).filter((p) => p !== own),
   };
-  return retype(
+  const typed = retype(
     layout,
     out,
     out.columns.map((c) => c.name),
   );
+  return rule.block
+    ? {
+        ...typed,
+        outputColumns: [
+          ...(rule.groups ?? []).map((g) => g.name),
+          ...typed.columns
+            .filter((c) => c.type === 'currency' || c.type === 'number')
+            .map((c) => c.name),
+        ],
+      }
+    : typed;
 }
 
 /** Sets the type of changed text columns whose values are now all numbers or all dates. */

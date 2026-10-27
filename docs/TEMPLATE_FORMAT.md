@@ -200,4 +200,14 @@ Each value has a confidence from 0 to 1: 1 for digital text, the OCR engine's ow
 
 ## Full example
 
+### Optional repeating blocks
+
+A table can add `block: { headingPattern, headingLines?, keyGroup?, rowKeyPattern?, rowKeyCapture? }`. Each matching heading starts a fresh block. `headingLines` defaults to one and can include up to five lines on the same page. All matching `groups` capture values from the heading; capture zero keeps the whole text. Values carry across page breaks until the next block. The existing `rowStart` rule identifies the total line that completes one row.
+
+If `keyGroup` is set, its value must match the capture from `rowKeyPattern` on the total line (`rowKeyCapture` defaults to one). Spaces, parentheses and hyphens are ignored for this comparison. Missing, duplicate or unmatched totals require review. A block never borrows a heading from the next block.
+
+`requireEnd: true` flags a missing `end` marker. The existing ending match modes remain available. `outputColumns` is an optional ordered list of table column and group names to export. The live output uses the same order. Without these optional properties, older templates behave as before.
+
+Carried values retain their heading source boxes and OCR confidence in the internal extraction result for review and source highlighting.
+
 See `fixtures/templates/northline-fuel-statement/v2.json` in the repository for a complete, working template.

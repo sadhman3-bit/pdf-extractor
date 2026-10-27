@@ -160,6 +160,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pageNo, setPageNo] = useState(1);
+  const [sourceFocus, setSourceFocus] = useState<BBox | null>(null);
   const timer = useRef<number | null>(null);
   const pdf = usePdf(bytes);
   const ex = item.review.extraction;
@@ -220,7 +221,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
   for (const r of current.reasons)
     if (r.bbox && r.page === pageNo) marks.push({ bbox: r.bbox, kind: 'error' });
   const focusBox: BBox | null =
-    firstProblem?.bbox && firstProblem.page === pageNo ? firstProblem.bbox : null;
+    sourceFocus ?? (firstProblem?.bbox && firstProblem.page === pageNo ? firstProblem.bbox : null);
 
   const rerun = async (only?: TemplateSet[]) => {
     stopAutosave();
@@ -348,6 +349,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
         </Banner>
       ) : null}
       {error ? <Banner tone="danger">{error}</Banner> : null}
+      {ex.status === 'review' ? <p class="caption">{S.review.correctionHint}</p> : null}
 
       {ex.status === 'review' ? (
         canApprove ? (
@@ -376,6 +378,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
           <button
             type="button"
             class="btn"
+            disabled={!bytes}
             onClick={() => {
               if (!bytes || !ex.template) return;
               app.set({ pendingSample: { name: item.name, bytes, fromException: item.name } });
@@ -392,6 +395,7 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
           <button
             type="button"
             class="btn btn-primary"
+            disabled={!bytes}
             onClick={() => {
               if (!bytes) return;
               app.set({ pendingSample: { name: item.name, bytes, fromException: item.name } });
@@ -507,6 +511,11 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
                     <thead>
                       <tr>
                         <th scope="col">#</th>
+                        {(tb.groups ?? []).map((g) => (
+                          <th key={g.name} scope="col">
+                            {g.name}
+                          </th>
+                        ))}
                         {tb.columns.map((c) => (
                           <th key={c.name} scope="col">
                             {c.name}
@@ -518,6 +527,25 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
                       {(ex.tables[tb.name]?.rows ?? []).map((row, ri) => (
                         <tr key={ri}>
                           <th scope="row">{ri + 1}</th>
+                          {(tb.groups ?? []).map((g) => (
+                            <td key={g.name}>
+                              {row.groupBoxes?.[g.name] ? (
+                                <button
+                                  type="button"
+                                  class="btn-link"
+                                  onClick={() => {
+                                    const b = row.groupBoxes![g.name]!;
+                                    setPageNo(b.page);
+                                    setSourceFocus(b.bbox);
+                                  }}
+                                >
+                                  {row.groups[g.name]}
+                                </button>
+                              ) : (
+                                row.groups[g.name]
+                              )}
+                            </td>
+                          ))}
                           {tb.columns.map((c) => {
                             const cell = row.cells[c.name]!;
                             const low =

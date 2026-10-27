@@ -19,6 +19,8 @@ export interface CellResult {
 export interface RowResult {
   cells: Record<string, CellResult>;
   groups: Record<string, string>;
+  groupBoxes?: Record<string, SourceBox>;
+  groupConfidence?: Record<string, number>;
   conf: number;
   page: number;
   bbox: BBox;
@@ -62,6 +64,7 @@ export interface TableResult {
   bounds: ColumnBounds[];
   rows: RowResult[];
   stats?: LineStats;
+  issues?: { message: string; page?: number; bbox?: BBox }[];
 }
 
 interface HeaderHit {
@@ -232,6 +235,8 @@ function compile(patterns: string[] | undefined): RegExp[] {
 interface RawRow {
   cells: Map<string, Token[]>;
   groups: Record<string, string>;
+  groupBoxes?: Record<string, SourceBox>;
+  groupConfidence?: Record<string, number>;
   page: number;
 }
 
@@ -285,6 +290,29 @@ export function extractTable(
   const continues = rule.continuesOnNextPage ?? true;
 
   const groupValues: Record<string, string> = {};
+  const groupBoxes: Record<string, SourceBox> = {};
+  const groupConfidence: Record<string, number> = {};
+  const issues: NonNullable<TableResult['issues']> = [];
+  if (rule.block && groups.length !== (rule.groups ?? []).length)
+    issues.push({ message: 'A heading value pattern is invalid. Edit the block rule.' });
+  if (rule.block?.keyGroup && !rule.groups?.some((g) => g.name === rule.block!.keyGroup))
+    issues.push({ message: 'The number used to match totals is missing from the heading rules.' });
+  const issue = (message: string, line?: Line) =>
+    issues.push({ message, ...(line ? { page: line.page, bbox: bboxOf(line.tokens) } : {}) });
+  let blockHeading: RegExp | undefined;
+  let rowKey: RegExp | undefined;
+  try {
+    if (rule.block) blockHeading = new RegExp(rule.block.headingPattern);
+    if (rule.block?.rowKeyPattern) rowKey = new RegExp(rule.block.rowKeyPattern);
+  } catch {
+    issue('The block matching pattern is invalid. Edit the block rule.');
+  }
+  let activeBlock: Line | undefined;
+  let blockRows = 0;
+  const finishBlock = () => {
+    if (activeBlock && blockRows === 0)
+      issue(`No matching total was found for “${activeBlock.text}”.`, activeBlock);
+  };
   const raw: RawRow[] = [];
   let ended = false;
   const furniture = furnitureLines(layout);
@@ -332,7 +360,8 @@ export function extractTable(
         ? p.lines.slice(again.lastIndex + 1)
         : p.lines.filter((l) => l.cy > p.height * TOLERANCES.pageTopSkip);
     }
-    for (const line of lines) {
+    for (let li = 0; li < lines.length; li++) {
+      let line = lines[li]!;
       if (rule.end && lineMatches(line, rule.end.labels, endMode)) {
         result.end = { page: p.page, bbox: [line.x0, line.y0, line.x1, line.y1] };
         mark(line, 'end');
@@ -348,16 +377,61 @@ export function extractTable(
         continue;
       }
       if (furniture.has(line)) continue;
-      const g = groups.find(
+      if (blockHeading?.test(line.text)) {
+        finishBlock();
+        const parts = [line];
+        for (let extra = 1; extra < (rule.block?.headingLines ?? 1); extra++) {
+          const next = lines[li + 1];
+          if (
+            !next ||
+            blockHeading.test(next.text) ||
+            (rule.end && lineMatches(next, rule.end.labels, endMode))
+          )
+            break;
+          parts.push(next);
+          li++;
+          mark(next, 'heading');
+        }
+        if (parts.length > 1) {
+          const tokens = parts.flatMap((p) => p.tokens);
+          const [x0, y0, x1, y1] = bboxOf(tokens);
+          line = { ...line, tokens, text: tokens.map((t) => t.text).join(' '), x0, y0, x1, y1 };
+        }
+        activeBlock = line;
+        blockRows = 0;
+        for (const name of Object.keys(groupValues)) delete groupValues[name];
+        for (const name of Object.keys(groupBoxes)) delete groupBoxes[name];
+        for (const name of Object.keys(groupConfidence)) delete groupConfidence[name];
+      }
+      const matches = groups.filter(
         ({ g, re }) =>
           re.test(line.text) &&
           (!g.lone || lone(line)) &&
           (g.x0 === undefined || Math.abs(line.x0 - g.x0) <= TOLERANCES.indent),
       );
-      if (g) {
-        const m = g.re.exec(line.text)!;
-        groupValues[g.g.name] = (m[g.g.capture ?? 0] ?? m[0]).trim();
-        stats.headings[g.g.name] = (stats.headings[g.g.name] ?? 0) + 1;
+      if (matches.length) {
+        for (const g of rule.block ? matches : matches.slice(0, 1)) {
+          const m = g.re.exec(line.text)!;
+          const value = (m[g.g.capture ?? 0] ?? m[0]).trim();
+          groupValues[g.g.name] = value;
+          if (rule.block) {
+            const from = line.text.indexOf(value);
+            let at = 0;
+            const tokens = line.tokens.filter((t) => {
+              const start = at;
+              at += t.text.length + 1;
+              return start < from + value.length && start + t.text.length > from;
+            });
+            groupBoxes[g.g.name] = {
+              page: line.page,
+              bbox: bboxOf(tokens.length ? tokens : line.tokens),
+            };
+            groupConfidence[g.g.name] = Math.min(
+              ...(tokens.length ? tokens : line.tokens).map((t) => t.conf),
+            );
+          }
+          stats.headings[g.g.name] = (stats.headings[g.g.name] ?? 0) + 1;
+        }
         mark(line, 'heading');
         joinable = false;
         continue;
@@ -380,7 +454,33 @@ export function extractTable(
           )
         : true;
       if (startsRow) {
-        raw.push({ cells, groups: { ...groupValues }, page: p.page });
+        if (rule.block) {
+          const key = rowKey?.exec(line.text)?.[rule.block.rowKeyCapture ?? 1];
+          const expected = rule.block.keyGroup ? groupValues[rule.block.keyGroup] : undefined;
+          const normalKey = (v: string) => v.replace(/[\s()-]/g, '').toLowerCase();
+          if (
+            !activeBlock ||
+            (rule.block.keyGroup && (!key || !expected || normalKey(key) !== normalKey(expected)))
+          ) {
+            issue(`This total has no matching heading: “${line.text}”.`, line);
+            mark(line, 'unplaced');
+            continue;
+          }
+          blockRows++;
+          if (blockRows > 1) {
+            issue(`More than one total was found for “${activeBlock.text}”.`, line);
+            mark(line, 'unplaced');
+            continue;
+          }
+        }
+        raw.push({
+          cells,
+          groups: { ...groupValues },
+          ...(rule.block
+            ? { groupBoxes: { ...groupBoxes }, groupConfidence: { ...groupConfidence } }
+            : {}),
+          page: p.page,
+        });
         mark(line, 'row');
         joinable = true;
       } else if (wrapped === 'join' && joinable && raw.length) {
@@ -393,6 +493,9 @@ export function extractTable(
         }
         stats.joined++;
         mark(line, 'part');
+      } else if (wrapped === 'ignore') {
+        // Rows are only lines like the chosen one; the lines between them are left out on purpose.
+        mark(line, 'skip');
       } else {
         stats.unplacedCount++;
         mark(line, 'unplaced');
@@ -402,6 +505,10 @@ export function extractTable(
     }
   }
 
+  if (rule.block) finishBlock();
+  if (rule.requireEnd && rule.end && !ended)
+    issue('The expected end of the table was not found. Check the ending text.');
+  if (issues.length) result.issues = issues;
   result.rows = raw.map((r) => typeRow(rule, r, opts));
   result.stats = stats;
   return result;
@@ -415,10 +522,16 @@ function typeRow(rule: TableRule, r: RawRow, opts: { decimal?: '.' | ',' }): Row
     all.push(...toks);
     cells[col.name] = typeCell(col, toks, opts);
   }
-  const conf = Math.min(1, ...Object.values(cells).map((c) => c.conf));
+  const conf = Math.min(
+    1,
+    ...Object.values(cells).map((c) => c.conf),
+    ...Object.values(r.groupConfidence ?? {}),
+  );
   return {
     cells,
     groups: r.groups,
+    ...(r.groupBoxes ? { groupBoxes: r.groupBoxes } : {}),
+    ...(r.groupConfidence ? { groupConfidence: r.groupConfidence } : {}),
     conf,
     page: r.page,
     bbox: bboxOf(all.length ? all : [{ x0: 0, y0: 0, x1: 0, y1: 0 }]),

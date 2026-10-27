@@ -5,7 +5,7 @@ import { app, useApp, type Phase } from '../app/store';
 import { chooseFolder, confirmFolders, enterBasic, setUser } from '../app/session';
 import { navigate } from '../app/router';
 import { BOOTSTRAP_DIRS, SETTINGS_FILE } from '../workspace/paths';
-import { Banner, Spinner, Working } from '../components/ui';
+import { Banner, Spinner, Working, fileBytes } from '../components/ui';
 import { CheckIcon, FolderIcon, InfoIcon } from '../components/Icons';
 
 const STEP_OF: Partial<Record<Phase, number>> = { choose: 0, confirm: 1, name: 2 };
@@ -291,6 +291,22 @@ export function FirstRun() {
           {S.firstRun.privacy}
         </p>
         <div class="row">
+          <label class="btn btn-primary">
+            {S.firstRun.openPdf}
+            <input
+              class="sr-only"
+              type="file"
+              accept="application/pdf,.pdf"
+              onChange={async (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (!file) return;
+                const bytes = await fileBytes(file);
+                await enterBasic();
+                app.set({ pendingSample: { name: file.name, bytes } });
+                navigate({ view: 'mapper', template: '' });
+              }}
+            />
+          </label>
           <button
             type="button"
             class="btn btn-primary"
@@ -299,6 +315,7 @@ export function FirstRun() {
             {S.firstRun.start}
           </button>
         </div>
+        <p class="caption">{S.firstRun.openHint}</p>
       </Shell>
     );
   }

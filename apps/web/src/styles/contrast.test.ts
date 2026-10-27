@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const css = readFileSync(join(__dirname, 'tokens.css'), 'utf8');
-const darkAt = css.indexOf('@media (prefers-color-scheme: dark)');
+const darkAt = css.indexOf(':root[data-theme="dark"]');
 
 /** Hex tokens of one theme; dark inherits anything it doesn't override. */
 function themeTokens(dark: boolean): Map<string, string> {

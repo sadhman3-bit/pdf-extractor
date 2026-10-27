@@ -12,16 +12,21 @@ export function OutputDock({
   busy,
   onCell,
   onDownload,
+  onRename,
+  issues = [],
 }: {
   grid: OutputGrid | null;
   busy: boolean;
   /** A cell was chosen: show its value on the page. */
   onCell: (cell: GridCell, column: string) => void;
   onDownload: () => void;
+  onRename: (from: string, to: string) => void;
+  issues?: string[];
 }) {
   const [size, setSize] = useState<'small' | 'large' | 'closed'>('small');
   const [onlyProblems, setOnlyProblems] = useState(false);
   const [top, setTop] = useState(0);
+  const [customHeight, setCustomHeight] = useState<number | null>(null);
   const rows = useMemo(
     () =>
       (grid?.rows ?? [])
@@ -30,7 +35,7 @@ export function OutputDock({
     [grid, onlyProblems],
   );
   const empty = !grid || !grid.columns.length;
-  const height = size === 'closed' ? 0 : HEIGHT[size];
+  const height = size === 'closed' ? 0 : (customHeight ?? HEIGHT[size]);
   const first = Math.max(0, Math.floor(top / ROW_H) - 5);
   const shown = rows.slice(first, first + Math.ceil(height / ROW_H) + 10);
   const problems = grid?.problems ?? 0;
@@ -54,6 +59,19 @@ export function OutputDock({
   return (
     <section ref={ref} class="output-dock" aria-labelledby="output-title">
       <div class="output-head">
+        {!empty && size !== 'closed' ? (
+          <label class="dock-resize">
+            <span class="sr-only">{S.mapper.block.size}</span>
+            <input
+              type="range"
+              min="100"
+              max="440"
+              step="20"
+              value={height}
+              onInput={(e) => setCustomHeight(Number((e.target as HTMLInputElement).value))}
+            />
+          </label>
+        ) : null}
         <h2 id="output-title" class="card-title">
           {S.mapper.output.title}
         </h2>
@@ -72,6 +90,8 @@ export function OutputDock({
               >
                 {S.mapper.output.problems(problems)}
               </button>
+            ) : issues.length ? (
+              <span class="chip chip-danger">{S.mapper.block.issues}</span>
             ) : (
               <span class="chip chip-success">{S.mapper.output.noProblems}</span>
             )}
@@ -92,7 +112,10 @@ export function OutputDock({
           <button
             type="button"
             class="btn btn-small btn-text"
-            onClick={() => setSize(size === 'small' ? 'large' : 'small')}
+            onClick={() => {
+              setCustomHeight(null);
+              setSize(size === 'small' ? 'large' : 'small');
+            }}
           >
             {size === 'small' ? S.mapper.output.larger : S.mapper.output.smaller}
           </button>
@@ -107,6 +130,16 @@ export function OutputDock({
           {size === 'closed' ? S.mapper.output.show : S.mapper.output.hide}
         </button>
       </div>
+      {issues.length ? (
+        <details class="output-issues">
+          <summary>
+            {S.mapper.block.issues} ({issues.length})
+          </summary>
+          {issues.map((m, i) => (
+            <p key={i}>{m}</p>
+          ))}
+        </details>
+      ) : null}
       {size === 'closed' ? null : empty ? (
         <p class="muted small output-empty">{S.mapper.output.empty}</p>
       ) : (
@@ -131,7 +164,12 @@ export function OutputDock({
                     class={`col-${c.missing ? 'missing' : c.kind}`}
                     aria-label={`${c.name}, ${c.missing ? S.layout.notFound : S.options.type[c.type]}`}
                   >
-                    {c.name}
+                    <input
+                      class="output-name"
+                      aria-label={S.mapper.block.rename(c.name)}
+                      value={c.name}
+                      onChange={(e) => onRename(c.name, (e.target as HTMLInputElement).value)}
+                    />
                     <span class="col-type">
                       {c.missing ? S.layout.notFound : S.options.type[c.type]}
                     </span>

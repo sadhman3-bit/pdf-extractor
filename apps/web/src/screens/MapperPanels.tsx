@@ -602,7 +602,13 @@ export function TablePanel({
       patch.name !== undefined && table.rowStart?.column === old.name
         ? { ...table.rowStart, column: patch.name }
         : table.rowStart;
-    set({ columns, ...(rowStart ? { rowStart } : {}) });
+    set({
+      columns,
+      outputColumns: patch.name
+        ? table.outputColumns?.map((n) => (n === old.name ? patch.name! : n))
+        : table.outputColumns,
+      ...(rowStart ? { rowStart } : {}),
+    });
   };
   const countOf = (r: (typeof rules)[number]) =>
     r.kind === 'heading'
@@ -688,6 +694,29 @@ export function TablePanel({
         ))}
       </ul>
       <p class="caption">{S.mapper.table.columnsHint}</p>
+      {table.outputColumns ? (
+        <fieldset class="stack settings-group">
+          <legend>{S.mapper.block.output}</legend>
+          {[...(table.groups ?? []).map((g) => g.name), ...table.columns.map((c) => c.name)].map(
+            (name) => (
+              <label class="check" key={name}>
+                <input
+                  type="checkbox"
+                  checked={table.outputColumns!.includes(name)}
+                  onChange={(e) =>
+                    set({
+                      outputColumns: (e.target as HTMLInputElement).checked
+                        ? [...table.outputColumns!, name]
+                        : table.outputColumns!.filter((n) => n !== name),
+                    })
+                  }
+                />
+                {name}
+              </label>
+            ),
+          )}
+        </fieldset>
+      ) : null}
       {table.columns.length > 1 ? (
         <div class="row">
           <button type="button" class="btn btn-small" onClick={onClearBreaks}>

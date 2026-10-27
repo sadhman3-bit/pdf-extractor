@@ -62,7 +62,7 @@ function grid(t: Template, results: (Extraction | null)[]): { label: string; cel
       label: S.test.rowCount(tb.name),
       cells: results.map((r) => {
         const x = r?.tables[tb.name];
-        return x?.found && x.rows.length
+        return x?.found && x.rows.length && !r?.reasons.some((q) => q.table === tb.name)
           ? { pass: true, text: String(x.rows.length) }
           : { pass: false, text: r?.reasons.find((q) => q.table === tb.name)?.message ?? '0' };
       }),
@@ -242,6 +242,7 @@ export function TestScreen() {
         </div>
       </div>
       {msg ? <Banner tone="success">{msg}</Banner> : null}
+      <p class="caption">{S.test.verificationHint}</p>
       <section class="card stack" aria-labelledby="summary">
         <div class="summary-line">
           {busy ? (

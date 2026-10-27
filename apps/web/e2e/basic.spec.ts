@@ -21,7 +21,7 @@ test('basic mode imports a template, extracts opened files and downloads the CSV
     };
   });
   await resetApp(page);
-  await expect(page.getByText(/This browser can’t save into folders/)).toBeVisible();
+  await expect(page.getByText(/Your layouts are saved in this browser/)).toBeVisible();
   await expectNoAxe(page);
 
   await page.goto('./?view=templates');

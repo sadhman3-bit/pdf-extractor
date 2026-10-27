@@ -5,6 +5,7 @@ import {
   buildLayout,
   inferField,
   groupFor,
+  blockFromHeading,
   findHeaderOnPage,
   inferTable,
   looksLikeHeader,
@@ -55,6 +56,7 @@ import {
 } from '../components/ui';
 import { usePreview } from '../lib/preview';
 import { OutputDock } from './MapperOutput';
+import { BlockPanel } from './MapperBlock';
 import {
   PageView,
   usePdf,
@@ -657,24 +659,39 @@ export function MapperScreen() {
   ];
   /** Renames a bill detail, column or heading of the main CSV (to match a shared layout). */
   const renameOutput = (from: string, to: string) => {
-    if (ownColumns.includes(to)) return;
+    to = to.trim();
+    if (!to || ownColumns.includes(to)) return;
+    const renamedLayout = draft.layout
+      ? { ...draft.layout, columns: draft.layout.columns.map((n) => (n === from ? to : n)) }
+      : undefined;
     if (draft.fields.some((f) => f.name === from)) {
       setDraft({
         ...draft,
+        layout: renamedLayout,
         fields: draft.fields.map((f) => (f.name === from ? { ...f, name: to } : f)),
       });
-    } else if (main) {
+    } else if (table) {
       const next: TableRule = {
-        ...main,
-        columns: main.columns.map((c) => ({
+        ...table,
+        outputColumns: table.outputColumns?.map((n) => (n === from ? to : n)),
+        ...(table.block
+          ? {
+              block: { ...table.block, ...(table.block.keyGroup === from ? { keyGroup: to } : {}) },
+            }
+          : {}),
+        columns: table.columns.map((c) => ({
           ...c,
           ...(c.name === from ? { name: to } : {}),
           ...(c.partOf === from ? { partOf: to } : {}),
         })),
-        groups: (main.groups ?? []).map((g) => (g.name === from ? { ...g, name: to } : g)),
-        ...(main.rowStart?.column === from ? { rowStart: { ...main.rowStart, column: to } } : {}),
+        groups: (table.groups ?? []).map((g) => (g.name === from ? { ...g, name: to } : g)),
+        ...(table.rowStart?.column === from ? { rowStart: { ...table.rowStart, column: to } } : {}),
       };
-      setDraft({ ...draft, tables: [next, ...tables.slice(1)] });
+      setDraft({
+        ...draft,
+        layout: renamedLayout,
+        tables: tables.map((tb, i) => (i === ti ? next : tb)),
+      });
     }
     app.announce(S.layout.renamed(from, to));
   };
@@ -770,6 +787,11 @@ export function MapperScreen() {
   const onTokens = (ts: Token[], box: BBox) => {
     setLineAt(null);
     const lines = new Set(ts.map((t) => lineOf(t)));
+    if (table && lines.size === 1 && ts[0] && inTable(ts[0]) && !repick) {
+      setLineAt(ts[0]);
+      setSelected(ts);
+      return;
+    }
     if (lines.size >= 3) {
       setBoxAt({ page: ts[0]!.page, box, tokens: ts });
       setSelected(ts);
@@ -924,6 +946,11 @@ export function MapperScreen() {
     )?.role;
     const part = role === 'part' ? partColumnFor(layout, table, line) : null;
     const choices: { label: string; key: string; run: () => void }[] = [
+      {
+        label: S.mapper.block.action,
+        key: 'B',
+        run: () => changeTable(blockFromHeading(table, line), S.mapper.block.added),
+      },
       ...(part
         ? [
             {
@@ -1323,68 +1350,72 @@ export function MapperScreen() {
             </h2>
             <p class="caption">{S.mapper.rail.hint}</p>
           </div>
-          <FieldsPanel
-            draft={draft}
-            result={result}
-            suggestions={suggestions}
-            editing={editing}
-            repick={repick}
-            onAccept={(sg) => {
-              setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
-              app.announce(`${S.common.accept}: ${sg.rule.name}`);
-            }}
-            onAcceptAll={() => {
-              setDraft({
-                ...draft,
-                fields: [...draft.fields, ...suggestions.map((x) => x.rule)],
-              });
-              app.announce(`${S.mapper.acceptAll}: ${suggestions.length}`);
-            }}
-            hot={hot}
-            onHot={setHot}
-            onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
-            onEdit={setEditing}
-            onRepick={(id) => {
-              setRepick(repick === id ? null : id);
-            }}
-            onChange={updateField}
-            onRemove={removeField}
-            onAddPreset={(name) => {
-              const p = PRESETS.find((x) => x.name === name)!;
-              const f: FieldRule = {
-                id: `f${Date.now().toString(36)}`,
-                name: p.name,
-                type: p.type,
-                required: true,
-                anchor: { labels: [...p.labels], match: 'exact' },
-                direction: 'right',
-              };
-              setDraft({ ...draft, fields: [...draft.fields, f] });
-              setEditing(f.id);
-            }}
-            onRegion={(id, on) => {
-              const f = draft.fields.find((x) => x.id === id)!;
-              const r = fieldRes(f);
-              const box = r?.boxes[0];
-              const pg = pages?.[(box?.page ?? 1) - 1];
-              if (!on || !box || !pg) {
-                const { region: _r, ...rest } = f;
-                updateField(rest);
-                return;
-              }
-              const pad = 4;
-              updateField({
-                ...f,
-                region: {
-                  page: box.page,
-                  x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
-                  y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
-                  x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
-                  y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
-                },
-              });
-            }}
-          />
+          {table ? <BlockPanel table={table} result={tableResult} onChange={setTable} /> : null}
+          <details class="bill-details" open={!table || !!editing || !!repick}>
+            <summary>{S.mapper.block.suggestions}</summary>
+            <FieldsPanel
+              draft={draft}
+              result={result}
+              suggestions={suggestions}
+              editing={editing}
+              repick={repick}
+              onAccept={(sg) => {
+                setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
+                app.announce(`${S.common.accept}: ${sg.rule.name}`);
+              }}
+              onAcceptAll={() => {
+                setDraft({
+                  ...draft,
+                  fields: [...draft.fields, ...suggestions.map((x) => x.rule)],
+                });
+                app.announce(`${S.mapper.acceptAll}: ${suggestions.length}`);
+              }}
+              hot={hot}
+              onHot={setHot}
+              onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
+              onEdit={setEditing}
+              onRepick={(id) => {
+                setRepick(repick === id ? null : id);
+              }}
+              onChange={updateField}
+              onRemove={removeField}
+              onAddPreset={(name) => {
+                const p = PRESETS.find((x) => x.name === name)!;
+                const f: FieldRule = {
+                  id: `f${Date.now().toString(36)}`,
+                  name: p.name,
+                  type: p.type,
+                  required: true,
+                  anchor: { labels: [...p.labels], match: 'exact' },
+                  direction: 'right',
+                };
+                setDraft({ ...draft, fields: [...draft.fields, f] });
+                setEditing(f.id);
+              }}
+              onRegion={(id, on) => {
+                const f = draft.fields.find((x) => x.id === id)!;
+                const r = fieldRes(f);
+                const box = r?.boxes[0];
+                const pg = pages?.[(box?.page ?? 1) - 1];
+                if (!on || !box || !pg) {
+                  const { region: _r, ...rest } = f;
+                  updateField(rest);
+                  return;
+                }
+                const pad = 4;
+                updateField({
+                  ...f,
+                  region: {
+                    page: box.page,
+                    x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
+                    y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
+                    x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
+                    y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
+                  },
+                });
+              }}
+            />
+          </details>
           {tables.length > 1 ? (
             <Segmented<string>
               label={S.mapper.table.tables}
@@ -1628,6 +1659,8 @@ export function MapperScreen() {
       <OutputDock
         grid={grid}
         busy={busy}
+        onRename={renameOutput}
+        issues={tableResult?.issues?.map((i) => i.message)}
         onCell={(cell, column) => {
           const b = cell.box;
           if (!b) return;
