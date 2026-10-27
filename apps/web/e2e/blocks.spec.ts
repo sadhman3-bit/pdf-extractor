@@ -44,6 +44,8 @@ test('maps whole headings and phone numbers into four output columns', async ({ 
   await expect(output.getByRole('columnheader', { name: 'ServiceName, Text' })).toBeVisible();
   await expectNoAxe(page);
   await page.getByRole('button', { name: 'Save template', exact: true }).click();
+  // Wait for the save to land before reloading; GitHub's runner is fast enough to beat it.
+  await expect(page.getByRole('main').getByText('Saved as version 1')).toBeVisible();
   await page.reload();
   await expect(output.getByRole('columnheader', { name: 'ServiceName, Text' })).toBeVisible();
 });
