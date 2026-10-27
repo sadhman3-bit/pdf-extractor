@@ -17,6 +17,10 @@ import {
   addBreak,
   partColumnFor,
   rowsLike,
+  tableFromBox,
+  setTableStart,
+  setTableEnd,
+  moveOuter,
   moveBreak,
   removeBreak,
   tableFrame,
@@ -349,6 +353,31 @@ describe('mapping a grouped service summary', () => {
         2,
       );
     });
+  });
+
+  it('maps a table from a box drawn round it, and moves its start and end', async () => {
+    const l = await layoutOf('summit-voice-jan26.pdf');
+    const p1 = l.pages[0]!;
+    const head = p1.lines.find((x) => x.text.startsWith('Item'))!;
+    const last = p1.lines.filter((x) => /^SVC/.test(x.text)).pop()!;
+    // A box from the header to the page's last rows: the table runs on over the pages.
+    const all = tableFromBox(l, 1, [40, head.y0 - 2, 560, last.y1 + 30])!;
+    expect(all.header.labels).toEqual(phrases(head).map((p) => p.text));
+    expect(all.end).toBeUndefined();
+    expect(extractTable(l, all).rows.length).toBeGreaterThan(20);
+    // A box that stops above the first "Total for" line ends the table there.
+    const total = p1.lines.find((x) => x.text.startsWith('Total for'))!;
+    const short = tableFromBox(l, 1, [40, head.y0 - 2, 560, total.y0 - 1])!;
+    expect(short.end).toEqual({ labels: ['Total for'], match: 'starts-with' });
+    expect(extractTable(l, short).rows).toHaveLength(1);
+    // Dragging the end down to the page foot lets it run on; the start can move too.
+    expect(setTableEnd(short, null).end).toBeUndefined();
+    const tel = p1.lines.find((x) => x.text.startsWith('Telephone'))!;
+    const moved = setTableStart(l, all, tel)!;
+    expect(moved.header.labels[0]).toMatch(/^Telephone/);
+    // The sides of the box are the table's outer edges.
+    const narrow = moveOuter(l, all, 'right', 530)!;
+    expect(tableFrame(l, narrow)!.bounds.at(-1)!.x1).toBe(530);
   });
 
   it('ignores page headers and footers, and suggests no per-service totals', async () => {

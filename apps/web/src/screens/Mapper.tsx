@@ -15,6 +15,10 @@ import {
   phrases,
   removeBreak,
   rowsLike,
+  tableFromBox,
+  setTableStart,
+  setTableEnd,
+  furnitureLines,
   leadingLabel,
   suggestFields,
   suggestFingerprint,
@@ -51,7 +55,14 @@ import {
 } from '../components/ui';
 import { usePreview } from '../lib/preview';
 import { OutputDock } from './MapperOutput';
-import { PageView, usePdf, type Mark, type Ruler, type Zoom } from '../components/PageView';
+import {
+  PageView,
+  usePdf,
+  type Mark,
+  type Ruler,
+  type TableGrips,
+  type Zoom,
+} from '../components/PageView';
 import { PageStrip, type StripPage } from '../components/PageStrip';
 import { LayoutPanel, type CsvLayout } from './MapperLayout';
 import { saveSettings } from '../workspace/store';
@@ -139,6 +150,8 @@ export function MapperScreen() {
   // Which of the template's tables is being mapped; "adding" makes the next header click a new one.
   const [tableAt, setTableAt] = useState(0);
   const [adding, setAdding] = useState(false);
+  // A box drawn round several lines, waiting for: table, or bill detail?
+  const [boxAt, setBoxAt] = useState<{ page: number; box: BBox; tokens: Token[] } | null>(null);
   // The exception this template was created from, offered for a re-run after saving.
   const [sourceFile, setSourceFile] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
@@ -753,10 +766,77 @@ export function MapperScreen() {
   };
 
   /** Words dragged across are one value. */
-  const onTokens = (ts: Token[]) => {
+  // A box drawn round several lines: map them as a table (or take the words as a bill detail).
+  const onTokens = (ts: Token[], box: BBox) => {
     setLineAt(null);
+    const lines = new Set(ts.map((t) => lineOf(t)));
+    if (lines.size >= 3) {
+      setBoxAt({ page: ts[0]!.page, box, tokens: ts });
+      setSelected(ts);
+      return;
+    }
     pick(ts);
   };
+  const drawTable = (mode: 'new' | 'replace') => {
+    if (!layout || !boxAt) return;
+    const taken = new Set(tables.map((x) => x.name));
+    let fresh = tables.length ? 'Table2' : 'Items';
+    for (let n = 3; taken.has(fresh); n++) fresh = `Table${n}`;
+    const drawn = tableFromBox(
+      layout,
+      boxAt.page,
+      boxAt.box,
+      mode === 'replace' && table ? table.name : fresh,
+    );
+    setBoxAt(null);
+    setSelected([]);
+    if (!drawn) {
+      setMessage({ tone: 'warn', text: S.mapper.box.none });
+      return;
+    }
+    setMessage({ tone: 'success', text: S.mapper.box.drawn });
+    if (mode === 'replace' && table) {
+      changeTable(
+        { ...drawn, id: table.id, ...(table.groups?.length ? { groups: table.groups } : {}) },
+        S.mapper.box.redrawn,
+      );
+    } else if (table) {
+      setTableAt(tables.length);
+      setDraft({ ...draft, tables: [...tables, drawn] });
+    } else setTable(drawn);
+  };
+  const boxMenu = () =>
+    boxAt ? (
+      <LineMenu
+        text={S.mapper.box.lines(new Set(boxAt.tokens.map((t) => lineOf(t))).size)}
+        choices={[
+          ...(table
+            ? [
+                {
+                  label: S.mapper.box.redraw(table.name),
+                  key: 'R',
+                  run: () => drawTable('replace'),
+                },
+                { label: S.mapper.box.another, key: 'A', run: () => drawTable('new') },
+              ]
+            : [{ label: S.mapper.box.asTable, key: 'T', run: () => drawTable('new') }]),
+          {
+            label: S.mapper.box.asDetail,
+            key: 'D',
+            run: () => {
+              const ts = boxAt.tokens;
+              setBoxAt(null);
+              pick(ts);
+            },
+          },
+        ]}
+        hint={S.mapper.box.hint}
+        onClose={() => {
+          setBoxAt(null);
+          setSelected([]);
+        }}
+      />
+    ) : null;
 
   /** What a click on a word would take, shown on hover. */
   const expand = (t: Token): Token[] => {
@@ -991,6 +1071,55 @@ export function MapperScreen() {
         },
       };
     }
+  }
+
+  // Start and End handles: where the table starts (its header) and ends, dragged to a line.
+  let grips: TableGrips | undefined;
+  if (layout && table && frame) {
+    const furniture = furnitureLines(layout);
+    const linesOf = (n: number) =>
+      (layout.pages.find((p) => p.page === n)?.lines ?? []).filter((l) => !furniture.has(l));
+    const rowsAll = tableResult?.rows ?? [];
+    const lastRow = rowsAll[rowsAll.length - 1];
+    const end = tableResult?.end;
+    const endPage = end?.page ?? lastRow?.page;
+    const endY = end ? end.bbox[1] : lastRow?.bbox[3];
+    const nearest = (n: number, y: number) =>
+      linesOf(n).reduce<Line | undefined>(
+        (a, l) => (!a || Math.abs(l.cy - y) < Math.abs(a.cy - y) ? l : a),
+        undefined,
+      );
+    const moveStart = (line: Line | undefined) => {
+      const next = line && setTableStart(layout, table, line);
+      if (next) changeTable(next, S.mapper.grip.started(line!.text));
+    };
+    const moveEnd = (n: number, y: number) => {
+      const line = linesOf(n).find((l) => l.cy >= y);
+      changeTable(
+        setTableEnd(table, line ?? null),
+        line ? S.mapper.grip.ended(line.text) : S.mapper.grip.endless,
+      );
+    };
+    grips = {
+      x: frame.bounds[frame.bounds.length - 1]!.x1,
+      ...(frame.page === pageNo ? { start: frame.bbox[1] } : {}),
+      ...(endPage === pageNo && endY !== undefined ? { end: endY } : {}),
+      runsOn: !end,
+      onMove: (which, y) =>
+        which === 'start' ? moveStart(nearest(pageNo, y)) : moveEnd(pageNo, y),
+      onStep: (which, d) => {
+        if (which === 'start') {
+          const ls = linesOf(frame.page);
+          const i = ls.findIndex((l) => l.cy >= frame.bbox[1]);
+          moveStart(ls[Math.max(0, Math.min(ls.length - 1, i + d))]);
+        } else if (endPage !== undefined && endY !== undefined) {
+          const ls = linesOf(endPage);
+          const i = ls.findIndex((l) => l.cy >= endY);
+          const target = ls[i + d];
+          moveEnd(endPage, target ? target.cy - 0.5 : Infinity);
+        }
+      },
+    };
   }
 
   const save = async () => {
@@ -1419,26 +1548,30 @@ export function MapperScreen() {
                 selected={selected}
                 ruler={ruler}
                 lineMarks={(tableResult?.stats?.lines ?? []).filter((m) => m.page === pageNo)}
+                grips={grips}
                 overlay={
-                  lineAt && lineAt.page === pageNo
-                    ? (() => {
-                        const node = lineMenu(lineAt);
-                        const line = lineOf(lineAt);
-                        return node && line
-                          ? {
-                              bbox: [line.x0, line.y0, line.x1, line.y1] as BBox,
-                              x: lineAt.x0,
-                              node,
-                            }
-                          : undefined;
-                      })()
-                    : undefined
+                  boxAt && boxAt.page === pageNo
+                    ? { bbox: boxAt.box, x: boxAt.box[0], node: boxMenu() }
+                    : lineAt && lineAt.page === pageNo
+                      ? (() => {
+                          const node = lineMenu(lineAt);
+                          const line = lineOf(lineAt);
+                          return node && line
+                            ? {
+                                bbox: [line.x0, line.y0, line.x1, line.y1] as BBox,
+                                x: lineAt.x0,
+                                node,
+                              }
+                            : undefined;
+                        })()
+                      : undefined
                 }
                 onToken={onToken}
                 onTokens={onTokens}
                 expand={expand}
                 onPage={(d) => setPageNo(Math.max(1, Math.min(pdf.pages, pageNo + d)))}
                 onEscape={() => {
+                  setBoxAt(null);
                   setPickHeader(false);
                   setAdding(false);
                   setLineAt(null);

@@ -53,3 +53,29 @@ test('one row per service, from its "Total for" line', async ({ page }) => {
   await expect(output.getByRole('columnheader', { name: 'Telephone, Text' })).toBeVisible();
   await expectNoAxe(page);
 });
+
+test('draw a box round the table, then drag its start and end', async ({ page }) => {
+  await page.setViewportSize({ width: 1400, height: 1000 });
+  await ready(page);
+  await startFromSample(page, 'summit-voice-jan26.pdf');
+  const box = async (from: string, to: string) => {
+    const a = (await tok(page, from).boundingBox())!;
+    const b = (await tok(page, to).boundingBox())!;
+    await page.mouse.move(a.x - 12, a.y - 4);
+    await page.mouse.down();
+    await page.mouse.move(b.x + 700, b.y + b.height + 4, { steps: 8 });
+    await page.mouse.up();
+  };
+  // From the header down to the first item: the table ends at the line below the box.
+  await box('Item', 'SVC101A');
+  await page.getByRole('button', { name: 'Map these lines as a table' }).click();
+  const output = page.getByRole('region', { name: 'Output' });
+  await expect(output.getByText('1 row', { exact: true })).toBeVisible();
+  // The End handle moves the end a line at a time, or runs the table on.
+  const end = page.getByRole('button', { name: /^End: where the table ends/ });
+  await end.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('.toast').getByText(/^The table now ends at/)).toBeVisible();
+  await page.screenshot({ path: 'test-results/zz-box.png' });
+  await expectNoAxe(page);
+});

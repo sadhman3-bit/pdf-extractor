@@ -14,6 +14,18 @@ export interface Mark {
   tag?: 'accent' | 'warn';
 }
 
+/** Where the mapped table starts and ends on this page, in points, with what dragging does. */
+export interface TableGrips {
+  /** The table's right edge: the handles sit at its corners, clear of the words. */
+  x: number;
+  start?: number | undefined;
+  end?: number | undefined;
+  /** The end grip when the table has no end: it runs on to later pages. */
+  runsOn?: boolean;
+  onMove: (which: 'start' | 'end', y: number) => void;
+  onStep: (which: 'start' | 'end', delta: 1 | -1) => void;
+}
+
 /** The column breaks of a mapped table, edited on a ruler along its top. */
 export interface Ruler {
   /** Top of the table on this page and its foot, in points. */
@@ -102,7 +114,9 @@ export function PageView(props: {
   overlay?: { bbox: BBox; x: number; node: ComponentChildren } | undefined;
   onToken?: (t: Token, shift: boolean) => void;
   /** Words inside a box dragged across the page. */
-  onTokens?: (ts: Token[]) => void;
+  onTokens?: (ts: Token[], box: BBox) => void;
+  /** Start and End handles of the mapped table, dragged to change where it runs. */
+  grips?: TableGrips | undefined;
   /** The words a click on this word would take, highlighted on hover. */
   expand?: (t: Token) => Token[];
   onEscape?: () => void;
@@ -124,6 +138,7 @@ export function PageView(props: {
     overlay,
     onToken,
     onTokens,
+    grips,
     expand,
     onEscape,
     focusBox,
@@ -206,7 +221,7 @@ export function PageView(props: {
   ];
   const onDown = (e: PointerEvent) => {
     if (!onTokens || e.button !== 0) return;
-    if ((e.target as HTMLElement).closest('.ruler, .page-pop')) return;
+    if ((e.target as HTMLElement).closest('.ruler, .page-pop, .grip')) return;
     const p = at(e);
     drag.current = { x: p.x, y: p.y, px: p.x, py: p.y, moved: false };
   };
@@ -236,7 +251,7 @@ export function PageView(props: {
       const cy = (t.y0 + t.y1) / 2;
       return cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1;
     });
-    if (inside.length) onTokens?.(inside);
+    if (inside.length) onTokens?.(inside, [x0, y0, x1, y1]);
   };
 
   const box = (b: BBox) => ({
@@ -378,6 +393,12 @@ export function PageView(props: {
           </span>
         ))}
         {ruler ? <RulerBar r={ruler} scale={scale} /> : null}
+        {grips && grips.start !== undefined ? (
+          <Grip g={grips} which="start" y={grips.start} scale={scale} />
+        ) : null}
+        {grips && grips.end !== undefined ? (
+          <Grip g={grips} which="end" y={grips.end} scale={scale} />
+        ) : null}
         {overlay && size ? (
           <div
             class={`page-pop${overlay.bbox[3] > size.h * 0.62 ? ' page-pop-above' : ''}`}
@@ -504,5 +525,72 @@ function RulerBar({ r, scale }: { r: Ruler; scale: number }) {
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * A handle on the table's top or bottom edge: drag it up or down (it snaps to a
+ * line when let go), or use the arrow keys to move one line at a time.
+ */
+function Grip({
+  g,
+  which,
+  y,
+  scale,
+}: {
+  g: TableGrips;
+  which: 'start' | 'end';
+  y: number;
+  scale: number;
+}) {
+  const drag = useRef<{ startY: number; at: number } | null>(null);
+  const [guide, setGuide] = useState<number | null>(null);
+  const label =
+    which === 'start' ? S.mapper.grip.start : g.runsOn ? S.mapper.grip.runsOn : S.mapper.grip.end;
+  return (
+    <>
+      {guide !== null ? (
+        <div class="grip-guide" aria-hidden="true" style={{ top: `${guide * scale}px` }} />
+      ) : null}
+      <button
+        type="button"
+        class={`grip grip-${which}`}
+        style={{
+          left: `${g.x * scale}px`,
+          top: `${which === 'start' ? y * scale - 48 : y * scale + 6}px`,
+        }}
+        aria-label={`${label}: ${which === 'start' ? S.mapper.grip.startLabel : S.mapper.grip.endLabel}`}
+        title={`${label}: ${which === 'start' ? S.mapper.grip.startLabel : S.mapper.grip.endLabel}`}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            e.stopPropagation();
+            g.onStep(which, e.key === 'ArrowDown' ? 1 : -1);
+          }
+        }}
+        onPointerDown={(e) => {
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          drag.current = { startY: e.clientY, at: y };
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d) return;
+          d.at = y + (e.clientY - d.startY) / scale;
+          setGuide(d.at);
+        }}
+        onPointerUp={() => {
+          const d = drag.current;
+          drag.current = null;
+          setGuide(null);
+          if (d && Math.abs(d.at - y) > 2) g.onMove(which, d.at);
+        }}
+        onPointerCancel={() => {
+          drag.current = null;
+          setGuide(null);
+        }}
+      >
+        <span aria-hidden="true">⇕</span> {label}
+      </button>
+    </>
   );
 }

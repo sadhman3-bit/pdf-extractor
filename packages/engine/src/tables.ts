@@ -137,7 +137,7 @@ export function findHeaderOnPage(
 }
 
 /**
- * Where the edge between two columns goes: in the widest strip between the
+ * Where the edge between two columns goes: in the last clear strip between the
  * left heading's end (a) and the right heading's start (b) that (almost) no
  * line of the table crosses. Halfway between the headings' centres (mid) when
  * there is no such strip, or no lines to go by.
@@ -164,7 +164,9 @@ function gapBetween(a: number, b: number, mid: number, body: Line[]): number {
     }
     let y = x;
     while (y < n && cover[y]! <= clear) y++;
-    if (y - x > best[1] - best[0]) best = [x, y];
+    // The clear strip nearest the right heading: text spills right past its own
+    // heading (a period after a description), numbers start at theirs.
+    if (y - x >= GAP_MIN) best = [x, y];
     x = y;
   }
   // Narrower strips are the spaces between words.

@@ -774,6 +774,88 @@ export function partColumnFor(
 }
 
 /**
+ * A table from a box drawn round it: the box's first line is where it starts
+ * (its header, or a title), its sides are the outer column edges, and the
+ * first line below the box on that page (not a page footer) is where it ends.
+ * A box that reaches the page's last lines leaves the table running on.
+ */
+export function tableFromBox(
+  layout: DocLayout,
+  page: number,
+  box: BBox,
+  name = 'Items',
+): TableRule | null {
+  const p = layout.pages.find((x) => x.page === page);
+  if (!p) return null;
+  const furniture = furnitureLines(layout);
+  const inside = p.lines.filter(
+    (l) =>
+      l.cy >= box[1] && l.cy <= box[3] && l.tokens.some((t) => cx(t) >= box[0] && cx(t) <= box[2]),
+  );
+  const top = inside[0];
+  if (!top) return null;
+  const inf = inferTable(layout, [...top.tokens].sort((a, b) => a.x0 - b.x0)[0]!, name, true);
+  if (!inf) return null;
+  let rule: TableRule = inf.rule;
+  const below = p.lines.find((l) => l.y0 > box[3] && !furniture.has(l));
+  rule = setTableEnd(rule, below ?? null);
+  rule = moveOuter(layout, rule, 'left', box[0]) ?? rule;
+  rule = moveOuter(layout, rule, 'right', box[2]) ?? rule;
+  return retype(
+    layout,
+    rule,
+    rule.columns.map((c) => c.name),
+  );
+}
+
+/**
+ * The table starts at this line instead: its words become the header the table
+ * is found by. Column edges stay where they are.
+ */
+export function setTableStart(layout: DocLayout, rule: TableRule, line: Line): TableRule | null {
+  const f = tableFrame(layout, rule);
+  const labels = phrases(line).map((p) => p.text);
+  if (!labels.length) return null;
+  const pinned = f ? fixEdges(rule, f) : rule;
+  return {
+    ...pinned,
+    header: { labels, minMatch: Math.max(1, Math.ceil(labels.length * 0.6)) },
+  };
+}
+
+/** The table ends at this line (found by its first words), or runs on when null. */
+export function setTableEnd(rule: TableRule, line: Line | null): TableRule {
+  const { end: _end, ...rest } = rule;
+  if (!line) return rest;
+  const label = leadingLabel(line) || phrases(line)[0]!.text;
+  return { ...rest, end: { labels: [label], match: 'starts-with' } };
+}
+
+/** Moves the table's left or right outer edge (words beyond it are left out). */
+export function moveOuter(
+  layout: DocLayout,
+  rule: TableRule,
+  side: 'left' | 'right',
+  x: number,
+): TableRule | null {
+  const f = tableFrame(layout, rule);
+  const edge = side === 'left' ? f?.bounds[0] : f?.bounds[f.bounds.length - 1];
+  if (!f || !edge) return null;
+  const to = pt(
+    side === 'left'
+      ? Math.min(Math.max(0, x), edge.x1 - MIN_COLUMN)
+      : Math.max(x, edge.x0 + MIN_COLUMN),
+  );
+  const pinned = fixEdges(rule, f);
+  return {
+    ...pinned,
+    columns: pinned.columns.map((c) =>
+      c.name === edge.name ? { ...c, ...(side === 'left' ? { x0: to } : { x1: to }) } : c,
+    ),
+  };
+}
+
+/**
  * Makes lines like this one the table's rows, such as one row per "Total for
  * 02 5550 0160" line: a row starts where the line's first column starts with the
  * same words. Other lines are left out (headings still fill their columns), and

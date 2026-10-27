@@ -161,3 +161,11 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - **Keyboard and screen reader.** The new controls are buttons or form fields with names: the ruler (Enter splits the widest column), each break (arrows move, Delete removes), the page strip, find (Enter, Shift+Enter), the table switch and the layout lists. axe reports nothing on any screen.
 - **Screenshots** in `docs/screenshots` were taken again (`pnpm screenshots`).
 
+## Mapper: draw the table (after the redesign)
+
+- **The owner, after phase 6:** "THE PROBLEM IS I CANT RESIZE EASILY WHERE TABLE STARTS, EVERYTHING HAS TOO MANY STEPS" and "why cant i just draw the columns or something?" Starting a table from its header row meant choosing a header again to move it.
+- **Drag a box round a table** (three or more lines) and choose **Map these lines as a table** (`tableFromBox`): the top line becomes the header the table is found by, the box's sides become the outer column edges, and the first line below the box that isn't a page footer becomes the end. A box to the page's foot leaves the table running on. A box over an existing table offers **Redraw … here** (keeps its name and headings) or **Map them as another table**; a box of one or two lines still takes the words as a bill detail.
+- **Start and End handles** at the table's right-hand corners (clear of the words above and of the table's label). Dragging snaps to the nearest line (`setTableStart`, `setTableEnd`); arrow keys move a line at a time; dragging End below the last line makes the table run on. Column edges are pinned first, so moving the start never moves the columns.
+- **Rows from lines like this one.** The line menu offers "Make lines starting “…” the rows" (`rowsLike`): one row per such line (the owner's case: one row per phone service from its "Total for" line, with its Excl and Incl amounts), other lines left out, headings still filling their columns.
+- **Starting column breaks sit in the clear strip nearest the next heading**, not the widest one. Text spills right past its heading (a period after a description) while amounts start at theirs; the widest strip split "25 Dec | to 24 Jan" in short tables. Golden outputs are unchanged.
+

@@ -268,9 +268,9 @@ export const S = {
     redone: 'Redone',
     clickHint: {
       start:
-        'Click a value to add it as a column. Click a table’s header row to map its items. Drag a box to take several words.',
+        'Drag a box round a table to map it. Click a value to add it as a column; drag over a few words to take them together.',
       table:
-        'Click the ruler above the table to add a column break; drag a break to move it. Click a line in the table to say what it is: a heading, a line to skip, or where the table ends.',
+        'Drag Start and End to change where the table runs. Click the ruler above it to add a column. Click a line in it to say what it is.',
     },
     settings: {
       header: 'The table starts after the line with',
@@ -308,6 +308,28 @@ export const S = {
       raw: 'Edit as patterns (advanced)',
       rawHint:
         'Regular expressions, for layouts the choices above can’t describe. You rarely need these.',
+    },
+    box: {
+      lines: (n: number) => `${n} lines in the box`,
+      asTable: 'Map these lines as a table',
+      redraw: (name: string) => `Redraw ${name} here`,
+      another: 'Map them as another table',
+      asDetail: 'Take the words as a bill detail',
+      hint: 'The box’s top line is where the table starts; the first line below it is where it ends. Draw to the page’s foot if it runs on.',
+      drawn:
+        'Table drawn. Drag its Start and End handles to change where it runs, and click the ruler above it to add a column.',
+      redrawn: 'Table redrawn',
+      none: 'There’s no text in that box to make a table from.',
+    },
+    grip: {
+      start: 'Start',
+      end: 'End',
+      runsOn: 'Runs on',
+      startLabel: 'where the table starts. Drag up or down, or use the arrow keys',
+      endLabel: 'where the table ends. Drag up or down, or use the arrow keys',
+      started: (text: string) => `The table now starts at “${text}”`,
+      ended: (text: string) => `The table now ends at “${text}”`,
+      endless: 'The table now runs on to the end of the document',
     },
     find: {
       label: 'Find on the pages',

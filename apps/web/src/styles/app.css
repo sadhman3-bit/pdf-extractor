@@ -2108,3 +2108,35 @@ details.more[open] > summary {
   color: var(--warn-ink);
   background: var(--warn-tint);
 }
+
+/* Start and End handles on the mapped table, and the line that follows a drag. */
+.grip {
+  position: absolute;
+  z-index: 4;
+  transform: translateX(-100%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--surface);
+  cursor: ns-resize;
+  touch-action: none;
+  background: var(--accent);
+  border: 0;
+  border-radius: 10px;
+}
+.grip:hover,
+.grip:focus-visible {
+  background: var(--accent-hover);
+}
+.grip-guide {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  border-top: 2px dashed var(--accent);
+  pointer-events: none;
+}
