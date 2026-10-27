@@ -1556,12 +1556,81 @@ details.more[open] > summary {
   background: var(--surface-subtle);
   overflow-wrap: anywhere;
 }
-.line-choices .btn {
-  justify-content: flex-start;
+/* The line menu, drawn on the page beside the clicked line. */
+.page-pop {
+  position: absolute;
+  z-index: 4;
+  width: 340px;
+  cursor: default;
+}
+.line-menu {
+  scroll-margin-top: var(--s4);
+  scroll-margin-bottom: calc(var(--dock-space, 0px) + var(--s4));
+}
+.page-pop-above {
+  transform: translateY(-100%);
+}
+.line-menu {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s3);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: 0 12px 32px var(--page-shadow);
+  font-size: 13px;
+}
+.line-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+.line-menu-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.line-menu .line-text {
+  font-size: 12px;
+  max-height: 3.4em;
+  overflow: hidden;
+}
+.line-menu .caption {
+  margin: 0;
+}
+.line-choices {
+  display: grid;
+  gap: 2px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  width: 100%;
+  font: inherit;
   text-align: left;
-  white-space: normal;
-  height: auto;
-  min-height: 36px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-small);
+  padding: 7px var(--s2);
+  cursor: pointer;
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--accent-tint);
+  color: var(--accent-ink);
+}
+.menu-item kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 5px;
 }
 .group-row {
   flex-wrap: nowrap;
@@ -1788,4 +1857,55 @@ details.more[open] > summary {
   border: 1px dashed var(--warn-border);
   border-radius: var(--r-small);
   background: var(--warn-tint);
+}
+
+/* Compact sidebar (Mapper): icons only, names kept for screen readers and tooltips. */
+@media (min-width: 901px) {
+  .shell.shell-compact {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .shell-compact .sidebar {
+    padding: var(--s4) var(--s2);
+    align-items: center;
+  }
+  .shell-compact .brand {
+    padding: var(--s1);
+  }
+  .shell-compact .brand-name,
+  .shell-compact .nav-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .shell-compact .folder-switch {
+    display: none;
+  }
+  .shell-compact .nav a,
+  .shell-compact .side-link {
+    position: relative;
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+  }
+  .shell-compact .nav-badge {
+    position: absolute;
+    top: 2px;
+    right: 0;
+    padding: 0 5px;
+    line-height: 15px;
+  }
+}
+
+.page-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+}
+.page-jump input {
+  width: 4.5em;
+  text-align: center;
 }

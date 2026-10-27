@@ -5,7 +5,9 @@ import {
   buildLayout,
   inferField,
   groupFor,
+  findHeaderOnPage,
   inferTable,
+  looksLikeHeader,
   outputGrid,
   parseTemplate,
   phrases,
@@ -16,6 +18,8 @@ import {
   toCsv,
   valueTokens,
   type BBox,
+  type Line,
+  type SourceBox,
   type FieldRule,
   type InferredField,
   type PageText,
@@ -56,9 +60,7 @@ import {
   type Draft,
   type Lock,
 } from '../workspace/store';
-import { ChecksPanel, FieldsPanel, FingerprintPanel, LinePanel, TablePanel } from './MapperPanels';
-
-type Mode = 'value' | 'table' | 'end';
+import { ChecksPanel, FieldsPanel, FingerprintPanel, LineMenu, TablePanel } from './MapperPanels';
 
 /** True when the middle of a word lies inside a box (with a point of slack). */
 function inBox(t: Token, b: BBox): boolean {
@@ -102,7 +104,6 @@ export function MapperScreen() {
   const [pages, setPages] = useState<PageText[] | null>(null);
   const [pageNo, setPageNo] = useState(1);
   const [zoom, setZoom] = useState<Zoom>('fit');
-  const [mode, setMode] = useState<Mode>('value');
   const [selected, setSelected] = useState<Token[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
   const [repick, setRepick] = useState<string | null>(null);
@@ -122,6 +123,8 @@ export function MapperScreen() {
   const [hot, setHot] = useState<string | null>(null);
   // A word clicked on a line of the mapped table, waiting for "what is this line?".
   const [lineAt, setLineAt] = useState<Token | null>(null);
+  // "Choose the header row": the next click on the page starts the table there.
+  const [pickHeader, setPickHeader] = useState(false);
   // The exception this template was created from, offered for a re-run after saving.
   const [sourceFile, setSourceFile] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
@@ -129,15 +132,51 @@ export function MapperScreen() {
   const created = useRef<string | null>(null);
   // The latest draft, for undo actions that run after later edits.
   const latest = useRef<Template | null>(null);
+  // Earlier and undone drafts, for Undo and Redo.
+  const history = useRef<{ past: Template[]; future: Template[]; at: number }>({
+    past: [],
+    future: [],
+    at: 0,
+  });
+  const [, setHistoryTick] = useState(0);
   // Which line "Show" jumps to next, among those that aren't part of any row.
   const unplacedAt = useRef(0);
+  // Ctrl+Z and Ctrl+Shift+Z (or Ctrl+Y) outside text boxes, which keep their own undo.
+  const keys = useRef<{ undo: () => void; redo: () => void } | null>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) keys.current?.undo();
+      else if (k === 'y' || (k === 'z' && e.shiftKey)) keys.current?.redo();
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const pdf = usePdf(sample?.bytes ?? null);
 
   const ws = s.ws;
   const layout = useMemo(() => (pages ? buildLayout({ pages }) : null), [pages]);
 
   /** Updates the draft and autosaves (IndexedDB now, folder after 2 s). */
-  const setDraft = (t: Template, persist = true) => {
+  const setDraft = (t: Template, persist = true, record = true) => {
+    // Changes in quick succession (typing a name) undo together.
+    const cur = latest.current;
+    if (record && persist && cur && cur !== t && cur.id === t.id) {
+      const now = Date.now();
+      if (now - history.current.at > 700) {
+        history.current.past.push(cur);
+        if (history.current.past.length > 100) history.current.past.shift();
+      }
+      history.current.at = now;
+      history.current.future = [];
+      setHistoryTick((n) => n + 1);
+    }
+    latest.current = t;
     setDraftState(t);
     if (!persist || !ws) return;
     const d: Draft = {
@@ -335,27 +374,18 @@ export function MapperScreen() {
 
   const onToken = (t: Token, shift: boolean) => {
     if (!layout) return;
-    if (mode === 'table') {
-      if (table) {
-        setLineAt(t);
-        setSelected(lineOf(t)?.tokens ?? [t]);
-        return;
-      }
-      startTable(t);
-      return;
+    if (pickHeader) {
+      setPickHeader(false);
+      return startTable(t, true);
     }
-    if (mode === 'end') {
-      if (!table) return;
-      const page = layout.pages.find((p) => p.page === t.page);
-      const line = page?.lines.find((l) => l.tokens.includes(t));
-      if (!line) return;
-      const label = phrases(line)[0]!.text.replace(/\s*[:#]+$/, '');
-      setTable({ ...table, end: { labels: [label], match: 'starts-with' } });
-      app.announce(S.mapper.endMarkerSet(label));
-      setMode('value');
-      return;
+    if (!repick && !shift) {
+      // A line of the mapped table, or a header row before there is a table: ask what it is.
+      if (table && inTable(t)) return openLine(t);
+      const line = lineOf(t);
+      if (!table && line && headerRow(line) && !fieldAt(t)) return openLine(t);
     }
-    // Click a value
+    // A value
+    setLineAt(null);
     if (repick) return pick(valueTokens(layout, t));
     if (shift) {
       const sel = selected.includes(t) ? selected.filter((x) => x !== t) : [...selected, t];
@@ -391,6 +421,73 @@ export function MapperScreen() {
 
   const lineOf = (t: Token) =>
     layout?.pages.find((p) => p.page === t.page)?.lines.find((l) => l.tokens.includes(t));
+
+  /** Where the table's header is; looked up directly while a long sample's preview catches up. */
+  const tableHead = (): SourceBox | undefined => {
+    if (tableResult?.found) return tableResult.header;
+    if (!layout || !table) return undefined;
+    for (const p of layout.pages) {
+      const h = findHeaderOnPage(p.lines, table, p.page);
+      if (h) return { page: h.page, bbox: h.bbox };
+    }
+    return undefined;
+  };
+  /** True for words below the table's header and above its end. */
+  const inTable = (t: Token) => {
+    const h = tableHead();
+    if (!h) return false;
+    const y = (t.y0 + t.y1) / 2;
+    if (t.page < h.page || (t.page === h.page && y < h.bbox[1])) return false;
+    const e = tableResult?.end;
+    if (e && (t.page > e.page || (t.page === e.page && y > e.bbox[3]))) return false;
+    return t.page === h.page || table?.continuesOnNextPage !== false;
+  };
+  /**
+   * A table's header row: the one the app suggested, or three or more text-only
+   * columns with no numbers and no "Label:" words (those lines hold values).
+   */
+  const headerRow = (line: Line) =>
+    looksLikeHeader(line) &&
+    !/\d/.test(line.text) &&
+    !phrases(line).some((p) => /[:#]$/.test(p.text)) &&
+    (phrases(line).length >= 3 || line === tableSuggestion?.headerLine);
+  const isHeaderAt = (t: Token) => {
+    const line = lineOf(t);
+    return !!line && headerRow(line) && !fieldAt(t);
+  };
+  const openLine = (t: Token) => {
+    setLineAt(t);
+    setSelected(lineOf(t)?.tokens ?? [t]);
+    setEditing(null);
+  };
+
+  const undo = () => {
+    const h = history.current;
+    const prev = h.past.pop();
+    const cur = latest.current;
+    if (!prev || !cur) return;
+    h.future.push(cur);
+    h.at = 0;
+    setDraft(prev, true, false);
+    setLineAt(null);
+    setSelected([]);
+    setHistoryTick((n) => n + 1);
+    app.announce(S.mapper.undone);
+  };
+  const redo = () => {
+    const h = history.current;
+    const next = h.future.pop();
+    const cur = latest.current;
+    if (!next || !cur) return;
+    h.past.push(cur);
+    h.at = 0;
+    setDraft(next, true, false);
+    setLineAt(null);
+    setSelected([]);
+    setHistoryTick((n) => n + 1);
+    app.announce(S.mapper.redone);
+  };
+  keys.current = { undo, redo };
 
   /** Builds the table from a click on its header (or first row), keeping its name and headings. */
   const startTable = (t: Token, asHeader = false) => {
@@ -435,7 +532,6 @@ export function MapperScreen() {
     const all = tableResult?.stats?.unplaced ?? [];
     if (!all.length) return;
     const b = all[unplacedAt.current++ % all.length]!;
-    setMode('table');
     setPageNo(b.page);
     setSelected((pages?.[b.page - 1]?.tokens ?? []).filter((t) => inBox(t, b.bbox)));
     setReveal((n) => n + 1);
@@ -503,16 +599,17 @@ export function MapperScreen() {
     app.announce(`${inf.rule.name}: ${inf.value}`);
   };
 
-  /** Words dragged across: the first one picks a table row or end line; values take them all. */
+  /** Words dragged across are one value. */
   const onTokens = (ts: Token[]) => {
-    if (mode !== 'value') return onToken([...ts].sort(byReading)[0]!, false);
+    setLineAt(null);
     pick(ts);
   };
 
   /** What a click on a word would take, shown on hover. */
   const expand = (t: Token): Token[] => {
-    if (layout && mode === 'table' && table) return lineOf(t)?.tokens ?? [t];
-    if (!layout || mode !== 'value') return [t];
+    if (!layout) return [t];
+    if (pickHeader || (!repick && ((table && inTable(t)) || (!table && isHeaderAt(t)))))
+      return lineOf(t)?.tokens ?? [t];
     const f = repick ? undefined : fieldAt(t);
     if (f) {
       const boxes = (fieldRes(f)?.boxes ?? []).filter((b) => b.page === t.page);
@@ -541,59 +638,120 @@ export function MapperScreen() {
     });
   };
 
-  const linePanel = (t: Token) => {
+  /** The choices for a clicked line, shown beside it on the page. */
+  const lineMenu = (t: Token) => {
     const line = lineOf(t);
-    if (!layout || !table || !line) return null;
+    if (!layout || !line) return null;
+    const close = () => {
+      setLineAt(null);
+      setSelected([]);
+    };
+    const value = valueTokens(layout, t);
+    const mapped = fieldAt(t);
+    const editField = mapped
+      ? {
+          label: S.mapper.table.editField(mapped.name),
+          key: 'D',
+          run: () => {
+            close();
+            setEditing(mapped.id);
+          },
+        }
+      : null;
+    const asField = mapped
+      ? editField
+      : !table || /\d/.test(value.map((x) => x.text).join(' '))
+        ? {
+            label: S.mapper.table.asField(value.map((x) => x.text).join(' ')),
+            key: 'D',
+            run: () => {
+              close();
+              pick(value);
+            },
+          }
+        : null;
+    if (!table)
+      return (
+        <LineMenu
+          text={line.text}
+          choices={[
+            { label: S.mapper.table.asTable, key: 'T', run: () => startTable(t, true) },
+            ...(asField ? [asField] : []),
+          ]}
+          hint={S.mapper.table.asTableHint}
+          onClose={close}
+        />
+      );
     const taken = [...table.columns.map((c) => c.name), ...(table.groups ?? []).map((g) => g.name)];
     const group = groupFor(line, taken);
     const m = new RegExp(group.pattern).exec(line.text);
     const split = tableResult?.found ? addColumnAt(layout, table, tableResult.bounds, t) : null;
     const phrase = phrases(line).find((p) => p.tokens.includes(t))!;
     const from = phrase.tokens.indexOf(t);
-    const close = () => {
-      setLineAt(null);
-      setSelected([]);
-    };
-    return (
-      <LinePanel
-        text={line.text}
-        group={{ name: group.name, value: (m?.[group.capture ?? 0] ?? line.text).trim() }}
-        column={
-          split
-            ? phrase.tokens
-                .slice(from)
-                .map((x) => x.text)
-                .join(' ')
-            : null
-        }
-        onGroup={() =>
+    const choices: { label: string; key: string; run: () => void }[] = [
+      {
+        label: S.mapper.table.asGroup(group.name, (m?.[group.capture ?? 0] ?? line.text).trim()),
+        key: 'H',
+        run: () =>
           changeTable(
             { ...table, groups: [...(table.groups ?? []), group] },
             S.mapper.table.groupAdded(group.name),
-          )
-        }
-        onSkip={() => {
+          ),
+      },
+      {
+        label: S.mapper.table.asSkip,
+        key: 'S',
+        run: () => {
           const pattern = skipPatternFor(line);
           const skip = table.skip ?? [];
           changeTable(
             { ...table, skip: skip.includes(pattern) ? skip : [...skip, pattern] },
             S.mapper.table.skipAdded,
           );
-        }}
-        onColumn={() => {
-          if (!split) return setMessage({ tone: 'warn', text: S.mapper.table.cantSplit });
-          changeTable(split.rule, S.mapper.table.columnAdded(split.column.name));
-        }}
-        onEnd={() => {
+        },
+      },
+      ...(split
+        ? [
+            {
+              label: S.mapper.table.asColumn(
+                phrase.tokens
+                  .slice(from)
+                  .map((x) => x.text)
+                  .join(' '),
+              ),
+              key: 'C',
+              run: () => changeTable(split.rule, S.mapper.table.columnAdded(split.column.name)),
+            },
+          ]
+        : []),
+      {
+        label: S.mapper.table.asEnd,
+        key: 'E',
+        run: () => {
           const label = phrases(line)[0]!.text.replace(/\s*[:#]+$/, '');
           changeTable(
             { ...table, end: { labels: [label], match: 'starts-with' } },
             S.mapper.table.endAdded(label),
           );
-        }}
-        onHeader={() => startTable(t, true)}
-        onClose={close}
-      />
+        },
+      },
+      { label: S.mapper.table.asHeader, key: 'T', run: () => startTable(t, true) },
+      ...(asField ? [asField] : []),
+    ];
+    // A click on an amount or code most likely means "this is a column of its own".
+    const col = choices.findIndex((c) => c.key === 'C');
+    if (
+      col > 0 &&
+      /\d/.test(
+        phrase.tokens
+          .slice(from)
+          .map((x) => x.text)
+          .join(' '),
+      )
+    )
+      choices.unshift(...choices.splice(col, 1));
+    return (
+      <LineMenu text={line.text} choices={choices} hint={S.mapper.table.lineHint} onClose={close} />
     );
   };
 
@@ -872,7 +1030,6 @@ export function MapperScreen() {
             onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
             onEdit={setEditing}
             onRepick={(id) => {
-              setMode('value');
               setRepick(repick === id ? null : id);
             }}
             onChange={updateField}
@@ -913,7 +1070,6 @@ export function MapperScreen() {
               });
             }}
           />
-          {table && lineAt ? linePanel(lineAt) : null}
           <TablePanel
             table={table}
             result={tableResult}
@@ -923,6 +1079,11 @@ export function MapperScreen() {
             onRemove={() => setTable(null)}
             onRemoveColumn={removeColumn}
             onShowUnplaced={showUnplaced}
+            picking={pickHeader}
+            onPickHeader={() => {
+              setLineAt(null);
+              setPickHeader(!pickHeader);
+            }}
           />
           <details class="card rail-more">
             <summary>{S.mapper.rail.recognise}</summary>
@@ -945,20 +1106,26 @@ export function MapperScreen() {
 
         <section class="card stack mapper-page" aria-label={sample?.name ?? S.mapper.title}>
           <div class="viewer-toolbar">
-            <Segmented<Mode>
-              label={S.mapper.modes}
-              value={mode}
-              onChange={(m) => {
-                setMode(m);
-                setRepick(null);
-                setLineAt(null);
-              }}
-              options={[
-                { value: 'value', label: S.mapper.modeValue },
-                { value: 'table', label: S.mapper.modeTable },
-                { value: 'end', label: S.mapper.modeEnd },
-              ]}
-            />
+            <div class="row">
+              <button
+                type="button"
+                class="btn btn-small"
+                onClick={undo}
+                disabled={!history.current.past.length}
+                aria-keyshortcuts="Control+Z"
+              >
+                {S.mapper.undoButton}
+              </button>
+              <button
+                type="button"
+                class="btn btn-small"
+                onClick={redo}
+                disabled={!history.current.future.length}
+                aria-keyshortcuts="Control+Shift+Z"
+              >
+                {S.mapper.redoButton}
+              </button>
+            </div>
             <div class="row">
               <Segmented<string>
                 label={S.mapper.zoom}
@@ -972,7 +1139,15 @@ export function MapperScreen() {
               />
             </div>
           </div>
-          <p class="caption">{repick ? S.mapper.repickHint : S.mapper.modeHint[mode]}</p>
+          <p class="caption">
+            {pickHeader
+              ? S.mapper.table.pickHeaderHint
+              : repick
+                ? S.mapper.repickHint
+                : table
+                  ? S.mapper.clickHint.table
+                  : S.mapper.clickHint.start}
+          </p>
           {sample ? <p class="caption mono">{sample.name}</p> : null}
           {loading ? <p class="muted">{S.common.loading}</p> : null}
           {pdf.doc && pages ? (
@@ -985,10 +1160,28 @@ export function MapperScreen() {
                 marks={marks}
                 selected={selected}
                 dividers={dividers}
+                overlay={
+                  lineAt && lineAt.page === pageNo
+                    ? (() => {
+                        const node = lineMenu(lineAt);
+                        const line = lineOf(lineAt);
+                        return node && line
+                          ? {
+                              bbox: [line.x0, line.y0, line.x1, line.y1] as BBox,
+                              x: lineAt.x0,
+                              node,
+                            }
+                          : undefined;
+                      })()
+                    : undefined
+                }
                 onToken={onToken}
                 onTokens={onTokens}
                 expand={expand}
+                onPage={(d) => setPageNo(Math.max(1, Math.min(pdf.pages, pageNo + d)))}
                 onEscape={() => {
+                  setPickHeader(false);
+                  setLineAt(null);
                   setSelected([]);
                   setRepick(null);
                   setEditing(null);
@@ -1004,7 +1197,24 @@ export function MapperScreen() {
                   >
                     {S.common.previousPage}
                   </button>
-                  <span aria-live="polite">{S.common.pageOf(pageNo, pdf.pages)}</span>
+                  <label class="page-jump">
+                    {S.mapper.page}
+                    <input
+                      type="number"
+                      min={1}
+                      max={pdf.pages}
+                      value={pageNo}
+                      aria-label={S.mapper.pageNumber(pdf.pages)}
+                      onChange={(e) => {
+                        const n = Math.round(Number((e.target as HTMLInputElement).value));
+                        if (n >= 1 && n <= pdf.pages) setPageNo(n);
+                      }}
+                    />
+                    {S.mapper.ofPages(pdf.pages)}
+                  </label>
+                  <span class="sr-only" aria-live="polite">
+                    {S.common.pageOf(pageNo, pdf.pages)}
+                  </span>
                   <button
                     type="button"
                     class="btn btn-small"

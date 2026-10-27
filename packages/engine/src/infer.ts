@@ -319,6 +319,16 @@ function isHeaderish(line: Line): boolean {
   );
 }
 
+/** No digits and no "Label:" phrases, as in a table's header row. */
+function plainHeader(line: Line): boolean {
+  return !/\d/.test(line.text) && !phrases(line).some((p) => /[:#]$/.test(p.text));
+}
+
+/** True for a line of two or more text-only phrases, such as a table's header row. */
+export function looksLikeHeader(line: Line): boolean {
+  return isHeaderish(line);
+}
+
 /** True when most phrases of `row` start or sit under a phrase of `header`. */
 function alignsWith(header: Line, row: Line): boolean {
   const hp = phrases(header);
@@ -624,7 +634,8 @@ export function suggestTable(layout: DocLayout): InferredTable | null {
   for (const page of layout.pages) {
     for (let i = 0; i < page.lines.length - 3; i++) {
       const h = page.lines[i]!;
-      if (!isHeaderish(h) || phrases(h).length < 3) continue;
+      // Header rows carry neither numbers nor "Label:" words; such lines hold values.
+      if (!isHeaderish(h) || phrases(h).length < 3 || !plainHeader(h)) continue;
       const next = page.lines.slice(i + 1, i + 4);
       const ok = next.every((l) => {
         const ps = phrases(l);

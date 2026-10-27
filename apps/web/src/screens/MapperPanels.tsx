@@ -457,37 +457,46 @@ function FieldEditor({
 
 // ---------------------------------------------------------------- table
 
-/** Choices for a clicked line of a mapped table. */
-export function LinePanel({
+/** "What is this line?": the choices for a clicked line, shown beside it on the page. */
+export function LineMenu({
   text,
-  group,
-  column,
-  onGroup,
-  onSkip,
-  onColumn,
-  onEnd,
-  onHeader,
+  choices,
+  hint,
   onClose,
 }: {
   text: string;
-  group: { name: string; value: string };
-  /** Text from the clicked word to the end of its phrase, when a column can start there. */
-  column: string | null;
-  onGroup: () => void;
-  onSkip: () => void;
-  onColumn: () => void;
-  onEnd: () => void;
-  onHeader: () => void;
+  /** In order; the first is the most likely. `key` is its keyboard shortcut. */
+  choices: { label: string; key: string; run: () => void }[];
+  hint?: string;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLElement>(null);
+  const first = useRef<HTMLButtonElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  // Opened by a click that has already finished, so scrolling it into view is safe.
   useEffect(() => {
-    ref.current?.scrollIntoView?.({ block: 'nearest' });
+    first.current?.focus({ preventScroll: true });
+    box.current?.scrollIntoView?.({ block: 'nearest' });
   }, [text]);
   return (
-    <section ref={ref} class="card stack" aria-labelledby="line-title">
-      <div class="card-head">
-        <h2 id="line-title" class="card-title">
+    <div
+      ref={box}
+      class="line-menu"
+      role="dialog"
+      aria-labelledby="line-title"
+      onKeyDown={(e) => {
+        if (e.key === 'Tab') return;
+        e.stopPropagation();
+        if (e.key === 'Escape') return onClose();
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const c = choices.find((x) => x.key.toLowerCase() === e.key.toLowerCase());
+        if (c) {
+          e.preventDefault();
+          c.run();
+        }
+      }}
+    >
+      <div class="line-menu-head">
+        <h2 id="line-title" class="line-menu-title">
           {S.mapper.table.lineTitle}
         </h2>
         <button type="button" class="icon-btn" aria-label={S.common.close} onClick={onClose}>
@@ -495,27 +504,22 @@ export function LinePanel({
         </button>
       </div>
       <p class="mono small line-text">{text}</p>
-      <div class="stack line-choices">
-        <button type="button" class="btn" onClick={onGroup}>
-          {S.mapper.table.asGroup(group.name, group.value)}
-        </button>
-        <button type="button" class="btn" onClick={onSkip}>
-          {S.mapper.table.asSkip}
-        </button>
-        {column ? (
-          <button type="button" class="btn" onClick={onColumn}>
-            {S.mapper.table.asColumn(column)}
+      <div class="line-choices">
+        {choices.map((c, i) => (
+          <button
+            key={c.key}
+            ref={i === 0 ? first : undefined}
+            type="button"
+            class="menu-item"
+            onClick={c.run}
+          >
+            <span>{c.label}</span>
+            <kbd aria-hidden="true">{c.key}</kbd>
           </button>
-        ) : null}
-        <button type="button" class="btn" onClick={onEnd}>
-          {S.mapper.table.asEnd}
-        </button>
-        <button type="button" class="btn btn-text" onClick={onHeader}>
-          {S.mapper.table.asHeader}
-        </button>
+        ))}
       </div>
-      <p class="caption">{S.mapper.table.lineHint}</p>
-    </section>
+      {hint ? <p class="caption">{hint}</p> : null}
+    </div>
   );
 }
 
@@ -529,6 +533,8 @@ export function TablePanel({
   onRemove,
   onRemoveColumn,
   onShowUnplaced,
+  picking,
+  onPickHeader,
 }: {
   table: TableRule | undefined;
   result: TableResult | undefined;
@@ -539,6 +545,9 @@ export function TablePanel({
   onRemove: () => void;
   onRemoveColumn: (name: string) => void;
   onShowUnplaced: () => void;
+  /** Waiting for a click on the header row. */
+  picking: boolean;
+  onPickHeader: () => void;
 }) {
   if (!table) {
     return (
@@ -547,6 +556,17 @@ export function TablePanel({
           {S.mapper.table.title}
         </h2>
         <p class="muted small">{S.mapper.table.none}</p>
+        <div class="row">
+          <button
+            type="button"
+            class={picking ? 'btn btn-small btn-primary' : 'btn btn-small'}
+            aria-pressed={picking}
+            onClick={onPickHeader}
+          >
+            {S.mapper.table.pickHeader}
+          </button>
+        </div>
+        {picking ? <p class="caption">{S.mapper.table.pickHeaderHint}</p> : null}
         {suggestion ? (
           <div class="suggest-box stack">
             <p class="small">

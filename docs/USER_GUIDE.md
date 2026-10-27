@@ -55,7 +55,7 @@ The Mapper has three parts. **Your CSV**, on the left, lists everything that wil
 
 1. On **Templates**, choose **New template** (or open **Mapper** and drop a PDF on it).
 2. The app suggests a name and a **fingerprint**: text that appears on every document from this supplier, such as its name and ABN. Check it under **Recognise this supplier** at the bottom of the left-hand list ("Matches files that contain …" under the name).
-3. **Map each value.** With **Click a value** selected, click the value on the page (for example the statement number). Hovering shows exactly what a click will take: a click on any word takes the whole value, so "12 Mar 2026" or "Citric Acid Anhydrous" is one click. The app:
+3. **Map each value.** Click the value on the page (for example the statement number). Hovering shows exactly what a click will take: a click on any word takes the whole value, so "12 Mar 2026" or "Citric Acid Anhydrous" is one click. The app:
    - finds the label next to it (for example "Statement No"),
    - works out the type (date, amount, number or text),
    - suggests a standard name (for example `StatementNo`) and opens the field editor at the top of the Fields list.
@@ -66,14 +66,16 @@ The Mapper has three parts. **Your CSV**, on the left, lists everything that wil
    - **Change a field:** click its value on the page (it opens that field rather than adding a second one), or click its name in the list. Pointing at a field in the list outlines its value on the page.
    - **Remove a field:** choose the **×** on its row. **Undo** in the message at the bottom of the screen puts it back.
 4. **Suggestions.** Dashed amber boxes are values the app thinks you'll want; they're listed under **Suggestions** below your fields. **Accept** or **Dismiss** each one, choose **Accept all**, or simply click one on the page to accept it.
-5. **Map the table** (if the document has one). Choose **Map a table** and click the table's header row. The app finds the columns and their types, and outlines the table with its row count. Totals that repeat for each group (such as "Total for 02 5550 0160" after every phone number) are skipped automatically, and page headers and footers that repeat on every page are ignored. Then click any line in the table and say what it is under **What is this line?**:
+5. **Map the table** (if the document has one). Click the table's header row; a menu opens beside it, and **Map the table under this header row** maps it. If the header row has numbers in it (such as "Account Activity · Your Reference 55-10 2047"), choose **Choose the header row on the page** under **Line items** first, then click it. The app finds the columns and their types, and outlines the table with its row count. Totals that repeat for each group (such as "Total for 02 5550 0160" after every phone number) are skipped automatically, and page headers and footers that repeat on every page are ignored. Then click any line in the table: **What is this line?** opens beside it (press the letter shown next to a choice, or Esc to close):
    - **A heading:** copies the heading onto each row below it, as its own CSV column. "Telephone 02 5550 0160" gives a Telephone column with the number; a heading without numbers ("Services and equipment rental") gives a Section column, and one in capitals (a company name) gives a Company column.
    - **Not a row: skip lines like this.**
    - **A new column starts at "…":** click the first word of a value that has no heading of its own, such as a quantity or a period, to make it a column.
    - **The table ends here:** for example at "Call details".
    - **This is the header row:** start the table again from this line.
 
-   Each choice applies to every line like it on every page, and the message at the bottom has **Undo**. If the app finds a table on its own, **Line items** offers it with **Accept**.
+   - **Add "…" as a bill detail instead:** for a value inside the table area that belongs on every row.
+
+   Each choice applies to every line like it on every page. If the app finds a table on its own, **Line items** offers it with **Accept**.
 
    Under **Line items**, rename the table (for example `Items`) and its columns, and set each column's type; **×** removes a column. **How lines are read** lists the rules in plain words, with how many lines each one matched, for example "Lines starting “Total for” are skipped · 12 lines"; **×** removes a rule. If some lines aren't part of any row, a red note says how many: choose **Show** to go to each one on the page, then click it to say what it is. The header labels, row start and raw patterns are under **More options**. Drag a column divider by its grip above the header (or focus it and use the arrow keys).
 6. **Checks** (at the bottom of the left-hand list). The app offers sensible checks, such as "the amounts add up to the total" and "GST is the total ÷ 11". Turn them on or off, or add your own (see `TEMPLATE_FORMAT.md` for the expression language).
@@ -82,7 +84,7 @@ The Mapper has three parts. **Your CSV**, on the left, lists everything that wil
 
 Your work is saved as a draft as you go. If the tab closes, opening the template again offers **Resume** or **Discard**.
 
-**Re-pick** a field to point it at a different value. **+ Add field from list** adds a standard field by name.
+Under the page, type a page number to go straight to it, or use Page Up and Page Down while the page has focus. **Undo** and **Redo** above the page (or Ctrl+Z and Ctrl+Shift+Z) step back and forward through every change to the template. **Re-pick** a field to point it at a different value. **+ Add field from list** adds a standard field by name.
 
 ## 4. Testing on samples
 

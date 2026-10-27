@@ -14,6 +14,7 @@ import {
   apexPages,
   ridgewayPages,
   summitPages,
+  activityPages,
   coaPages,
 } from './docs';
 
@@ -130,6 +131,10 @@ export async function generateAll(): Promise<Record<string, Uint8Array>> {
   files['ridgeway-invoice-88231.pdf'] = await digital('Ridgeway invoice', ridgewayPages);
   files['harbourside-coa-a2391.pdf'] = await digital('Harbourside COA', coaPages);
   files['summit-voice-jan26.pdf'] = await digital('Summit Voice bill', summitPages);
+  files['summit-voice-activity.pdf'] = await digital(
+    'Summit Voice account activity',
+    activityPages,
+  );
   files['encrypted.pdf'] = encryptedPdf();
   files['corrupt.pdf'] = corruptPdf();
   files['rotated.pdf'] = await digital(

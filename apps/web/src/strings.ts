@@ -211,10 +211,19 @@ export const S = {
     backToFile: 'Go to the file to re-run it',
     noSample: 'Choose a sample PDF to start mapping.',
     noTemplate: 'Open a template from the Templates screen, or start a new one.',
-    modes: 'Mapping mode',
-    modeValue: 'Click a value',
-    modeTable: 'Map a table',
-    modeEnd: 'Set end marker',
+    page: 'Page',
+    ofPages: (n: number) => `of ${n}`,
+    pageNumber: (n: number) => `Page number, 1 to ${n}`,
+    undoButton: 'Undo',
+    redoButton: 'Redo',
+    undone: 'Undone',
+    redone: 'Redone',
+    clickHint: {
+      start:
+        'Click a value to add it as a column. Click a table’s header row to map its items. Drag a box to take several words.',
+      table:
+        'Click a value to add it as a column. Click a line in the table to say what it is: a heading, a line to skip, or where a column starts.',
+    },
     zoom: 'Zoom',
     zoomFit: 'Fit width',
     zoom100: '100%',
@@ -228,13 +237,6 @@ export const S = {
     addField: '+ Add field from list',
     repick: 'Re-pick',
     repickHint: 'Click the value on the page to re-pick this field.',
-    modeHint: {
-      value:
-        'Click a value to map it. Drag a box to take several words together. Click a mapped value to edit it.',
-      table:
-        'Click the table’s header row to start. Then click any line in the table to say what it is: a heading, a line to skip, or where a new column starts.',
-      end: 'Click the line where the table ends, for example “Subtotal”.',
-    },
     noLabel:
       'No label was found next to that value. Pick a value with its label to its left or just above it, or use “Add field from list”.',
     removeField: (name: string) => `Remove ${name}`,
@@ -273,11 +275,10 @@ export const S = {
     },
     table: {
       title: 'Line items',
-      none: 'No table yet. Choose “Map a table” and click the table’s header row; each row of the table becomes a row of the CSV.',
+      none: 'No table yet. Click the table’s header row on the page; each row of the table becomes a row of the CSV.',
       suggestion: (columns: string) => `This PDF seems to have a table with ${columns}.`,
       req: 'Req.',
-      columnsHint:
-        'To add a column, choose “Map a table” and click the first word of its values on the page.',
+      columnsHint: 'To add a column, click the first word of its values in the table on the page.',
       howRead: 'How lines are read',
       howReadHint: 'Click any line in the table on the page to change how lines like it are read.',
       mark: { row: 'R', heading: 'H', skip: '–', end: '■' },
@@ -320,6 +321,12 @@ export const S = {
       asColumn: (text: string) => `A new column starts at “${text}”`,
       asEnd: 'The table ends here',
       asHeader: 'This is the header row (start the table again)',
+      asTable: 'Map the table under this header row',
+      editField: (name: string) => `Edit the bill detail ${name}`,
+      pickHeader: 'Choose the header row on the page',
+      pickHeaderHint: 'Click any word of the table’s header row on the page (Esc to cancel).',
+      asTableHint: 'Each row of the table becomes a row of the CSV.',
+      asField: (value: string) => `Add “${value}” as a bill detail instead`,
       cantSplit:
         'That word already starts a column. Click a word further right to start a new column there.',
       groupAdded: (name: string) => `Heading copied onto each row as ${name}`,

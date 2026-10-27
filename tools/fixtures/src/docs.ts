@@ -923,3 +923,36 @@ export function summitPages(m: Metrics, count = 12): PageLayout[] {
   });
   return out.map((b) => b.build());
 }
+
+// ---------------------------------------------------------------- Summit account activity
+
+/** Description, amount and an amount excluding GST that has no heading of its own. */
+export const ACTIVITY_ROWS: [string, string, string, boolean][] = [
+  ['Previous balance', '$8,412.30', '', true],
+  ['We received', '$8,412.30cr', '', true],
+  ['Balance', '$0.00', '', true],
+  ["New charges pay by 19 Aug '26", '$7,104.62', 'includes rounding of $0.12cr', true],
+  ['', '', 'GST exclusive', false],
+  ["Usage charges to 24 Jul '26", '$42.10', '$38.27', false],
+  ["Services and equipment rental to 24 Aug '26", '$4,903.12', '$4,457.38', false],
+  ['Other charges and credits for this bill', '$2,159.40', '$1,963.09', false],
+  ['Total', '$7,104.62', '', true],
+  ['GST included in new charges', '', '$645.88', false],
+];
+
+export function activityPages(m: Metrics): PageLayout[] {
+  const p = new PageBuilder(m);
+  p.text(50, 50, 'SUMMIT VOICE', 16, 'bold');
+  p.text(50, 66, 'Tax invoice   Account 4471 2093', 9);
+  p.text(50, 110, 'Account Activity', 13, 'bold').text(200, 110, 'Your Reference 55-10 2047', 9);
+  p.rule(50, 545, 116);
+  let y = 110;
+  for (const [label, amount, excl, bold] of ACTIVITY_ROWS) {
+    y += 15;
+    if (label) p.text(bold ? 50 : 66, y, label, 9, bold ? 'bold' : 'regular');
+    if (amount) p.text(300, y, amount, 9, bold ? 'bold' : 'regular');
+    if (excl) p.text(400, y, excl, 9);
+  }
+  footer(p, 'Summit Voice · Account 4471 2093', 1, 1);
+  return [p.build()];
+}

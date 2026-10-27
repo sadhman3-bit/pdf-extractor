@@ -101,7 +101,7 @@ test('a mapped value reopens its field; fields remove with undo; dragging maps w
 
   await page.getByRole('button', { name: 'Remove StatementNo' }).click();
   await expect(mapped).toHaveCount(0);
-  await page.getByRole('button', { name: 'Undo' }).click();
+  await page.locator('.toast').getByRole('button', { name: 'Undo' }).click();
   await expect(mapped).toHaveCount(1);
 
   // Drag a box around the date.

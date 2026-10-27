@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { BBox, Token } from '@pdfx/engine';
 import type { PdfDocument, PdfPage } from '@pdfx/pdf';
@@ -83,12 +84,16 @@ export function PageView(props: {
   marks?: Mark[];
   selected?: Token[];
   dividers?: Divider[];
+  /** A small panel drawn on the page under a line (above it near the page foot), from x. */
+  overlay?: { bbox: BBox; x: number; node: ComponentChildren } | undefined;
   onToken?: (t: Token, shift: boolean) => void;
   /** Words inside a box dragged across the page. */
   onTokens?: (ts: Token[]) => void;
   /** The words a click on this word would take, highlighted on hover. */
   expand?: (t: Token) => Token[];
   onEscape?: () => void;
+  /** Page Up and Page Down on the page: -1 or +1. */
+  onPage?: (delta: number) => void;
   /** Scroll this box into view after rendering. */
   focusBox?: BBox | null;
   label?: string;
@@ -101,6 +106,7 @@ export function PageView(props: {
     marks = [],
     selected = [],
     dividers = [],
+    overlay,
     onToken,
     onTokens,
     expand,
@@ -185,7 +191,7 @@ export function PageView(props: {
   ];
   const onDown = (e: PointerEvent) => {
     if (!onTokens || e.button !== 0) return;
-    if ((e.target as HTMLElement).closest('.divider-handle')) return;
+    if ((e.target as HTMLElement).closest('.divider-handle, .page-pop')) return;
     const p = at(e);
     drag.current = { x: p.x, y: p.y, px: p.x, py: p.y, moved: false };
   };
@@ -240,6 +246,7 @@ export function PageView(props: {
 
   const onKey = (e: KeyboardEvent) => {
     if (!onToken || !flat.length) return;
+    if ((e.target as HTMLElement).closest('.page-pop')) return;
     const cur = flat[focus];
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
       e.preventDefault();
@@ -264,6 +271,9 @@ export function PageView(props: {
         e.preventDefault();
         onToken(cur, e.shiftKey);
       }
+    } else if ((e.key === 'PageDown' || e.key === 'PageUp') && props.onPage) {
+      e.preventDefault();
+      props.onPage(e.key === 'PageDown' ? 1 : -1);
     } else if (e.key === 'Escape') {
       onEscape?.();
     } else if (e.key === 'Home') {
@@ -344,6 +354,17 @@ export function PageView(props: {
         {dividers.map((d, i) => (
           <DividerHandle key={`d${i}`} d={d} scale={scale} />
         ))}
+        {overlay && size ? (
+          <div
+            class={`page-pop${overlay.bbox[3] > size.h * 0.62 ? ' page-pop-above' : ''}`}
+            style={{
+              left: `${Math.max(4, Math.min(overlay.x * scale, size.w * scale - 344))}px`,
+              top: `${(overlay.bbox[3] > size.h * 0.62 ? overlay.bbox[1] - 4 : overlay.bbox[3] + 4) * scale}px`,
+            }}
+          >
+            {overlay.node}
+          </div>
+        ) : null}
       </div>
       <span class="sr-only" aria-live="polite">
         {spoken}

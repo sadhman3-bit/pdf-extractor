@@ -16,14 +16,14 @@ async function mapField(page: Page, words: string[], name: string): Promise<void
   await page.getByRole('button', { name: 'Done' }).click();
 }
 
-async function mapTable(page: Page, cell: string, name: string, end: string): Promise<void> {
-  const modes = page.getByRole('group', { name: 'Mapping mode' });
-  await modes.getByRole('button', { name: 'Map a table' }).click();
-  await tok(page, cell).click();
+/** Clicks a word of the table's header row, then a word of the line where it ends. */
+async function mapTable(page: Page, header: string, name: string, end: string): Promise<void> {
+  await tok(page, header).click();
+  await page.getByRole('button', { name: 'Map the table under this header row' }).click();
   await expect(page.getByRole('textbox', { name: 'Table name' })).toBeVisible();
   await page.getByRole('textbox', { name: 'Table name' }).fill(name);
-  await modes.getByRole('button', { name: 'Set end marker' }).click();
   await tok(page, end).click();
+  await page.getByRole('button', { name: /^The table ends here$/ }).click();
 }
 
 async function saveAndCompare(page: Page, file: string): Promise<void> {
@@ -46,7 +46,7 @@ test('maps the Northline table through the interface; output equals the golden',
   await mapField(page, ['30/09/2026'], 'StatementDate');
   await mapField(page, ['$38.56'], 'TotalGST');
   await mapField(page, ['$424.18'], 'TotalDue');
-  await mapTable(page, '03/09/2026', 'Transactions', 'Subtotal');
+  await mapTable(page, 'Litres', 'Transactions', 'Subtotal');
   await expect(page.getByText(/Transactions · \d+ rows/)).toBeVisible();
   await expectNoAxe(page);
   await saveAndCompare(page, 'northline-sep26.pdf');
@@ -63,16 +63,15 @@ test('maps the COA results table through the interface; output equals the golden
   await mapField(page, ['14/08/2026'], 'ManufactureDate');
   await mapField(page, ['14/08/2028'], 'ExpiryDate');
   await mapField(page, ['PO-55102'], 'PONumber');
-  await mapTable(page, 'Appearance', 'Results', 'Conclusion:');
+  await mapTable(page, 'Specification', 'Results', 'Conclusion:');
   await saveAndCompare(page, 'harbourside-coa-a2391.pdf');
 });
 
 test('maps a grouped service summary by clicking lines', async ({ page }) => {
   await ready(page);
   await startFromSample(page, 'summit-voice-jan26.pdf');
-  const modes = page.getByRole('group', { name: 'Mapping mode' });
-  await modes.getByRole('button', { name: 'Map a table' }).click();
   await tok(page, 'Summary').click();
+  await page.getByRole('button', { name: 'Map the table under this header row' }).click();
   await expect(page.getByText('Table found. Now click any line in it')).toBeVisible();
   const choose = async (word: string, choice: RegExp) => {
     await tok(page, word).click();
@@ -88,8 +87,8 @@ test('maps a grouped service summary by clicking lines', async ({ page }) => {
   await choose('Call', /^The table ends here$/);
   await expect(page.getByText('Items · 26 rows')).toBeVisible();
   // Undo puts the end back; removing a column works too.
-  // The newest toast's Undo removes the end again.
-  await page.getByRole('button', { name: 'Undo' }).last().click();
+  // Undo (Ctrl+Z) removes the end again.
+  await page.keyboard.press('Control+z');
   await expect(page.getByText('Items · 30 rows')).toBeVisible();
   await page.getByRole('button', { name: 'Remove column Column5' }).click();
   await expect(page.getByRole('button', { name: 'Remove column Column5' })).toHaveCount(0);
@@ -109,11 +108,8 @@ test('the output shows every row, finds a value on the page and downloads the CS
   await startFromSample(page, 'summit-voice-jan26.pdf');
   const output = page.getByRole('region', { name: 'Output' });
   await expect(output.getByText(/Click a value or map a table/)).toBeVisible();
-  await page
-    .getByRole('group', { name: 'Mapping mode' })
-    .getByRole('button', { name: 'Map a table' })
-    .click();
   await tok(page, 'Summary').click();
+  await page.getByRole('button', { name: 'Map the table under this header row' }).click();
   await tok(page, 'Telephone').click();
   await page.getByRole('button', { name: /^A heading/ }).click();
   await expect(output.getByRole('columnheader', { name: /Telephone/ })).toBeVisible();
@@ -131,5 +127,30 @@ test('the output shows every row, finds a value on the page and downloads the CS
     'Item,ServiceSummary,ExclGST,InclGST,Telephone,_SourceFile',
   );
   expect(text).toContain('SVC102B');
+  await expectNoAxe(page);
+});
+
+test('a header row with numbers, and a column without a heading', async ({ page }) => {
+  await ready(page);
+  await startFromSample(page, 'summit-voice-activity.pdf');
+  // The header ("Account Activity · Your Reference 55-10 2047") isn't offered on its
+  // own, so choose it.
+  await page.getByRole('button', { name: 'Choose the header row on the page' }).click();
+  await tok(page, 'Activity').click();
+  await expect(page.getByText('Table found. Now click any line in it')).toBeVisible();
+  const output = page.getByRole('region', { name: 'Output' });
+  await expect(output.getByRole('columnheader')).toHaveCount(2);
+  // An amount with no heading: its menu offers a new column first.
+  await tok(page, '$38.27').click();
+  const menu = page.getByRole('dialog', { name: 'What is this line?' });
+  await expect(menu.getByRole('button').nth(1)).toHaveAccessibleName(
+    'A new column starts at “$38.27”',
+  );
+  await page.keyboard.press('Enter');
+  await expect(output.getByRole('columnheader')).toHaveCount(3);
+  await expect(output.getByRole('cell', { name: /\$?4,457\.38|4457\.38/ })).toBeVisible();
+  // Below the table's end ("Total"), a value is a bill detail.
+  await tok(page, '$645.88').click();
+  await expect(page.getByRole('combobox', { name: 'Name' })).toBeVisible();
   await expectNoAxe(page);
 });

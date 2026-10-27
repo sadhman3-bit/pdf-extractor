@@ -84,7 +84,7 @@ function Brand() {
       <span class="brand-mark">
         <DocIcon size={16} />
       </span>
-      {S.appName}
+      <span class="brand-name">{S.appName}</span>
     </a>
   );
 }
@@ -126,9 +126,14 @@ function FolderSwitch() {
 
 function SettingsButton() {
   return (
-    <button type="button" class="side-link" onClick={() => app.set({ settingsOpen: true })}>
+    <button
+      type="button"
+      class="side-link"
+      title={S.topbar.settings}
+      onClick={() => app.set({ settingsOpen: true })}
+    >
       <GearIcon size={17} />
-      {S.topbar.settings}
+      <span class="nav-text">{S.topbar.settings}</span>
     </button>
   );
 }
@@ -150,6 +155,7 @@ function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () => void }
                 key={n.view}
                 href={routeHref({ view: n.view })}
                 aria-current={route.view === n.view ? 'page' : undefined}
+                title={n.label}
                 onClick={(e) => {
                   e.preventDefault();
                   navigate({ view: n.view });
@@ -157,7 +163,7 @@ function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () => void }
                 }}
               >
                 <Icon size={17} />
-                {n.label}
+                <span class="nav-text">{n.label}</span>
                 {n.view === 'review' && s.exceptionCount > 0 ? (
                   <span class="nav-badge" aria-label={S.nav.reviewCount(s.exceptionCount)}>
                     {s.exceptionCount}
@@ -291,7 +297,8 @@ export function App() {
   const firstRun = ['welcome', 'choose', 'confirm', 'name', 'done'].includes(s.phase);
 
   return (
-    <div class="shell">
+    // The Mapper needs the width: the sidebar keeps only its icons there.
+    <div class={`shell${route.view === 'mapper' ? ' shell-compact' : ''}`}>
       <MobileHeader open={menuOpen} onToggle={() => setMenuOpen(!menuOpen)} />
       {menuOpen ? <div class="scrim" onClick={() => setMenuOpen(false)} /> : null}
       <Sidebar open={menuOpen} onNavigate={() => setMenuOpen(false)} />
