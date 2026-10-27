@@ -14,12 +14,24 @@ export interface Mark {
   tag?: 'accent' | 'warn';
 }
 
-export interface Divider {
-  x: number;
-  label: string;
+/** The column breaks of a mapped table, edited on a ruler along its top. */
+export interface Ruler {
+  /** Top of the table on this page and its foot, in points. */
   y0: number;
   y1: number;
-  onMove: (x: number) => void;
+  /** Outer edges of the table, then the breaks between its columns, left to right. */
+  x0: number;
+  x1: number;
+  breaks: number[];
+  /** Column names, one more than the breaks. */
+  names: string[];
+  onAdd: (x: number) => void;
+  /**
+   * record: a new undo step (a drag records only its first move, so it undoes as one);
+   * settle: the move is over, so the columns' types can be checked again.
+   */
+  onMove: (i: number, x: number, how: { record: boolean; settle: boolean }) => void;
+  onRemove: (i: number) => void;
 }
 
 export type Zoom = 'fit' | 1 | 1.5;
@@ -83,7 +95,7 @@ export function PageView(props: {
   tokens?: Token[];
   marks?: Mark[];
   selected?: Token[];
-  dividers?: Divider[];
+  ruler?: Ruler | undefined;
   /** A small panel drawn on the page under a line (above it near the page foot), from x. */
   overlay?: { bbox: BBox; x: number; node: ComponentChildren } | undefined;
   onToken?: (t: Token, shift: boolean) => void;
@@ -105,7 +117,7 @@ export function PageView(props: {
     tokens = [],
     marks = [],
     selected = [],
-    dividers = [],
+    ruler,
     overlay,
     onToken,
     onTokens,
@@ -191,7 +203,7 @@ export function PageView(props: {
   ];
   const onDown = (e: PointerEvent) => {
     if (!onTokens || e.button !== 0) return;
-    if ((e.target as HTMLElement).closest('.divider-handle, .page-pop')) return;
+    if ((e.target as HTMLElement).closest('.ruler, .page-pop')) return;
     const p = at(e);
     drag.current = { x: p.x, y: p.y, px: p.x, py: p.y, moved: false };
   };
@@ -246,7 +258,7 @@ export function PageView(props: {
 
   const onKey = (e: KeyboardEvent) => {
     if (!onToken || !flat.length) return;
-    if ((e.target as HTMLElement).closest('.page-pop')) return;
+    if ((e.target as HTMLElement).closest('.page-pop, .ruler')) return;
     const cur = flat[focus];
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
       e.preventDefault();
@@ -351,9 +363,7 @@ export function PageView(props: {
           </div>
         ))}
         {band ? <div class="band" style={box(norm(band))} aria-hidden="true" /> : null}
-        {dividers.map((d, i) => (
-          <DividerHandle key={`d${i}`} d={d} scale={scale} />
-        ))}
+        {ruler ? <RulerBar r={ruler} scale={scale} /> : null}
         {overlay && size ? (
           <div
             class={`page-pop${overlay.bbox[3] > size.h * 0.62 ? ' page-pop-above' : ''}`}
@@ -373,48 +383,112 @@ export function PageView(props: {
   );
 }
 
-/** A column divider: a dashed line that never blocks clicks on words, dragged by its grip above the table. */
-function DividerHandle({ d, scale }: { d: Divider; scale: number }) {
-  const drag = useRef<{ startX: number; startPt: number } | null>(null);
+/**
+ * A ruler along the top of a table: click it to add a column break, drag a
+ * break to move it, × to remove it. The lines down the table never block clicks.
+ */
+function RulerBar({ r, scale }: { r: Ruler; scale: number }) {
+  const drag = useRef<{
+    i: number;
+    startX: number;
+    startPt: number;
+    at: number;
+    moved: boolean;
+  } | null>(null);
+  const bar = useRef<HTMLButtonElement>(null);
+  const edges = [r.x0, ...r.breaks, r.x1];
+  const top = r.y0 * scale - 22;
+  const round = (x: number) => Math.round(x * 100) / 100;
   return (
-    <>
-      <div
-        class="divider-line"
-        aria-hidden="true"
-        style={{
-          left: `${d.x * scale}px`,
-          top: `${d.y0 * scale}px`,
-          height: `${Math.max(20, (d.y1 - d.y0) * scale)}px`,
-        }}
-      />
+    <div
+      class="ruler"
+      style={{ left: `${r.x0 * scale}px`, top: `${top}px`, width: `${(r.x1 - r.x0) * scale}px` }}
+    >
       <button
         type="button"
-        class="divider-handle"
-        aria-label={d.label}
-        title={d.label}
-        style={{ left: `${d.x * scale}px`, top: `${d.y0 * scale - 18}px` }}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            e.preventDefault();
-            e.stopPropagation();
-            d.onMove(Math.round((d.x + (e.key === 'ArrowRight' ? 2 : -2)) * 100) / 100);
+        ref={bar}
+        class="ruler-bar"
+        aria-label={S.mapper.ruler.add}
+        title={S.mapper.ruler.add}
+        onClick={(e) => {
+          if (e.detail === 0) {
+            // From the keyboard: split the widest column in the middle.
+            let w = 0;
+            for (let i = 0; i + 1 < edges.length; i++)
+              if (edges[i + 1]! - edges[i]! > edges[w + 1]! - edges[w]!) w = i;
+            r.onAdd(round((edges[w]! + edges[w + 1]!) / 2));
+            return;
           }
-        }}
-        onPointerDown={(e) => {
-          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-          drag.current = { startX: e.clientX, startPt: d.x };
-        }}
-        onPointerMove={(e) => {
-          if (!drag.current) return;
-          d.onMove(
-            Math.round((drag.current.startPt + (e.clientX - drag.current.startX) / scale) * 100) /
-              100,
-          );
-        }}
-        onPointerUp={() => {
-          drag.current = null;
+          const box = bar.current!.getBoundingClientRect();
+          r.onAdd(round(r.x0 + (e.clientX - box.left) / scale));
         }}
       />
-    </>
+      {r.names.map((n, i) => (
+        <span
+          key={`n${i}`}
+          class="ruler-name"
+          aria-hidden="true"
+          style={{
+            left: `${(edges[i]! - r.x0) * scale}px`,
+            width: `${(edges[i + 1]! - edges[i]!) * scale}px`,
+          }}
+        >
+          {n}
+        </span>
+      ))}
+      {r.breaks.map((x, i) => (
+        <div key={`b${i}`} class="break" style={{ left: `${(x - r.x0) * scale}px` }}>
+          <div
+            class="break-line"
+            aria-hidden="true"
+            style={{ height: `${Math.max(20, (r.y1 - r.y0) * scale + 22)}px` }}
+          />
+          <button
+            type="button"
+            class="break-handle"
+            aria-label={S.mapper.ruler.handle(r.names[i] ?? '', r.names[i + 1] ?? '')}
+            title={S.mapper.ruler.handleTitle}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                const step = (e.shiftKey ? 10 : 1) * (e.key === 'ArrowRight' ? 1 : -1);
+                r.onMove(i, round(x + step), { record: true, settle: true });
+              } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                e.preventDefault();
+                r.onRemove(i);
+              }
+            }}
+            onPointerDown={(e) => {
+              (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+              drag.current = { i, startX: e.clientX, startPt: x, at: x, moved: false };
+            }}
+            onPointerMove={(e) => {
+              const d = drag.current;
+              if (!d || (!d.moved && Math.abs(e.clientX - d.startX) < 2)) return;
+              d.at = round(d.startPt + (e.clientX - d.startX) / scale);
+              r.onMove(d.i, d.at, { record: !d.moved, settle: false });
+              d.moved = true;
+            }}
+            onPointerUp={() => {
+              const d = drag.current;
+              drag.current = null;
+              if (d?.moved) r.onMove(d.i, d.at, { record: false, settle: true });
+            }}
+            onPointerCancel={() => {
+              drag.current = null;
+            }}
+          />
+          <button
+            type="button"
+            class="break-remove"
+            aria-label={S.mapper.ruler.remove(r.names[i] ?? '', r.names[i + 1] ?? '')}
+            title={S.mapper.ruler.removeTitle}
+            onClick={() => r.onRemove(i)}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }

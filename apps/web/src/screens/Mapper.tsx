@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   PRESETS,
-  addColumnAt,
+  addBreak,
   buildLayout,
   inferField,
   groupFor,
   findHeaderOnPage,
   inferTable,
   looksLikeHeader,
+  moveBreak,
   outputGrid,
   parseTemplate,
   phrases,
+  removeBreak,
   suggestFields,
   suggestFingerprint,
   skipPatternFor,
   suggestTable,
+  tableFrame,
   toCsv,
   valueTokens,
   type BBox,
@@ -44,7 +47,7 @@ import {
 } from '../components/ui';
 import { usePreview } from '../lib/preview';
 import { OutputDock } from './MapperOutput';
-import { PageView, usePdf, type Divider, type Mark, type Zoom } from '../components/PageView';
+import { PageView, usePdf, type Mark, type Ruler, type Zoom } from '../components/PageView';
 import { documentText } from '../lib/pipeline';
 import { idbDel, idbGet, idbSet } from '../lib/idb';
 import { DIRS, join, slugify, stem } from '../workspace/paths';
@@ -164,15 +167,18 @@ export function MapperScreen() {
 
   /** Updates the draft and autosaves (IndexedDB now, folder after 2 s). */
   const setDraft = (t: Template, persist = true, record = true) => {
-    // Changes in quick succession (typing a name) undo together.
+    // Typing in quick succession (a name) undoes together; each click is its own step.
     const cur = latest.current;
     if (record && persist && cur && cur !== t && cur.id === t.id) {
       const now = Date.now();
-      if (now - history.current.at > 700) {
+      const typing = !!document.activeElement?.closest(
+        'input[type="text"], input:not([type]), textarea',
+      );
+      if (!typing || now - history.current.at > 700) {
         history.current.past.push(cur);
         if (history.current.past.length > 100) history.current.past.shift();
       }
-      history.current.at = now;
+      history.current.at = typing ? now : 0;
       history.current.future = [];
       setHistoryTick((n) => n + 1);
     }
@@ -361,11 +367,15 @@ export function MapperScreen() {
 
   const updateField = (f: FieldRule) =>
     setDraft({ ...draft, fields: draft.fields.map((x) => (x.id === f.id ? f : x)) });
-  const setTable = (t: TableRule | null) =>
-    setDraft({
-      ...draft,
-      tables: t ? [t, ...(draft.tables ?? []).slice(1)] : (draft.tables ?? []).slice(1),
-    });
+  const setTable = (t: TableRule | null, record = true) =>
+    setDraft(
+      {
+        ...draft,
+        tables: t ? [t, ...(draft.tables ?? []).slice(1)] : (draft.tables ?? []).slice(1),
+      },
+      true,
+      record,
+    );
 
   const fieldAt = (t: Token) =>
     draft.fields.find((f) =>
@@ -685,9 +695,6 @@ export function MapperScreen() {
     const taken = [...table.columns.map((c) => c.name), ...(table.groups ?? []).map((g) => g.name)];
     const group = groupFor(line, taken);
     const m = new RegExp(group.pattern).exec(line.text);
-    const split = tableResult?.found ? addColumnAt(layout, table, tableResult.bounds, t) : null;
-    const phrase = phrases(line).find((p) => p.tokens.includes(t))!;
-    const from = phrase.tokens.indexOf(t);
     const choices: { label: string; key: string; run: () => void }[] = [
       {
         label: S.mapper.table.asGroup(group.name, (m?.[group.capture ?? 0] ?? line.text).trim()),
@@ -710,20 +717,6 @@ export function MapperScreen() {
           );
         },
       },
-      ...(split
-        ? [
-            {
-              label: S.mapper.table.asColumn(
-                phrase.tokens
-                  .slice(from)
-                  .map((x) => x.text)
-                  .join(' '),
-              ),
-              key: 'C',
-              run: () => changeTable(split.rule, S.mapper.table.columnAdded(split.column.name)),
-            },
-          ]
-        : []),
       {
         label: S.mapper.table.asEnd,
         key: 'E',
@@ -738,18 +731,6 @@ export function MapperScreen() {
       { label: S.mapper.table.asHeader, key: 'T', run: () => startTable(t, true) },
       ...(asField ? [asField] : []),
     ];
-    // A click on an amount or code most likely means "this is a column of its own".
-    const col = choices.findIndex((c) => c.key === 'C');
-    if (
-      col > 0 &&
-      /\d/.test(
-        phrase.tokens
-          .slice(from)
-          .map((x) => x.text)
-          .join(' '),
-      )
-    )
-      choices.unshift(...choices.splice(col, 1));
     return (
       <LineMenu text={line.text} choices={choices} hint={S.mapper.table.lineHint} onClose={close} />
     );
@@ -805,30 +786,42 @@ export function MapperScreen() {
         marks.push({ bbox: tableResult.end.bbox, kind: 'end' });
     }
   }
-  const dividers: Divider[] = [];
-  if (table && tableResult?.found && tableResult.header?.page === pageNo) {
-    const hb = tableResult.header.bbox;
-    const lastRow = tableResult.rows.filter((r) => r.page === pageNo).pop();
-    const y1 = lastRow ? lastRow.bbox[3] : hb[3];
-    tableResult.bounds.forEach((b, i) => {
-      if (i === 0 || !Number.isFinite(b.x0)) return;
-      dividers.push({
-        x: b.x0,
-        y0: hb[1],
-        y1,
-        label: S.mapper.table.dividerLabel(i),
-        onMove: (x) => {
-          const left = tableResult.bounds[i - 1]!.name;
-          const right = b.name;
-          setTable({
-            ...table,
-            columns: table.columns.map((c) =>
-              c.name === left ? { ...c, x1: x } : c.name === right ? { ...c, x0: x } : c,
-            ),
-          });
+  // The ruler along the table's top on this page: column breaks to add, move and remove.
+  let ruler: Ruler | undefined;
+  const frame = layout && table ? tableFrame(layout, table) : null;
+  const pageLines = layout?.pages.find((p) => p.page === pageNo)?.lines;
+  if (layout && table && frame && frame.bounds.length && pageLines) {
+    const rowsHere = (tableResult?.rows ?? []).filter((r) => r.page === pageNo);
+    const head =
+      frame.page === pageNo ? frame.bbox : findHeaderOnPage(pageLines, table, pageNo)?.bbox;
+    if (head || rowsHere.length) {
+      const b = frame.bounds;
+      const withTable = (next: TableRule | null, fail = S.mapper.ruler.tooNarrow) =>
+        next ? next : (setMessage({ tone: 'warn', text: fail }), null);
+      ruler = {
+        y0: head ? head[1] : Math.min(...rowsHere.map((r) => r.bbox[1])),
+        y1: rowsHere.length ? Math.max(...rowsHere.map((r) => r.bbox[3])) : head![3],
+        x0: b[0]!.x0,
+        x1: b[b.length - 1]!.x1,
+        breaks: b.slice(1).map((c) => c.x0),
+        names: b.map((c) => c.name),
+        onAdd: (x) => {
+          const split = addBreak(layout, table, x);
+          if (withTable(split?.rule ?? null))
+            changeTable(split!.rule, S.mapper.table.columnAdded(split!.column.name));
         },
-      });
-    });
+        onMove: (i, x, how) => {
+          const next = moveBreak(layout, table, i, x, how.settle);
+          if (next) setTable(next, how.record);
+        },
+        onRemove: (i) => {
+          const next = withTable(removeBreak(layout, table, i));
+          if (!next) return;
+          const kept = next.columns.find((c) => c.name === b[i]!.name) ? b[i]! : b[i + 1]!;
+          changeTable(next, S.mapper.ruler.removed(kept.name));
+        },
+      };
+    }
   }
 
   const save = async () => {
@@ -1078,6 +1071,13 @@ export function MapperScreen() {
             onChange={(t) => setTable(t)}
             onRemove={() => setTable(null)}
             onRemoveColumn={removeColumn}
+            onClearBreaks={() => {
+              if (!layout || !table) return;
+              let next = table;
+              for (let r = removeBreak(layout, next, 0); r; r = removeBreak(layout, next, 0))
+                next = r;
+              changeTable(next, S.mapper.table.breaksCleared);
+            }}
             onShowUnplaced={showUnplaced}
             picking={pickHeader}
             onPickHeader={() => {
@@ -1159,7 +1159,7 @@ export function MapperScreen() {
                 tokens={pages[pageNo - 1]?.tokens ?? []}
                 marks={marks}
                 selected={selected}
-                dividers={dividers}
+                ruler={ruler}
                 overlay={
                   lineAt && lineAt.page === pageNo
                     ? (() => {

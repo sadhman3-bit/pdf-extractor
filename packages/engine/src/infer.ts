@@ -10,7 +10,13 @@ import type {
   TableRule,
   Template,
 } from './template';
-import { extractTable, type ColumnBounds } from './tables';
+import {
+  bodyLines,
+  columnBounds,
+  extractTable,
+  findHeaderOnPage,
+  type ColumnBounds,
+} from './tables';
 import { bboxOf, cx, cy, furnitureLines, phrases } from './layout';
 import { normalize, normTokens } from './normalize';
 import { guessDateFormat, inferType, parseDate, parseNumber, DATE_GUESS_FORMATS } from './parse';
@@ -462,7 +468,15 @@ export function inferTable(
     continuesOnNextPage: true,
     groups: [],
   };
-  return { rule, headerLine: header };
+  // The few lines above guessed the types; the whole table may show more numbers.
+  return {
+    rule: retype(
+      layout,
+      rule,
+      columns.map((c) => c.name),
+    ),
+    headerLine: header,
+  };
 }
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -581,6 +595,145 @@ export function addColumnAt(
   }
   const out = retype(layout, { ...rule, columns }, [b.name, name, ...(next ? [next.name] : [])]);
   return { rule: out, column: out.columns.find((x) => x.name === name)! };
+}
+
+/** Where a table's header sits, with its column edges from left to right. */
+export interface TableFrame {
+  page: number;
+  bbox: BBox;
+  width: number;
+  /** Column edges in page points; the outer edges are the page's. */
+  bounds: ColumnBounds[];
+  spans: Map<string, { x0: number; x1: number }>;
+}
+
+export function tableFrame(layout: DocLayout, rule: TableRule): TableFrame | null {
+  for (const p of layout.pages) {
+    const h = findHeaderOnPage(p.lines, rule, p.page);
+    if (!h) continue;
+    const bounds = columnBounds(rule, h.spans, bodyLines(p.lines, h.lastIndex + 1, rule))
+      .map((b) => ({ ...b, x0: Math.max(0, b.x0), x1: Math.min(p.width, b.x1) }))
+      .sort((a, b) => a.x0 - b.x0);
+    return { page: p.page, bbox: h.bbox, width: p.width, bounds, spans: h.spans };
+  }
+  return null;
+}
+
+/** The narrowest a column can be, in points. */
+const MIN_COLUMN = 4;
+const pt = (x: number) => Math.round(x * 100) / 100;
+
+/** The table with every placed column's edges written out, so breaks can move one at a time. */
+function fixEdges(rule: TableRule, f: TableFrame): TableRule {
+  const at = new Map(f.bounds.map((b) => [b.name, b]));
+  return {
+    ...rule,
+    boundaries: 'explicit',
+    columns: rule.columns.map((c) => {
+      const b = at.get(c.name);
+      return b ? { ...c, x0: pt(b.x0), x1: pt(b.x1) } : c;
+    }),
+  };
+}
+
+/**
+ * Adds a column break at x: the column there splits in two. The part under the
+ * column's heading keeps its name; the other is named from the header words above it.
+ */
+export function addBreak(
+  layout: DocLayout,
+  rule: TableRule,
+  x: number,
+): { rule: TableRule; column: ColumnRule } | null {
+  const f = tableFrame(layout, rule);
+  if (!f) return null;
+  const b = f.bounds.find((c) => x > c.x0 + MIN_COLUMN && x < c.x1 - MIN_COLUMN);
+  const col = b && rule.columns.find((c) => c.name === b.name);
+  if (!b || !col) return null;
+  const span = f.spans.get(col.header);
+  const newOnRight = !span || (span.x0 + span.x1) / 2 < x;
+  const [nx0, nx1] = newOnRight ? [x, b.x1] : [b.x0, x];
+  // Header words over the new part that aren't the old column's own heading
+  // (nor numbers, such as a reference printed on the header row).
+  const page = layout.pages.find((p) => p.page === f.page)!;
+  const words = page.lines
+    .filter((l) => l.cy >= f.bbox[1] && l.cy <= f.bbox[3])
+    .flatMap((l) => l.tokens)
+    .filter(
+      (t) =>
+        cx(t) >= nx0 &&
+        cx(t) < nx1 &&
+        !/\d/.test(t.text) &&
+        !(span && t.x0 >= span.x0 - 1 && t.x1 <= span.x1 + 1),
+    )
+    .sort((a, c) => a.x0 - c.x0);
+  const taken = new Set([
+    ...rule.columns.map((c) => c.name),
+    ...(rule.groups ?? []).map((g) => g.name),
+  ]);
+  let name = words.length ? nameFromLabel(words.map((t) => t.text).join(' ')) : '';
+  if (!name || taken.has(name)) {
+    let n = rule.columns.length + 1;
+    while (taken.has(`Column${n}`)) n++;
+    name = `Column${n}`;
+  }
+  const column: ColumnRule = { name, header: name, type: 'text', x0: pt(nx0), x1: pt(nx1) };
+  const fixed = fixEdges(rule, f);
+  const columns: ColumnRule[] = [];
+  for (const c of fixed.columns) {
+    if (c.name !== b.name) columns.push(c);
+    else if (newOnRight) columns.push({ ...c, x1: pt(x) }, column);
+    else columns.push(column, { ...c, x0: pt(x) });
+  }
+  const out = retype(layout, { ...fixed, columns }, [b.name, name]);
+  return { rule: out, column: out.columns.find((c) => c.name === name)! };
+}
+
+/**
+ * Moves the break between column i and column i + 1 (left to right) to x.
+ * settle: also re-type the two columns (at the end of a drag, not on every move).
+ */
+export function moveBreak(
+  layout: DocLayout,
+  rule: TableRule,
+  i: number,
+  x: number,
+  settle = false,
+): TableRule | null {
+  const f = tableFrame(layout, rule);
+  const left = f?.bounds[i];
+  const right = f?.bounds[i + 1];
+  if (!f || !left || !right) return null;
+  const to = pt(Math.min(Math.max(x, left.x0 + MIN_COLUMN), right.x1 - MIN_COLUMN));
+  const fixed = fixEdges(rule, f);
+  const out = {
+    ...fixed,
+    columns: fixed.columns.map((c) =>
+      c.name === left.name ? { ...c, x1: to } : c.name === right.name ? { ...c, x0: to } : c,
+    ),
+  };
+  return settle ? retype(layout, out, [left.name, right.name]) : out;
+}
+
+/** Removes the break between column i and column i + 1: the two become one. */
+export function removeBreak(layout: DocLayout, rule: TableRule, i: number): TableRule | null {
+  const f = tableFrame(layout, rule);
+  const left = f?.bounds[i];
+  const right = f?.bounds[i + 1];
+  if (!f || !left || !right) return null;
+  // A named column outlives one the app numbered.
+  const keep = /^Column\d+$/.test(left.name) && !/^Column\d+$/.test(right.name) ? right : left;
+  const drop = keep === left ? right : left;
+  const fixed = fixEdges(rule, f);
+  return {
+    ...fixed,
+    columns: fixed.columns
+      .filter((c) => c.name !== drop.name)
+      .map((c) => (c.name === keep.name ? { ...c, x0: pt(left.x0), x1: pt(right.x1) } : c)),
+    ...(fixed.rowStart?.column === drop.name
+      ? { rowStart: { ...fixed.rowStart, column: keep.name } }
+      : {}),
+  };
 }
 
 /** Sets the type of changed text columns whose values are now all numbers or all dates. */

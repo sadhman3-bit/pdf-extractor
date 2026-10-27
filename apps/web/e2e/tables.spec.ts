@@ -26,6 +26,14 @@ async function mapTable(page: Page, header: string, name: string, end: string): 
   await page.getByRole('button', { name: /^The table ends here$/ }).click();
 }
 
+/** Clicks the ruler above the table just left of a word: a column break goes there. */
+async function breakBefore(page: Page, word: string): Promise<void> {
+  const ruler = page.locator('.ruler-bar');
+  const t = (await tok(page, word).boundingBox())!;
+  const r = (await ruler.boundingBox())!;
+  await ruler.click({ position: { x: t.x - r.x - 2, y: r.height / 2 } });
+}
+
 async function saveAndCompare(page: Page, file: string): Promise<void> {
   await page.getByRole('button', { name: 'Save template' }).click();
   await expect(page.getByRole('main').getByText('Saved as version 1')).toBeVisible();
@@ -72,7 +80,7 @@ test('maps a grouped service summary by clicking lines', async ({ page }) => {
   await startFromSample(page, 'summit-voice-jan26.pdf');
   await tok(page, 'Summary').click();
   await page.getByRole('button', { name: 'Map the table under this header row' }).click();
-  await expect(page.getByText('Table found. Now click any line in it')).toBeVisible();
+  await expect(page.getByText(/^Table marked\./)).toBeVisible();
   const choose = async (word: string, choice: RegExp) => {
     await tok(page, word).click();
     await expect(page.getByRole('heading', { name: 'What is this line?' })).toBeVisible();
@@ -80,7 +88,11 @@ test('maps a grouped service summary by clicking lines', async ({ page }) => {
   };
   await choose('Telephone', /^A heading: copy “02 5550 0160 AVC000055510432”/);
   await choose('Services', /^A heading: copy “Services and equipment rental”/);
-  await choose('25', /^A new column starts at “25 Dec to 24 Jan”$/);
+  // The period gets its own column: a break on the ruler, just left of it.
+  await breakBefore(page, '25');
+  await expect(
+    page.locator('.toast').getByText('New column Column5. Rename it on the left.'),
+  ).toBeVisible();
   // 26 items, then the call details on the last page: end the table there.
   for (let i = 0; i < 6 && !(await tok(page, 'Call').count()); i++)
     await page.getByRole('button', { name: 'Next page' }).click();
@@ -137,18 +149,25 @@ test('a header row with numbers, and a column without a heading', async ({ page 
   // own, so choose it.
   await page.getByRole('button', { name: 'Choose the header row on the page' }).click();
   await tok(page, 'Activity').click();
-  await expect(page.getByText('Table found. Now click any line in it')).toBeVisible();
+  await expect(page.getByText(/^Table marked\./)).toBeVisible();
   const output = page.getByRole('region', { name: 'Output' });
   await expect(output.getByRole('columnheader')).toHaveCount(2);
-  // An amount with no heading: its menu offers a new column first.
-  await tok(page, '$38.27').click();
-  const menu = page.getByRole('dialog', { name: 'What is this line?' });
-  await expect(menu.getByRole('button').nth(1)).toHaveAccessibleName(
-    'A new column starts at “$38.27”',
-  );
-  await page.keyboard.press('Enter');
+  // An amount with no heading: a break on the ruler just left of it makes it a column.
+  await breakBefore(page, '$38.27');
   await expect(output.getByRole('columnheader')).toHaveCount(3);
   await expect(output.getByRole('cell', { name: /\$?4,457\.38|4457\.38/ })).toBeVisible();
+  // Arrow keys move a break; × takes it away and Undo brings it back.
+  const handle = page.getByRole('button', { name: /^Column break between \w+ and Column3\./ });
+  await handle.focus();
+  await page.keyboard.press('Shift+ArrowLeft');
+  await expect(output.getByRole('columnheader')).toHaveCount(3);
+  await handle.focus();
+  await page
+    .getByRole('button', { name: /^Remove the column break between \w+ and Column3$/ })
+    .click();
+  await expect(output.getByRole('columnheader')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Undo', exact: true }).first().click();
+  await expect(output.getByRole('columnheader')).toHaveCount(3);
   // Below the table's end ("Total"), a value is a bill detail.
   await tok(page, '$645.88').click();
   await expect(page.getByRole('combobox', { name: 'Name' })).toBeVisible();

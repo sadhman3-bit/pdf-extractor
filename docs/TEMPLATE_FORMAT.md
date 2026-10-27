@@ -147,8 +147,8 @@ Use these so outputs stay consistent across suppliers: `InvoiceNumber`, `Stateme
 | Property | Meaning |
 | --- | --- |
 | `header.labels`, `minMatch` | The header is the first line (or two lines together) containing at least `minMatch` of these labels. |
-| `columns` | One entry per column: `name` (output name), `header` (printed label), plus the same `type`, `required`, `dateFormats`, `clean` and `creditMeansNegative` options as fields. `x0` and `x1` are column edges in points, set when you drag a divider in the Mapper. |
-| `boundaries` | `from-header` puts each edge halfway between neighbouring header labels; `explicit` uses the stored `x0`/`x1`. |
+| `columns` | One entry per column: `name` (output name), `header` (printed label), plus the same `type`, `required`, `dateFormats`, `clean` and `creditMeansNegative` options as fields. `x0` and `x1` are column edges in points, set when you add, move or remove a column break on the Mapper's ruler. |
+| `boundaries` | `from-header` puts each edge in the widest clear gap between neighbouring header labels (halfway between them when there is none); `explicit` uses the stored `x0`/`x1`. |
 | `rowStart` | A new row starts when this column's cell matches the pattern. |
 | `wrappedLines` | `join` adds a line that doesn't start a row to the row above (for wrapped descriptions); `ignore` drops it. |
 | `end` | Stop at a line starting with (or matching) one of these labels. |

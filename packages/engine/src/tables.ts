@@ -125,28 +125,83 @@ export function findHeaderOnPage(
   return null;
 }
 
-/** Column boundaries: halfway between neighbouring header centres, unless set explicitly. */
+/**
+ * Where the edge between two columns goes: in the widest strip between the
+ * left heading's end (a) and the right heading's start (b) that (almost) no
+ * line of the table crosses. Halfway between the headings' centres (mid) when
+ * there is no such strip, or no lines to go by.
+ */
+function gapBetween(a: number, b: number, mid: number, body: Line[]): number {
+  const from = Math.floor(a);
+  const n = Math.ceil(b) - from;
+  if (!body.length || n < GAP_MIN) return mid;
+  const cover = new Array<number>(n).fill(0);
+  for (const line of body) {
+    const hit = new Uint8Array(n);
+    for (const t of line.tokens)
+      for (let x = Math.max(0, Math.ceil(t.x0) - from); x < Math.min(n, t.x1 - from); x++)
+        hit[x] = 1;
+    for (let x = 0; x < n; x++) cover[x] = cover[x]! + hit[x]!;
+  }
+  // A stray wide line or two doesn't stop a strip counting as clear.
+  const clear = Math.min(...cover) + Math.floor(body.length * 0.05);
+  let best: [number, number] = [0, 0];
+  for (let x = 0; x < n;) {
+    if (cover[x]! > clear) {
+      x++;
+      continue;
+    }
+    let y = x;
+    while (y < n && cover[y]! <= clear) y++;
+    if (y - x > best[1] - best[0]) best = [x, y];
+    x = y;
+  }
+  // Narrower strips are the spaces between words.
+  return best[1] - best[0] >= GAP_MIN ? from + (best[0] + best[1]) / 2 : mid;
+}
+const GAP_MIN = 5;
+
+/** The lines under a header that show where its columns run: rows, not headings. */
+export function bodyLines(lines: Line[], from: number, rule: TableRule): Line[] {
+  const skip = compile(rule.skip);
+  const body: Line[] = [];
+  for (let i = from; i < lines.length && body.length < 60; i++) {
+    const line = lines[i]!;
+    if (rule.end && lineMatches(line, rule.end.labels, rule.end.match ?? 'starts-with')) break;
+    if (phrases(line).length >= 2 && !skip.some((re) => re.test(line.text))) body.push(line);
+  }
+  return body;
+}
+
+/**
+ * Column boundaries, unless set explicitly: in the gap between neighbouring
+ * columns' words under the header (halfway between header centres without them).
+ */
 export function columnBounds(
   rule: TableRule,
   spans: Map<string, { x0: number; x1: number }>,
+  body: Line[] = [],
 ): ColumnBounds[] {
   const placed = rule.columns
     .map((c) => {
       const s = spans.get(c.header);
-      const centre = s
-        ? (s.x0 + s.x1) / 2
-        : c.x0 !== undefined && c.x1 !== undefined
-          ? (c.x0 + c.x1) / 2
-          : null;
+      // Columns with both edges set sort by those, so breaks keep their order.
+      const centre =
+        c.x0 !== undefined && c.x1 !== undefined ? (c.x0 + c.x1) / 2 : s ? (s.x0 + s.x1) / 2 : null;
       return { c, centre };
     })
     .filter((p): p is { c: ColumnRule; centre: number } => p.centre !== null)
     .sort((a, b) => a.centre - b.centre);
+  const edges = placed.slice(1).map((p, i) => {
+    const prev = placed[i]!;
+    const mid = (prev.centre + p.centre) / 2;
+    const a = spans.get(prev.c.header)?.x1 ?? prev.centre;
+    const b = spans.get(p.c.header)?.x0 ?? p.centre;
+    return a < b ? gapBetween(a, b, mid, body) : mid;
+  });
   return placed.map((p, i) => {
-    const prev = placed[i - 1];
-    const next = placed[i + 1];
-    const x0 = p.c.x0 ?? (prev ? (prev.centre + p.centre) / 2 : -Infinity);
-    const x1 = p.c.x1 ?? (next ? (p.centre + next.centre) / 2 : Infinity);
+    const x0 = p.c.x0 ?? (i > 0 ? edges[i - 1]! : -Infinity);
+    const x1 = p.c.x1 ?? (i < edges.length ? edges[i]! : Infinity);
     return { name: p.c.name, x0, x1 };
   });
 }
@@ -187,7 +242,12 @@ export function extractTable(
   if (!header) return result;
   result.found = true;
   result.header = { page: header.page, bbox: header.bbox };
-  const bounds = columnBounds(rule, header.spans);
+  const headerLines = layout.pages[startPage]!.lines;
+  const bounds = columnBounds(
+    rule,
+    header.spans,
+    bodyLines(headerLines, header.lastIndex + 1, rule),
+  );
   result.bounds = bounds;
 
   // An invalid pattern never matches but keeps its place, so counts line up with `rule.skip`.

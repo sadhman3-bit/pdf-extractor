@@ -532,6 +532,7 @@ export function TablePanel({
   onChange,
   onRemove,
   onRemoveColumn,
+  onClearBreaks,
   onShowUnplaced,
   picking,
   onPickHeader,
@@ -544,6 +545,8 @@ export function TablePanel({
   onChange: (t: TableRule) => void;
   onRemove: () => void;
   onRemoveColumn: (name: string) => void;
+  /** Makes the table one column, for placing every break by hand. */
+  onClearBreaks: () => void;
   onShowUnplaced: () => void;
   /** Waiting for a click on the header row. */
   picking: boolean;
@@ -672,6 +675,13 @@ export function TablePanel({
         ))}
       </ul>
       <p class="caption">{S.mapper.table.columnsHint}</p>
+      {table.columns.length > 1 ? (
+        <div class="row">
+          <button type="button" class="btn btn-small" onClick={onClearBreaks}>
+            {S.mapper.table.clearBreaks}
+          </button>
+        </div>
+      ) : null}
 
       <h3 class="card-subtitle">{S.mapper.table.howRead}</h3>
       <ul class="rule-list">

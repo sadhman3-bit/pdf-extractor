@@ -222,7 +222,18 @@ export const S = {
       start:
         'Click a value to add it as a column. Click a table’s header row to map its items. Drag a box to take several words.',
       table:
-        'Click a value to add it as a column. Click a line in the table to say what it is: a heading, a line to skip, or where a column starts.',
+        'Click the ruler above the table to add a column break; drag a break to move it. Click a line in the table to say what it is: a heading, a line to skip, or where the table ends.',
+    },
+    ruler: {
+      add: 'Add a column break: click the ruler where the new column starts',
+      handle: (left: string, right: string) =>
+        `Column break between ${left} and ${right}. Left and right arrows move it, Delete removes it.`,
+      handleTitle: 'Drag to move this column break',
+      remove: (left: string, right: string) =>
+        `Remove the column break between ${left} and ${right}`,
+      removeTitle: 'Remove this column break',
+      tooNarrow: 'There’s no room for a column break there.',
+      removed: (name: string) => `Column break removed: the columns are now ${name}`,
     },
     zoom: 'Zoom',
     zoomFit: 'Fit width',
@@ -278,7 +289,10 @@ export const S = {
       none: 'No table yet. Click the table’s header row on the page; each row of the table becomes a row of the CSV.',
       suggestion: (columns: string) => `This PDF seems to have a table with ${columns}.`,
       req: 'Req.',
-      columnsHint: 'To add a column, click the first word of its values in the table on the page.',
+      columnsHint:
+        'To add a column, click the ruler above the table where it starts. Drag a break to move it; × removes it.',
+      clearBreaks: 'Remove all column breaks',
+      breaksCleared: 'All column breaks removed. Click the ruler to add your own.',
       howRead: 'How lines are read',
       howReadHint: 'Click any line in the table on the page to change how lines like it are read.',
       mark: { row: 'R', heading: 'H', skip: '–', end: '■' },
@@ -312,13 +326,13 @@ export const S = {
       unplacedShown: (page: number) =>
         `A line that isn’t part of any row, on page ${page}. Click it to say what it is.`,
       more: 'More options: header, row start, patterns',
-      started: 'Table found. Now click any line in it to say what it is.',
+      started:
+        'Table marked. Click the ruler above it to add a column break, or click a line in it to say what it is.',
       lineTitle: 'What is this line?',
       lineHint: 'Your choice applies to every line like it, on every page.',
       asGroup: (name: string, value: string) =>
         `A heading: copy “${value}” onto each row below (column ${name})`,
       asSkip: 'Not a row: skip lines like this',
-      asColumn: (text: string) => `A new column starts at “${text}”`,
       asEnd: 'The table ends here',
       asHeader: 'This is the header row (start the table again)',
       asTable: 'Map the table under this header row',
@@ -327,11 +341,9 @@ export const S = {
       pickHeaderHint: 'Click any word of the table’s header row on the page (Esc to cancel).',
       asTableHint: 'Each row of the table becomes a row of the CSV.',
       asField: (value: string) => `Add “${value}” as a bill detail instead`,
-      cantSplit:
-        'That word already starts a column. Click a word further right to start a new column there.',
       groupAdded: (name: string) => `Heading copied onto each row as ${name}`,
       skipAdded: 'Lines like this are skipped',
-      columnAdded: (name: string) => `New column ${name}. Rename it below.`,
+      columnAdded: (name: string) => `New column ${name}. Rename it on the left.`,
       endAdded: (label: string) => `The table ends at “${label}”`,
       removeColumn: (name: string) => `Remove column ${name}`,
       removeGroup: (name: string) => `Remove ${name}`,
@@ -358,7 +370,6 @@ export const S = {
       addGroup: 'Add group',
       remove: 'Remove table',
       rowsFound: (n: number) => `${n} ${n === 1 ? 'row' : 'rows'}`,
-      dividerLabel: (n: number) => `Column divider ${n}. Use left and right arrows to move.`,
       notFound:
         'Couldn’t find a table header on that line. Click a cell in the header row or the first data row.',
     },

@@ -973,31 +973,97 @@ table.data input {
   top: -2px;
   left: -2px;
 }
-/* The table's label sits under it, clear of the column grips above the header. */
+/* The table's label sits under it, clear of the ruler above the header. */
 .mark-table > .mark-label {
   top: auto;
   bottom: -2px;
   transform: translateY(100%);
 }
-.divider-line {
+/* The ruler along a mapped table's top: click to add a column break, drag one to move it. */
+.ruler {
   position: absolute;
-  margin-left: -1px;
-  border-left: 2px dashed var(--divider);
+  height: 16px;
+  z-index: 3;
+}
+.ruler-bar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  cursor: copy;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--r-small);
+}
+.ruler-bar:hover {
+  border-color: var(--accent);
+}
+.ruler-name {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  padding: 0 var(--s2);
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--accent-ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
   pointer-events: none;
 }
-.divider-handle {
+.break {
   position: absolute;
-  width: 14px;
+  top: 0;
+  width: 0;
   height: 16px;
-  margin-left: -7px;
+}
+.break-line {
+  position: absolute;
+  top: 0;
+  left: -1px;
+  border-left: 2px solid var(--divider);
+  pointer-events: none;
+}
+.break-handle {
+  position: absolute;
+  top: -3px;
+  left: -6px;
+  width: 12px;
+  height: 22px;
+  padding: 0;
   cursor: col-resize;
+  touch-action: none;
   background: var(--divider);
   border: 0;
   border-radius: var(--r-small);
-  padding: 0;
 }
-.divider-handle:hover,
-.divider-handle:focus-visible {
+.break-handle:hover,
+.break-handle:focus-visible {
+  background: var(--accent);
+}
+.break-remove {
+  position: absolute;
+  top: -21px;
+  left: -9px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--accent-ink);
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--accent-border);
+  border-radius: 50%;
+  visibility: hidden;
+}
+.break:hover .break-remove,
+.break:focus-within .break-remove {
+  visibility: visible;
+}
+.break-remove:hover {
+  color: var(--surface);
   background: var(--accent);
 }
 .viewer-toolbar {

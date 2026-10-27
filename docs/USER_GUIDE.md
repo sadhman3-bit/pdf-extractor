@@ -66,10 +66,9 @@ The Mapper has three parts. **Your CSV**, on the left, lists everything that wil
    - **Change a field:** click its value on the page (it opens that field rather than adding a second one), or click its name in the list. Pointing at a field in the list outlines its value on the page.
    - **Remove a field:** choose the **×** on its row. **Undo** in the message at the bottom of the screen puts it back.
 4. **Suggestions.** Dashed amber boxes are values the app thinks you'll want; they're listed under **Suggestions** below your fields. **Accept** or **Dismiss** each one, choose **Accept all**, or simply click one on the page to accept it.
-5. **Map the table** (if the document has one). Click the table's header row; a menu opens beside it, and **Map the table under this header row** maps it. If the header row has numbers in it (such as "Account Activity · Your Reference 55-10 2047"), choose **Choose the header row on the page** under **Line items** first, then click it. The app finds the columns and their types, and outlines the table with its row count. Totals that repeat for each group (such as "Total for 02 5550 0160" after every phone number) are skipped automatically, and page headers and footers that repeat on every page are ignored. Then click any line in the table: **What is this line?** opens beside it (press the letter shown next to a choice, or Esc to close):
+5. **Map the table** (if the document has one). Click the table's header row; a menu opens beside it, and **Map the table under this header row** maps it. If the header row has numbers in it (such as "Account Activity · Your Reference 55-10 2047"), choose **Choose the header row on the page** under **Line items** first, then click it. The app outlines the table with its row count and puts a **ruler** along its top, with a break between each pair of columns (placed in the empty gap between them) and each column's name. Totals that repeat for each group (such as "Total for 02 5550 0160" after every phone number) are skipped automatically, and page headers and footers that repeat on every page are ignored. Then click any line in the table: **What is this line?** opens beside it (press the letter shown next to a choice, or Esc to close):
    - **A heading:** copies the heading onto each row below it, as its own CSV column. "Telephone 02 5550 0160" gives a Telephone column with the number; a heading without numbers ("Services and equipment rental") gives a Section column, and one in capitals (a company name) gives a Company column.
    - **Not a row: skip lines like this.**
-   - **A new column starts at "…":** click the first word of a value that has no heading of its own, such as a quantity or a period, to make it a column.
    - **The table ends here:** for example at "Call details".
    - **This is the header row:** start the table again from this line.
 
@@ -77,7 +76,13 @@ The Mapper has three parts. **Your CSV**, on the left, lists everything that wil
 
    Each choice applies to every line like it on every page. If the app finds a table on its own, **Line items** offers it with **Accept**.
 
-   Under **Line items**, rename the table (for example `Items`) and its columns, and set each column's type; **×** removes a column. **How lines are read** lists the rules in plain words, with how many lines each one matched, for example "Lines starting “Total for” are skipped · 12 lines"; **×** removes a rule. If some lines aren't part of any row, a red note says how many: choose **Show** to go to each one on the page, then click it to say what it is. The header labels, row start and raw patterns are under **More options**. Drag a column divider by its grip above the header (or focus it and use the arrow keys).
+   **Columns are yours to set on the ruler:**
+   - **Add a column:** click the ruler where the new column starts, for example just left of a period such as "25 Dec to 24 Jan" or an amount without a heading. The new column appears in the output straight away; rename it under **Line items**.
+   - **Move a break:** drag its handle, or focus it and press **Left** or **Right** (hold **Shift** for bigger steps). The line down the table shows where it falls.
+   - **Remove a break:** point at it and choose **×**, or focus it and press **Delete**. The two columns become one.
+   - **Start from scratch:** **Remove all column breaks** under **Line items** makes the table one column, so you can place every break yourself.
+
+   Under **Line items**, rename the table (for example `Items`) and its columns, and set each column's type; **×** removes a column. **How lines are read** lists the rules in plain words, with how many lines each one matched, for example "Lines starting “Total for” are skipped · 12 lines"; **×** removes a rule. If some lines aren't part of any row, a red note says how many: choose **Show** to go to each one on the page, then click it to say what it is. The header labels, row start and raw patterns are under **More options**.
 6. **Checks** (at the bottom of the left-hand list). The app offers sensible checks, such as "the amounts add up to the total" and "GST is the total ÷ 11". Turn them on or off, or add your own (see `TEMPLATE_FORMAT.md` for the expression language).
 7. **Output**, docked at the bottom of the screen, shows the CSV exactly as it will be written, for every page of the sample, and updates as you click. It shows the number of rows and any problems (cells that couldn't be read, or required values that are empty), in red. Choose the problem count to see only those rows. Click a value to see where it is on the page. **Download CSV** saves the CSV for this sample straight away; **Larger** and **Hide** change the panel's size.
 8. Choose **Save template**. Each save creates a new version; old versions are kept.
@@ -166,7 +171,7 @@ After the first visit the app keeps a copy of itself, so it opens and works with
 
 - **Tab** moves between controls; every button and field has a visible focus outline.
 - In the Mapper's page view: **arrow keys** move between words, **Enter** selects the word (Shift+Enter adds it to the selection), **Escape** cancels, **Home** goes to the first word. A screen reader announces each word.
-- Column dividers: focus one and use **Left** and **Right** to move it.
+- Column breaks: focus one on the ruler and use **Left** and **Right** to move it (**Shift** for bigger steps), **Delete** to remove it. Focus the ruler itself and press **Enter** to split the widest column in two.
 
 ## 12. Questions and problems
 

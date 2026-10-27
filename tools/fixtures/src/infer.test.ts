@@ -14,10 +14,16 @@ import {
   applyEdits,
   processDocument,
   addColumnAt,
+  addBreak,
+  moveBreak,
+  removeBreak,
+  tableFrame,
   furnitureLines,
+  phrases,
   groupFor,
   skipPatternFor,
   type DocLayout,
+  type TableRule,
 } from '@pdfx/engine';
 import { summitIncl, summitServices } from './docs';
 import { readPdfNode } from '@pdfx/pdf/node';
@@ -227,6 +233,54 @@ describe('mapping a grouped service summary', () => {
         Company: s.company,
       });
     });
+  });
+
+  it('adds, moves and removes column breaks from the ruler', async () => {
+    const l = await layoutOf('summit-voice-jan26.pdf');
+    const line = (start: string) =>
+      l.pages.flatMap((p) => p.lines).find((x) => x.text.startsWith(start))!;
+    const first = inferTable(l, token(l, 'Summary'))!.rule;
+    const groups = [
+      groupFor(line('Telephone'), []),
+      groupFor(line('Services and'), ['Telephone']),
+      groupFor(line('BRIGHTWATER LOGISTICS'), ['Telephone', 'Section']),
+    ];
+    const end = { labels: [line('Call details').text], match: 'starts-with' as const };
+    const start = { ...first, groups, end };
+    const names = (r: TableRule) => tableFrame(l, r)!.bounds.map((b) => b.name);
+    const period = line('Rental').tokens.find((x) => x.text === '25')!;
+    // A break just left of the period: the period becomes a column of its own.
+    const added = addBreak(l, start, period.x0 - 1)!;
+    expect(added.column.name).toBe('Column5');
+    expect(names(added.rule)).toEqual(['Item', 'ServiceSummary', 'Column5', 'ExclGST', 'InclGST']);
+    // The next break, halfway to the Excl GST heading, cuts the period: drag it past.
+    const periodEnd = Math.max(
+      ...l.pages
+        .flatMap((p) => p.lines)
+        .flatMap((x) => phrases(x))
+        .filter((p) => / to \d/.test(p.text))
+        .map((p) => p.x1),
+    );
+    const moved = moveBreak(l, added.rule, 2, periodEnd + 2, true)!;
+    const items = summitServices().flatMap((s) => s.sections.flatMap((sec) => sec.items));
+    const rows = extractTable(l, moved).rows;
+    expect(rows).toHaveLength(items.length);
+    rows.forEach((r, i) => {
+      expect(r.cells.Column5!.raw).toBe(items[i]!.period);
+      expect(r.cells.ExclGST!.value).toBe(items[i]!.excl);
+    });
+    // No break where a column would be too narrow.
+    expect(addBreak(l, moved, period.x0)).toBeNull();
+    // Moving a break never crosses its neighbours.
+    const f = tableFrame(l, moved)!;
+    const far = moveBreak(l, moved, 1, 99999)!;
+    expect(tableFrame(l, far)!.bounds[2]!.x0).toBe(f.bounds[2]!.x1 - 4);
+    // Removing it joins the two columns again; the named one keeps its name.
+    const removed = removeBreak(l, added.rule, 1)!;
+    expect(names(removed)).toEqual(names(start));
+    expect(extractTable(l, removed).rows.map((r) => r.cells.ServiceSummary!.raw)).toEqual(
+      extractTable(l, start).rows.map((r) => r.cells.ServiceSummary!.raw),
+    );
   });
 
   it('ignores page headers and footers, and suggests no per-service totals', async () => {
