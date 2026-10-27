@@ -537,6 +537,8 @@ export function TablePanel({
   onShowUnplaced,
   picking,
   onPickHeader,
+  adding,
+  onAddTable,
 }: {
   table: TableRule | undefined;
   result: TableResult | undefined;
@@ -552,6 +554,9 @@ export function TablePanel({
   /** Waiting for a click on the header row. */
   picking: boolean;
   onPickHeader: () => void;
+  /** Waiting for a click on another table's header row. */
+  adding: boolean;
+  onAddTable: () => void;
 }) {
   if (!table) {
     return (
@@ -624,6 +629,13 @@ export function TablePanel({
           onInput={(e) => set({ name: (e.target as HTMLInputElement).value.replace(/[^\w]/g, '') })}
         />
       </label>
+
+      <div class="row">
+        <button type="button" class="btn btn-small" aria-pressed={adding} onClick={onAddTable}>
+          {S.mapper.table.addTable}
+        </button>
+        <span class="caption">{S.mapper.table.addTableHint}</span>
+      </div>
 
       <h3 class="card-subtitle">{S.mapper.table.columns(table.columns.length)}</h3>
       <ul class="col-list">

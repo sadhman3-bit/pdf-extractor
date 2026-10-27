@@ -367,10 +367,9 @@ export function inferTable(
   // A first row of plain text looks like a header too, so prefer a header-like
   // line just above whose columns line up with the clicked row.
   const above = page.lines.slice(Math.max(0, idx - 4), idx).reverse();
-  let header: Line | undefined =
-    asHeader && phrases(line).length >= 2
-      ? line
-      : above.find((l) => isHeaderish(l) && alignsWith(l, line));
+  let header: Line | undefined = asHeader
+    ? line
+    : above.find((l) => isHeaderish(l) && alignsWith(l, line));
   if (!header && isHeaderish(line)) header = line;
   if (!header) header = above.find(isHeaderish);
   if (!header) return null;

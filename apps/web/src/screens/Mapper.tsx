@@ -27,6 +27,7 @@ import {
   type FieldRule,
   type InferredField,
   type PageText,
+  type TableResult,
   type TableRule,
   type Template,
   type Token,
@@ -49,6 +50,7 @@ import {
 import { usePreview } from '../lib/preview';
 import { OutputDock } from './MapperOutput';
 import { PageView, usePdf, type Mark, type Ruler, type Zoom } from '../components/PageView';
+import { PageStrip, type StripPage } from '../components/PageStrip';
 import { documentText } from '../lib/pipeline';
 import { idbDel, idbGet, idbSet } from '../lib/idb';
 import { DIRS, join, slugify, stem } from '../workspace/paths';
@@ -129,6 +131,9 @@ export function MapperScreen() {
   const [lineAt, setLineAt] = useState<Token | null>(null);
   // "Choose the header row": the next click on the page starts the table there.
   const [pickHeader, setPickHeader] = useState(false);
+  // Which of the template's tables is being mapped; "adding" makes the next header click a new one.
+  const [tableAt, setTableAt] = useState(0);
+  const [adding, setAdding] = useState(false);
   // The exception this template was created from, offered for a re-run after saving.
   const [sourceFile, setSourceFile] = useState<string | null>(null);
   const saveTimer = useRef<number | null>(null);
@@ -310,11 +315,12 @@ export function MapperScreen() {
   const grid = useMemo(() => {
     if (!result || !basis) return null;
     try {
-      return outputGrid(result, basis);
+      const tbs = basis.tables ?? [];
+      return outputGrid(result, basis, (tbs[tableAt] ?? tbs[0])?.name ?? null);
     } catch {
       return null;
     }
-  }, [result, basis]);
+  }, [result, basis, tableAt]);
 
   // A value chosen in the output is scrolled into view once its page has rendered.
   const [reveal, setReveal] = useState(0);
@@ -330,6 +336,20 @@ export function MapperScreen() {
     if (!layout || !draft) return [] as InferredField[];
     return suggestFields(layout, draft.fields).filter((x) => !dismissed.has(x.rule.name));
   }, [layout, draft, dismissed]);
+
+  // Find: lines whose text contains the search, across every page.
+  const [query, setQuery] = useState('');
+  const foundAt = useRef(-1);
+  const found = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!layout || q.length < 2) return [] as { line: Line; from: number }[];
+    return layout.pages.flatMap((p) =>
+      p.lines.flatMap((line) => {
+        const from = line.text.toLowerCase().indexOf(q);
+        return from >= 0 ? [{ line, from }] : [];
+      }),
+    );
+  }, [layout, query]);
 
   const tableSuggestion = useMemo(
     () => (layout && draft && !(draft.tables ?? []).length ? suggestTable(layout) : null),
@@ -360,23 +380,34 @@ export function MapperScreen() {
 
   latest.current = draft;
   const names = draft.fields.map((f) => f.name);
-  const table = (draft.tables ?? [])[0];
-  const basisTable = basis?.tables?.find((x) => x.id === table?.id) ?? basis?.tables?.[0];
-  const tableResult = table && basisTable ? result?.tables[basisTable.name] : undefined;
+  const tables = draft.tables ?? [];
+  const ti = Math.max(0, Math.min(tableAt, tables.length - 1));
+  const table = tables[ti];
+  const resultOf = (tb: TableRule) => {
+    const b = basis?.tables?.find((x) => x.id === tb.id);
+    return b ? result?.tables[b.name] : undefined;
+  };
+  const tableResult = table ? resultOf(table) : undefined;
   const fieldRes = (f: FieldRule) =>
     result?.fields[basis?.fields.find((x) => x.id === f.id)?.name ?? f.name];
 
   const updateField = (f: FieldRule) =>
     setDraft({ ...draft, fields: draft.fields.map((x) => (x.id === f.id ? f : x)) });
-  const setTable = (t: TableRule | null, record = true) =>
+  const setTable = (t: TableRule | null, record = true) => {
+    if (!t) setTableAt(Math.max(0, ti - 1));
     setDraft(
       {
         ...draft,
-        tables: t ? [t, ...(draft.tables ?? []).slice(1)] : (draft.tables ?? []).slice(1),
+        tables: t
+          ? tables.length
+            ? tables.map((x, i) => (i === ti ? t : x))
+            : [t]
+          : tables.filter((_, i) => i !== ti),
       },
       true,
       record,
     );
+  };
 
   const fieldAt = (t: Token) =>
     draft.fields.find((f) =>
@@ -392,6 +423,13 @@ export function MapperScreen() {
     if (!repick && !shift) {
       // A line of the mapped table, or a header row before there is a table: ask what it is.
       if (table && inTable(t)) return openLine(t);
+      // A line of another mapped table switches to it.
+      const other = tables.findIndex((tb, i) => i !== ti && inTableOf(tb, resultOf(tb), t));
+      if (other >= 0) {
+        setTableAt(other);
+        app.announce(S.mapper.table.switched(tables[other]!.name));
+        return openLine(t);
+      }
       const line = lineOf(t);
       if (!table && line && headerRow(line) && !fieldAt(t)) return openLine(t);
     }
@@ -433,26 +471,27 @@ export function MapperScreen() {
   const lineOf = (t: Token) =>
     layout?.pages.find((p) => p.page === t.page)?.lines.find((l) => l.tokens.includes(t));
 
-  /** Where the table's header is; looked up directly while a long sample's preview catches up. */
-  const tableHead = (): SourceBox | undefined => {
-    if (tableResult?.found) return tableResult.header;
-    if (!layout || !table) return undefined;
+  /** Where a table's header is; looked up directly while a long sample's preview catches up. */
+  const headOf = (tb: TableRule, res: TableResult | undefined): SourceBox | undefined => {
+    if (res?.found) return res.header;
+    if (!layout) return undefined;
     for (const p of layout.pages) {
-      const h = findHeaderOnPage(p.lines, table, p.page);
+      const h = findHeaderOnPage(p.lines, tb, p.page);
       if (h) return { page: h.page, bbox: h.bbox };
     }
     return undefined;
   };
-  /** True for words below the table's header and above its end. */
-  const inTable = (t: Token) => {
-    const h = tableHead();
+  /** True for words below a table's header and above its end. */
+  const inTableOf = (tb: TableRule, res: TableResult | undefined, t: Token) => {
+    const h = headOf(tb, res);
     if (!h) return false;
     const y = (t.y0 + t.y1) / 2;
     if (t.page < h.page || (t.page === h.page && y < h.bbox[1])) return false;
-    const e = tableResult?.end;
+    const e = res?.end;
     if (e && (t.page > e.page || (t.page === e.page && y > e.bbox[3]))) return false;
-    return t.page === h.page || table?.continuesOnNextPage !== false;
+    return t.page === h.page || tb.continuesOnNextPage !== false;
   };
+  const inTable = (t: Token) => !!table && inTableOf(table, tableResult, t);
   /**
    * A table's header row: the one the app suggested, or three or more text-only
    * columns with no numbers and no "Label:" words (those lines hold values).
@@ -503,12 +542,23 @@ export function MapperScreen() {
   /** Builds the table from a click on its header (or first row), keeping its name and headings. */
   const startTable = (t: Token, asHeader = false) => {
     if (!layout) return;
-    const inf = inferTable(layout, t, table?.name ?? 'Items', asHeader);
+    const taken = new Set(tables.map((x) => x.name));
+    let fresh = tables.length ? 'Table2' : 'Items';
+    for (let n = 3; taken.has(fresh); n++) fresh = `Table${n}`;
+    const inf = inferTable(layout, t, adding || !table ? fresh : table.name, asHeader);
     if (!inf) {
       setMessage({ tone: 'warn', text: S.mapper.table.notFound });
       return;
     }
     setMessage({ tone: 'success', text: S.mapper.table.started });
+    if (adding && table) {
+      setAdding(false);
+      setTableAt(tables.length);
+      setDraft({ ...draft, tables: [...tables, inf.rule] });
+      setLineAt(null);
+      setSelected([]);
+      return;
+    }
     setTable(
       table
         ? {
@@ -534,10 +584,51 @@ export function MapperScreen() {
       run: () => {
         const cur = latest.current;
         if (!cur || !prev) return;
-        setDraft({ ...cur, tables: [prev, ...(cur.tables ?? []).slice(1)] });
+        setDraft({
+          ...cur,
+          tables: (cur.tables ?? []).map((x) => (x.id === prev.id ? prev : x)),
+        });
       },
     });
   };
+
+  /** Goes to the next line that contains the search, and selects the words that match. */
+  const findNext = (step = 1) => {
+    if (!found.length) {
+      app.announce(S.mapper.find.none);
+      return;
+    }
+    const i = (((foundAt.current + step) % found.length) + found.length) % found.length;
+    foundAt.current = i;
+    const { line, from } = found[i]!;
+    const to = from + query.trim().length;
+    let at = 0;
+    const words = line.tokens.filter((t) => {
+      const start = at;
+      at += t.text.length + 1;
+      return start < to && start + t.text.length > from;
+    });
+    setPageNo(line.page);
+    setSelected(words);
+    setLineAt(null);
+    setReveal((n) => n + 1);
+    app.announce(S.mapper.find.at(i + 1, found.length, line.page));
+  };
+
+  // What the page strip shows for each page: the table's rows, start and end, and finds.
+  const strip = new Map<number, StripPage>();
+  const stripAt = (n: number) => {
+    const p = strip.get(n) ?? { rows: 0 };
+    strip.set(n, p);
+    return p;
+  };
+  for (const r of tableResult?.rows ?? []) stripAt(r.page).rows++;
+  if (tableResult?.header) stripAt(tableResult.header.page).header = true;
+  if (tableResult?.end) stripAt(tableResult.end.page).end = true;
+  for (const f of found) {
+    const p = stripAt(f.line.page);
+    p.found = (p.found ?? 0) + 1;
+  }
 
   const showUnplaced = () => {
     const all = tableResult?.stats?.unplaced ?? [];
@@ -1078,6 +1169,18 @@ export function MapperScreen() {
               });
             }}
           />
+          {tables.length > 1 ? (
+            <Segmented<string>
+              label={S.mapper.table.tables}
+              value={String(ti)}
+              onChange={(v) => {
+                setTableAt(Number(v));
+                setLineAt(null);
+                setSelected([]);
+              }}
+              options={tables.map((tb, i) => ({ value: String(i), label: tb.name }))}
+            />
+          ) : null}
           <TablePanel
             table={table}
             result={tableResult}
@@ -1097,7 +1200,14 @@ export function MapperScreen() {
             picking={pickHeader}
             onPickHeader={() => {
               setLineAt(null);
+              setAdding(false);
               setPickHeader(!pickHeader);
+            }}
+            adding={pickHeader && adding}
+            onAddTable={() => {
+              setLineAt(null);
+              setAdding(!(pickHeader && adding));
+              setPickHeader(!(pickHeader && adding));
             }}
           />
           <details class="card rail-more">
@@ -1141,6 +1251,41 @@ export function MapperScreen() {
                 {S.mapper.redoButton}
               </button>
             </div>
+            <form
+              class="find"
+              role="search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                findNext(1);
+              }}
+            >
+              <input
+                type="search"
+                aria-label={S.mapper.find.label}
+                placeholder={S.mapper.find.placeholder}
+                value={query}
+                onInput={(e) => {
+                  setQuery((e.target as HTMLInputElement).value);
+                  foundAt.current = -1;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.shiftKey) {
+                    e.preventDefault();
+                    findNext(-1);
+                  }
+                }}
+              />
+              <span class="caption find-count" aria-live="polite">
+                {query.trim().length >= 2
+                  ? found.length
+                    ? S.mapper.find.count(Math.max(0, foundAt.current) + 1, found.length)
+                    : S.mapper.find.none
+                  : ''}
+              </span>
+              <button type="submit" class="btn btn-small" disabled={!found.length}>
+                {S.mapper.find.next}
+              </button>
+            </form>
             <div class="row">
               <Segmented<string>
                 label={S.mapper.zoom}
@@ -1167,6 +1312,9 @@ export function MapperScreen() {
           {loading ? <p class="muted">{S.common.loading}</p> : null}
           {pdf.doc && pages ? (
             <>
+              {pdf.pages > 1 ? (
+                <PageStrip count={pdf.pages} current={pageNo} info={strip} onPick={setPageNo} />
+              ) : null}
               <PageView
                 doc={pdf.doc}
                 page={pageNo}
@@ -1197,6 +1345,7 @@ export function MapperScreen() {
                 onPage={(d) => setPageNo(Math.max(1, Math.min(pdf.pages, pageNo + d)))}
                 onEscape={() => {
                   setPickHeader(false);
+                  setAdding(false);
                   setLineAt(null);
                   setSelected([]);
                   setRepick(null);
@@ -1261,13 +1410,19 @@ export function MapperScreen() {
         }}
         onDownload={() => {
           if (!result) return;
-          const file = toCsv(result, draft, {
+          const files = toCsv(result, basis ?? draft, {
             file: sample?.name ?? '',
             sha256: '',
             extractedAt: new Date().toISOString(),
-          })[0];
+          });
+          const shown = basis?.tables?.[ti]?.name;
+          const file = files.find((f) => f.table === shown) ?? files[0];
           if (file)
-            downloadBlob(`${stem(sample?.name ?? draft.name)}.csv`, file.content, 'text/csv');
+            downloadBlob(
+              `${stem(sample?.name ?? draft.name)}${file.table ? `-${slugify(file.table)}` : ''}.csv`,
+              file.content,
+              'text/csv',
+            );
         }}
       />
 

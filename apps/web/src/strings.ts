@@ -268,6 +268,27 @@ export const S = {
       rawHint:
         'Regular expressions, for layouts the choices above can’t describe. You rarely need these.',
     },
+    find: {
+      label: 'Find on the pages',
+      placeholder: 'Find text, such as Call details',
+      next: 'Next',
+      none: 'Not found',
+      count: (i: number, n: number) => `${i} of ${n}`,
+      at: (i: number, n: number, page: number) => `Found ${i} of ${n}, on page ${page}`,
+    },
+    strip: {
+      label: 'Pages',
+      page: (n: number, p?: { rows: number; header?: boolean; end?: boolean; found?: number }) =>
+        [
+          `Page ${n}`,
+          p?.header ? 'the table starts here' : '',
+          p?.rows ? `${p.rows} ${p.rows === 1 ? 'row' : 'rows'}` : '',
+          p?.end ? 'the table ends here' : '',
+          p?.found ? `${p.found} found` : '',
+        ]
+          .filter(Boolean)
+          .join(', '),
+    },
     lineRole: {
       header: { mark: 'T', name: 'Header row' },
       row: { mark: 'R', name: 'A new row' },
@@ -394,7 +415,12 @@ export const S = {
       asTable: 'Map the table under this header row',
       editField: (name: string) => `Edit the bill detail ${name}`,
       pickHeader: 'Choose the header row on the page',
-      pickHeaderHint: 'Click any word of the table’s header row on the page (Esc to cancel).',
+      pickHeaderHint:
+        'Click any word of the table’s header row on the page. A table without one: click the line just above it, then add its columns on the ruler. (Esc to cancel)',
+      addTable: 'Add another table',
+      addTableHint: 'Each table becomes a CSV file of its own, such as call details.',
+      tables: 'Tables',
+      switched: (name: string) => `Now mapping ${name}`,
       asTableHint: 'Each row of the table becomes a row of the CSV.',
       asField: (value: string) => `Add “${value}” as a bill detail instead`,
       groupAdded: (name: string) => `Heading copied onto each row as ${name}`,

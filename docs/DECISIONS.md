@@ -138,3 +138,11 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 
 - **"The extraction worker stopped" was an old copy of the app.** Each deploy replaces the hashed worker file. The offline copy (service worker) updates itself, but a tab opened before the update keeps the old page, whose worker file no longer exists, so every file failed with a code trace. Now a worker that fails to start without a message is reported as `WorkerGone`, and the app shows "A new version of PDF Extractor is ready" with **Reload** (also when the new service worker takes over an open tab). Drafts are kept in IndexedDB, so reloading loses nothing. A synthetic 222-page bill loads in about 6 s and maps to 2,929 rows, so long files weren't the cause.
 
+## Mapper redesign, phase 4: long documents and several tables
+
+- **Several tables per template.** The engine already wrote one CSV per table; the Mapper now maps any of them. **Add another table** makes the next header click a new table (`Table2`, …); buttons switch between tables; a click on a line inside another mapped table switches to it. The output dock and **Download CSV** show the table being mapped.
+- **Page strip and find.** A strip of page buttons above the page marks where the table being mapped starts, has rows and ends, and where the search found lines. Find searches every line's text (case-insensitive, two characters or more) and selects the matching words.
+- **Tables without a header row.** "Choose the header row" (and "Add another table") accept a line with a single phrase, such as a title above the table. The table then starts as one column; its columns are placed on the ruler.
+- **Continuous scrolling: not done.** One page at a time, with the strip, find, Page Up/Page Down and the page box, gets anywhere in a 172-page bill in one or two steps. Rendering many pages at once would need every per-page mark, ruler and menu to work across pages; it isn't worth that risk now.
+- **Column headers read as "Item, Text"** for screen readers, not "ItemText".
+

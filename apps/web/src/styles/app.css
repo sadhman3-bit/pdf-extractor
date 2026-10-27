@@ -2032,3 +2032,55 @@ details.more[open] > summary {
   font-size: 13px;
   color: var(--text-muted);
 }
+
+/* Every page in a row: where the table starts, has rows and ends, and search hits. */
+.page-strip {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  padding: 2px 2px var(--s2);
+}
+.strip-page {
+  flex: 0 0 auto;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  cursor: pointer;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-bottom-width: 3px;
+  border-radius: var(--r-small);
+}
+.strip-page.strip-rows {
+  border-bottom-color: var(--success-ink);
+}
+.strip-page.strip-start,
+.strip-page.strip-end {
+  border-bottom-color: var(--accent);
+}
+.strip-page.strip-found {
+  color: var(--warn-ink);
+  background: var(--warn-tint);
+}
+.strip-page[aria-current='page'] {
+  color: var(--surface);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.find {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex: 1 1 240px;
+  max-width: 420px;
+}
+.find input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.find-count {
+  white-space: nowrap;
+}

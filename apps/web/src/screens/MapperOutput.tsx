@@ -127,6 +127,7 @@ export function OutputDock({
                 {grid.columns.map((c) => (
                   <th key={c.name} scope="col" class={`col-${c.kind}`}>
                     {c.name}
+                    <span class="sr-only">, </span>
                     <span class="col-type">{S.options.type[c.type]}</span>
                   </th>
                 ))}
