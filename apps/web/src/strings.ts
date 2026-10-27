@@ -448,6 +448,10 @@ export const S = {
       asGroup: (name: string, value: string) =>
         `A heading: copy “${value}” onto each row below (column ${name})`,
       asSkip: 'Not a row: skip lines like this',
+      asRows: (text: string) =>
+        `Make lines starting “${text}” the rows: one CSV row each, other lines left out`,
+      rowsAdded: (text: string) =>
+        `Each line starting “${text}” is now a row. Headings still fill their columns.`,
       asPart: (text: string) =>
         `A second line: put “${text}” and lines like it in a column of their own`,
       partAdded: (name: string) => `Second lines go into ${name}. Rename it on the left.`,

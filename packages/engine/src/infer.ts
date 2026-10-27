@@ -773,6 +773,35 @@ export function partColumnFor(
   return { rule: { ...rule, columns }, column };
 }
 
+/**
+ * Makes lines like this one the table's rows, such as one row per "Total for
+ * 02 5550 0160" line: a row starts where the line's first column starts with the
+ * same words. Other lines are left out (headings still fill their columns), and
+ * lines like this are no longer skipped.
+ */
+export function rowsLike(layout: DocLayout, rule: TableRule, line: Line): TableRule | null {
+  const f = tableFrame(layout, rule);
+  if (!f) return null;
+  const first = [...line.tokens].sort((a, b) => a.x0 - b.x0)[0];
+  const col = first && f.bounds.find((b) => cx(first) >= b.x0 && cx(first) < b.x1);
+  if (!col) return null;
+  const label = leadingLabel(line);
+  const pattern = label ? `^${escapeRe(label)}` : `^${shapeOf(phrases(line)[0]!.text)}`;
+  const own = skipPatternFor(line);
+  // Columns stay where they are: no longer skipping these lines would move the gaps.
+  const out = {
+    ...fixEdges(rule, f),
+    rowStart: { column: col.name, pattern },
+    wrappedLines: 'ignore' as const,
+    skip: (rule.skip ?? []).filter((p) => p !== own),
+  };
+  return retype(
+    layout,
+    out,
+    out.columns.map((c) => c.name),
+  );
+}
+
 /** Sets the type of changed text columns whose values are now all numbers or all dates. */
 function retype(layout: DocLayout, rule: TableRule, names: string[]): TableRule {
   const rows = extractTable(layout, rule).rows;

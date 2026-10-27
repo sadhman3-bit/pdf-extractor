@@ -14,6 +14,8 @@ import {
   parseTemplate,
   phrases,
   removeBreak,
+  rowsLike,
+  leadingLabel,
   suggestFields,
   suggestFingerprint,
   skipPatternFor,
@@ -870,6 +872,18 @@ export function MapperScreen() {
             { ...table, skip: skip.includes(pattern) ? skip : [...skip, pattern] },
             S.mapper.table.skipAdded,
           );
+        },
+      },
+      {
+        label: S.mapper.table.asRows(leadingLabel(line) || phrases(line)[0]!.text),
+        key: 'W',
+        run: () => {
+          const next = rowsLike(layout, table, line);
+          if (next)
+            changeTable(
+              next,
+              S.mapper.table.rowsAdded(leadingLabel(line) || phrases(line)[0]!.text),
+            );
         },
       },
       {

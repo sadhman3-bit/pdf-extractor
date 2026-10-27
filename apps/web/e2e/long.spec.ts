@@ -37,3 +37,19 @@ test('finds text, shows the table on the page strip, and maps a second table', a
   await expect(output.getByRole('columnheader', { name: /^Item\b/ })).toBeVisible();
   await expectNoAxe(page);
 });
+
+test('one row per service, from its "Total for" line', async ({ page }) => {
+  await ready(page);
+  await startFromSample(page, 'summit-voice-jan26.pdf');
+  await tok(page, 'Summary').click();
+  await page.getByRole('button', { name: 'Map the table under this header row' }).click();
+  await tok(page, 'Telephone').click();
+  await page.getByRole('button', { name: /^A heading/ }).click();
+  await tok(page, 'Total').click();
+  await page.getByRole('button', { name: /^Make lines starting “Total for” the rows/ }).click();
+  const output = page.getByRole('region', { name: 'Output' });
+  await expect(output.getByText('12 rows', { exact: true })).toBeVisible();
+  await expect(output.getByText(/^Total for 02 5550/).first()).toBeVisible();
+  await expect(output.getByRole('columnheader', { name: 'Telephone, Text' })).toBeVisible();
+  await expectNoAxe(page);
+});

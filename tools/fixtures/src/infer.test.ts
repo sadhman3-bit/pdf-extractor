@@ -16,6 +16,7 @@ import {
   addColumnAt,
   addBreak,
   partColumnFor,
+  rowsLike,
   moveBreak,
   removeBreak,
   tableFrame,
@@ -320,6 +321,34 @@ describe('mapping a grouped service summary', () => {
     });
     // Only one such column per column.
     expect(partColumnFor(l, part.rule, line('Rental'))).toBeNull();
+  });
+
+  it('makes one row per service from its "Total for" line', async () => {
+    const l = await layoutOf('summit-voice-jan26.pdf');
+    const line = (start: string) =>
+      l.pages.flatMap((p) => p.lines).find((x) => x.text.startsWith(start))!;
+    const first = inferTable(l, token(l, 'Summary'))!.rule;
+    const end = { labels: [line('Call details').text], match: 'starts-with' as const };
+    const rule = { ...first, end, groups: [groupFor(line('Telephone'), [])] };
+    const totals = rowsLike(l, rule, line('Total for'))!;
+    expect(totals.rowStart).toEqual({ column: 'ServiceSummary', pattern: '^Total for' });
+    const rows = extractTable(l, totals).rows;
+    const services = summitServices();
+    expect(rows).toHaveLength(services.length);
+    rows.forEach((r, i) => {
+      const s = services[i]!;
+      const items = s.sections.flatMap((sec) => sec.items);
+      expect(r.groups.Telephone).toBe(`${s.number} ${s.avc}`);
+      expect(r.cells.ServiceSummary!.raw).toContain(`Total for ${s.number.slice(0, 7)}`);
+      expect(r.cells.ExclGST!.value).toBeCloseTo(
+        items.reduce((a, it) => a + it.excl, 0),
+        2,
+      );
+      expect(r.cells.InclGST!.value).toBeCloseTo(
+        items.reduce((a, it) => a + summitIncl(it), 0),
+        2,
+      );
+    });
   });
 
   it('ignores page headers and footers, and suggests no per-service totals', async () => {
