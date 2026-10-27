@@ -27,6 +27,8 @@ export interface AppState {
   pendingSample: { name: string; bytes: Uint8Array; fromException?: string } | null;
   /** An action that failed, shown at the top of the page with its details. */
   problem: { message: string; detail: string } | null;
+  /** A newer version of the app has taken over this tab's offline copy: reload to use it. */
+  updateReady: boolean;
   /** Short confirmations shown in the corner for a few seconds. */
   toasts: { id: number; text: string; action?: { label: string; run: () => void } }[];
 }
@@ -49,6 +51,7 @@ const initial: AppState = {
   basicFiles: [],
   pendingSample: null,
   problem: null,
+  updateReady: false,
   toasts: [],
 };
 

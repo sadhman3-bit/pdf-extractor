@@ -2007,3 +2007,28 @@ details.more[open] > summary {
   width: 4.5em;
   text-align: center;
 }
+
+/* Table settings: a kind of line, its text, and a remove button on one row. */
+.settings-group {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 28px;
+  gap: var(--s2);
+  align-items: center;
+}
+.settings-row-heading > input:first-child {
+  grid-column: 1 / -1;
+}
+.settings-row > select,
+.settings-row > input {
+  min-width: 0;
+}
+.settings-raw > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+}

@@ -111,6 +111,18 @@ test('maps a grouped service summary by clicking lines', async ({ page }) => {
   await expect(page.getByText('Items · 30 rows')).toBeVisible();
   await page.getByRole('button', { name: 'Remove column Column5' }).click();
   await expect(page.getByRole('button', { name: 'Remove column Column5' })).toHaveCount(0);
+  // Table settings read in plain words, with no patterns to write.
+  await page.getByText('Table settings: header, rows, skipped lines, headings').click();
+  await expect(
+    page.getByRole('combobox', { name: 'Kind of line for skipped line rule 1' }),
+  ).toHaveValue('pageNumbers');
+  await expect(page.getByRole('textbox', { name: 'Text for skipped line rule 2' })).toHaveValue(
+    'Total for',
+  );
+  await page.getByRole('button', { name: 'Add a line to skip' }).click();
+  await expect(page.getByRole('textbox', { name: 'Text for skipped line rule 3' })).toHaveValue(
+    'Total',
+  );
   await expectNoAxe(page);
 });
 

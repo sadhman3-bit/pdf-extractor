@@ -282,10 +282,20 @@ export function App() {
       if (String(e.reason?.message ?? '').includes('Failed to fetch dynamically imported module'))
         setFatal(e.reason as Error);
       // Anything else that failed in the background is shown, never swallowed.
-      else reportProblem(S.common.working.replace(/…$/, ''), e.reason);
+      else reportProblem(S.update.background, e.reason);
     };
     window.addEventListener('unhandledrejection', onError);
-    return () => window.removeEventListener('unhandledrejection', onError);
+    // A new version took over the offline copy while this tab was open: its old files are gone.
+    const sw = navigator.serviceWorker;
+    const had = !!sw?.controller;
+    const onUpdate = () => {
+      if (had) app.set({ updateReady: true });
+    };
+    sw?.addEventListener('controllerchange', onUpdate);
+    return () => {
+      window.removeEventListener('unhandledrejection', onError);
+      sw?.removeEventListener('controllerchange', onUpdate);
+    };
   }, []);
 
   useEffect(() => {
@@ -309,6 +319,21 @@ export function App() {
             detail={`${fatal.message}\n${fatal.stack ?? ''}`}
             onRetry={() => location.reload()}
           />
+        ) : null}
+        {s.updateReady ? (
+          <Banner
+            tone="warn"
+            action={
+              <button type="button" class="btn btn-primary" onClick={() => location.reload()}>
+                {S.update.reload}
+              </button>
+            }
+          >
+            <p>
+              <strong>{S.update.title}</strong>
+            </p>
+            <p>{S.update.body}</p>
+          </Banner>
         ) : null}
         {s.problem ? <ProblemBanner problem={s.problem} /> : null}
         {s.slowRead ? (

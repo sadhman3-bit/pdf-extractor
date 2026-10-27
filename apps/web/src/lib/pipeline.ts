@@ -13,6 +13,16 @@ import { pagesNeedingOcr } from '@pdfx/pdf';
 import type { WorkerRequest, WorkerResponse } from '../worker/protocol';
 import { open } from './pdfjs';
 import { ocrPage } from './ocr';
+import { S } from '../strings';
+
+/** The worker couldn't start: usually this tab still runs a version the site has replaced. */
+export class WorkerGone extends Error {
+  override name = 'WorkerGone';
+  constructor(detail: string) {
+    super(S.update.workerGone);
+    this.stack = detail;
+  }
+}
 
 type Pending = { resolve: (r: WorkerResponse) => void; reject: (e: Error) => void };
 let worker: Worker | null = null;
@@ -36,7 +46,9 @@ function getWorker(): Worker {
     };
     worker.onerror = (e) => {
       for (const p of pending.values())
-        p.reject(new Error(e.message || 'The extraction worker stopped'));
+        p.reject(
+          e.message ? new Error(e.message) : new WorkerGone('The extraction worker stopped'),
+        );
       pending.clear();
       worker = null;
     };

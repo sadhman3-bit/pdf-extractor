@@ -15,6 +15,7 @@ import {
   type Template,
 } from '@pdfx/engine';
 import { S } from '../strings';
+import { TableSettings } from './MapperSettings';
 import { lineRules } from '../lib/rules';
 import { CheckIcon, XIcon } from '../components/Icons';
 
@@ -739,146 +740,7 @@ export function TablePanel({
       <details class="more">
         <summary>{S.mapper.table.more}</summary>
         <div class="stack">
-          <label class="field">
-            {S.mapper.table.header}
-            <input
-              type="text"
-              value={table.header.labels.join(', ')}
-              onInput={(e) =>
-                set({
-                  header: { ...table.header, labels: list((e.target as HTMLInputElement).value) },
-                })
-              }
-            />
-          </label>
-          <div class="grid-2">
-            <label class="field">
-              {`${S.mapper.table.rowStart}: ${S.mapper.table.rowStartColumn}`}
-              <select
-                value={table.rowStart?.column ?? ''}
-                onChange={(e) =>
-                  set({
-                    rowStart: {
-                      column: (e.target as HTMLSelectElement).value,
-                      pattern: table.rowStart?.pattern ?? '\\S',
-                    },
-                  })
-                }
-              >
-                {table.columns.map((c) => (
-                  <option key={c.name} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label class="field">
-              {S.mapper.table.rowStartPattern}
-              <input
-                type="text"
-                class="mono"
-                value={table.rowStart?.pattern ?? ''}
-                onInput={(e) =>
-                  set({
-                    rowStart: {
-                      column: table.rowStart?.column ?? table.columns[0]!.name,
-                      pattern: (e.target as HTMLInputElement).value,
-                    },
-                  })
-                }
-              />
-            </label>
-          </div>
-          <label class="field">
-            {S.mapper.table.end}
-            <input
-              type="text"
-              value={table.end?.labels.join(', ') ?? ''}
-              onInput={(e) => {
-                const labels = list((e.target as HTMLInputElement).value);
-                const { end: _e, ...rest } = table;
-                onChange(
-                  labels.length
-                    ? { ...rest, end: { labels, match: table.end?.match ?? 'starts-with' } }
-                    : rest,
-                );
-              }}
-            />
-          </label>
-          <label class="check">
-            <input
-              type="checkbox"
-              checked={table.continuesOnNextPage ?? true}
-              onChange={(e) => set({ continuesOnNextPage: (e.target as HTMLInputElement).checked })}
-            />
-            {S.mapper.table.continues}
-          </label>
-          <label class="field">
-            {S.mapper.table.wrapped}
-            <select
-              value={table.wrappedLines ?? 'join'}
-              onChange={(e) =>
-                set({ wrappedLines: (e.target as HTMLSelectElement).value as 'join' | 'ignore' })
-              }
-            >
-              <option value="join">{S.mapper.table.wrappedJoin}</option>
-              <option value="ignore">{S.mapper.table.wrappedIgnore}</option>
-            </select>
-          </label>
-          <label class="field">
-            {S.mapper.table.skip}
-            <textarea
-              class="mono"
-              value={(table.skip ?? []).join('\n')}
-              onInput={(e) => set({ skip: lines((e.target as HTMLTextAreaElement).value) })}
-            />
-          </label>
-          <fieldset class="stack">
-            <legend class="field">{S.mapper.table.groups}</legend>
-            {(table.groups ?? []).map((g, i) => (
-              <div class="row group-row" key={i}>
-                <input
-                  type="text"
-                  aria-label={S.mapper.table.groupName}
-                  value={g.name}
-                  onInput={(e) => {
-                    const groups = [...(table.groups ?? [])];
-                    groups[i] = {
-                      ...g,
-                      name: (e.target as HTMLInputElement).value.replace(/[^\w]/g, ''),
-                    };
-                    set({ groups });
-                  }}
-                />
-                <input
-                  type="text"
-                  class="mono"
-                  aria-label={S.mapper.table.groupPattern}
-                  value={g.pattern}
-                  onInput={(e) => {
-                    const groups = [...(table.groups ?? [])];
-                    const pattern = (e.target as HTMLInputElement).value;
-                    groups[i] = { ...g, pattern, capture: /\(/.test(pattern) ? 1 : 0 };
-                    set({ groups });
-                  }}
-                />
-              </div>
-            ))}
-            <button
-              type="button"
-              class="btn btn-dashed"
-              onClick={() =>
-                set({
-                  groups: [
-                    ...(table.groups ?? []),
-                    { name: 'Group', pattern: '^Group (.+)$', capture: 1 },
-                  ],
-                })
-              }
-            >
-              {S.mapper.table.addGroup}
-            </button>
-          </fieldset>
+          <TableSettings table={table} result={result} onChange={onChange} />
           <div class="row">
             <button type="button" class="btn btn-danger" onClick={onRemove}>
               {S.mapper.table.remove}

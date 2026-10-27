@@ -146,6 +146,11 @@ function useAppToasts() {
 /** Reports a failed action at the top of the page instead of failing silently. */
 export function reportProblem(what: string, e: unknown): void {
   const err = e as Error;
+  // An old copy of the app in this tab: the fix is a reload, not a report.
+  if (err?.name === 'WorkerGone') {
+    app.set({ updateReady: true });
+    return;
+  }
   app.set({
     problem: {
       message: S.common.failed(what),

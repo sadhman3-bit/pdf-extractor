@@ -32,6 +32,79 @@ export function readPattern(pattern: string): LinePattern {
   return { kind: 'pattern', pattern };
 }
 
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** The pattern for lines to skip, written from a plain choice (the reverse of readPattern). */
+export function skipPattern(m: LinePattern): string {
+  switch (m.kind) {
+    case 'startsWith':
+      return String.raw`^${escapeRe(m.text.trim())}(?=\s|$)`;
+    case 'exactly':
+      return `^${escapeRe(m.text.trim())}$`;
+    case 'capitals':
+      return String.raw`^[^a-z\d]+$`;
+    case 'words':
+      return String.raw`^(?=.*[a-z])[^\d]+$`;
+    case 'pageNumbers':
+      return String.raw`Page \d+ of \d+$`;
+    case 'pattern':
+      return m.pattern;
+  }
+}
+
+/**
+ * A heading rule from a plain choice. "Starts with" copies the rest of the line;
+ * capitals and words copy a whole line that stands on its own.
+ */
+export function headingRule(name: string, m: LinePattern): GroupRule {
+  if (m.kind === 'startsWith')
+    return { name, pattern: String.raw`^${escapeRe(m.text.trim())}\s+(.+)$`, capture: 1 };
+  if (m.kind === 'capitals' || m.kind === 'words')
+    return { name, pattern: skipPattern(m), lone: true };
+  if (m.kind === 'exactly') return { name, pattern: skipPattern(m) };
+  return { name, pattern: skipPattern(m), capture: /\(/.test(skipPattern(m)) ? 1 : 0 };
+}
+
+/** How a row-start pattern reads: any text, the shape of a value ("99/99/9999"), or a start. */
+export type RowStart =
+  | { kind: 'any' }
+  | { kind: 'shape'; example: string }
+  | { kind: 'startsWith'; text: string }
+  | { kind: 'pattern'; pattern: string };
+
+export function readRowStart(pattern: string): RowStart {
+  if (pattern === '\\S') return { kind: 'any' };
+  // The Mapper writes the first value's shape: \d{2}/\d{2}/\d{4} reads "99/99/9999".
+  const shape = /^\^(.+)\$$/.exec(pattern)?.[1];
+  if (shape && !/[a-z]{2}|[()|*+?[\]]/i.test(shape.replace(/\\d\{\d+\}|\\d/g, '')))
+    return {
+      kind: 'shape',
+      example: unescape(shape.replace(/\\d\{(\d+)\}/g, (_, n: string) => '9'.repeat(Number(n))))
+        .replace(/\\d/g, '9')
+        .replace(/d/g, '9'),
+    };
+  const m = readPattern(pattern);
+  if (m.kind === 'startsWith') return { kind: 'startsWith', text: m.text };
+  return { kind: 'pattern', pattern };
+}
+
+export function rowStartPattern(r: RowStart): string {
+  switch (r.kind) {
+    case 'any':
+      return '\\S';
+    case 'shape':
+      return `^${r.example
+        .split('')
+        .map((ch) => (/\d/.test(ch) ? '\\d' : escapeRe(ch)))
+        .join('')
+        .replace(/(\\d)+/g, (m) => `\\d{${m.length / 2}}`)}$`;
+    case 'startsWith':
+      return `^${escapeRe(r.text.trim())}`;
+    case 'pattern':
+      return r.pattern;
+  }
+}
+
 export interface LineRuleView {
   kind: 'row' | 'heading' | 'skip' | 'end';
   /** Heading: the CSV column it fills. */

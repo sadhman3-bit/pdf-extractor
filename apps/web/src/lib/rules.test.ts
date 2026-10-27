@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { TableRule } from '@pdfx/engine';
-import { lineRules, readPattern } from './rules';
+import {
+  headingRule,
+  lineRules,
+  readPattern,
+  readRowStart,
+  rowStartPattern,
+  skipPattern,
+  type LinePattern,
+} from './rules';
 
 describe('readPattern', () => {
   it('reads the patterns the Mapper writes', () => {
@@ -31,6 +39,39 @@ describe('readPattern', () => {
       pattern: String.raw`^\d{2}/\d{2}$`,
     });
     expect(readPattern('^Card (\\d+)$')).toMatchObject({ kind: 'pattern' });
+  });
+});
+
+describe('writing patterns from plain choices', () => {
+  it('writes what readPattern reads back', () => {
+    const choices: LinePattern[] = [
+      { kind: 'startsWith', text: 'Total for' },
+      { kind: 'exactly', text: 'Subtotal (page)' },
+      { kind: 'capitals' },
+      { kind: 'words' },
+      { kind: 'pageNumbers' },
+    ];
+    for (const c of choices) expect(readPattern(skipPattern(c))).toEqual(c);
+    expect(skipPattern({ kind: 'startsWith', text: 'Total for' })).toBe(
+      String.raw`^Total for(?=\s|$)`,
+    );
+  });
+
+  it('writes headings that copy the rest of the line, or a line on its own', () => {
+    const h = headingRule('Telephone', { kind: 'startsWith', text: 'Telephone' });
+    expect(h).toEqual({ name: 'Telephone', pattern: String.raw`^Telephone\s+(.+)$`, capture: 1 });
+    expect(new RegExp(h.pattern).exec('Telephone 02 5550 0160')?.[1]).toBe('02 5550 0160');
+    expect(headingRule('Company', { kind: 'capitals' })).toMatchObject({ lone: true });
+  });
+
+  it('reads and writes row starts as any text, a shape, or a start', () => {
+    expect(readRowStart('\\S')).toEqual({ kind: 'any' });
+    const date = String.raw`^\d{2}/\d{2}/\d{4}$`;
+    expect(readRowStart(date)).toEqual({ kind: 'shape', example: '99/99/9999' });
+    expect(rowStartPattern({ kind: 'shape', example: '99/99/9999' })).toBe(date);
+    expect(readRowStart('^SVC')).toEqual({ kind: 'startsWith', text: 'SVC' });
+    expect(rowStartPattern({ kind: 'startsWith', text: 'SVC' })).toBe('^SVC');
+    expect(readRowStart('^(a|b)')).toEqual({ kind: 'pattern', pattern: '^(a|b)' });
   });
 });
 
