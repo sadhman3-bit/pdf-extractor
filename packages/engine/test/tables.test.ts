@@ -154,3 +154,35 @@ describe('tables', () => {
     expect(extractTable(buildLayout(doc([tok('nothing', 50, 50)])), rule()).found).toBe(false);
   });
 });
+
+describe('line stats', () => {
+  it('counts headings, skipped, joined and unplaced lines, keeping skip indexes', () => {
+    const l = buildLayout(
+      doc([
+        ...header(100),
+        ...words('Card 12', 50, 120),
+        ...row(140, '01/09/2026', 'Fuel', '10.00'),
+        ...words('premium unleaded', 150, 152),
+        ...words('Subtotal', 150, 170),
+        ...words('stray note', 150, 190),
+        ...words('Card 34', 50, 210),
+        ...row(230, '02/09/2026', 'Oil', '5.00'),
+      ]),
+    );
+    const t = extractTable(
+      l,
+      rule({
+        skip: ['bad(', '^Subtotal'],
+        groups: [{ name: 'Card', pattern: String.raw`^Card (\d+)$`, capture: 1 }],
+      }),
+    );
+    expect(t.rows).toHaveLength(2);
+    expect(t.stats).toMatchObject({
+      headings: { Card: 2 },
+      skipped: [0, 1],
+      joined: 1,
+      unplacedCount: 1,
+    });
+    expect(t.stats!.unplaced[0]!.page).toBe(1);
+  });
+});

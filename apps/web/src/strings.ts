@@ -1,4 +1,5 @@
 // Every interface string lives here. Components import `S` and never hard-code copy.
+import type { LinePattern } from './lib/rules';
 
 export const S = {
   appName: 'PDF Extractor',
@@ -271,8 +272,45 @@ export const S = {
       removeLabel: (l: string) => `Remove label ${l}`,
     },
     table: {
-      title: 'Table',
-      none: 'No table mapped. Choose “Map table row” and click the table’s header row.',
+      title: 'Line items',
+      none: 'No table yet. Choose “Map a table” and click the table’s header row; each row of the table becomes a row of the CSV.',
+      suggestion: (columns: string) => `This PDF seems to have a table with ${columns}.`,
+      req: 'Req.',
+      columnsHint:
+        'To add a column, choose “Map a table” and click the first word of its values on the page.',
+      howRead: 'How lines are read',
+      howReadHint: 'Click any line in the table on the page to change how lines like it are read.',
+      mark: { row: 'R', heading: 'H', skip: '–', end: '■' },
+      ruleText: (kind: 'row' | 'heading' | 'skip' | 'end', m: LinePattern, name?: string) => {
+        const what =
+          m.kind === 'startsWith'
+            ? `Lines starting “${m.text}”`
+            : m.kind === 'exactly'
+              ? `Lines reading “${m.text}”`
+              : m.kind === 'capitals'
+                ? 'Headings in capitals'
+                : m.kind === 'words'
+                  ? 'Headings without numbers'
+                  : m.kind === 'pageNumbers'
+                    ? 'Page numbers'
+                    : `Lines matching ${m.pattern}`;
+        if (kind === 'row')
+          return m.kind === 'pattern'
+            ? `A new row starts when ${name} matches ${m.pattern}`
+            : `A new row starts at each value in ${name}; lines below join it`;
+        if (kind === 'heading') return `${what} go into ${name}`;
+        if (kind === 'skip') return `${what} are skipped`;
+        return m.kind === 'startsWith' ? `The table ends at “${m.text}”` : 'The table ends';
+      },
+      lines: (n: number) => `${n.toLocaleString('en-AU')} ${n === 1 ? 'line' : 'lines'}`,
+      removeRule: (text: string) => `Remove: ${text}`,
+      removeEnd: 'Remove the end',
+      unplaced: (n: number) =>
+        `${n.toLocaleString('en-AU')} ${n === 1 ? 'line isn’t' : 'lines aren’t'} part of any row.`,
+      showUnplaced: 'Show',
+      unplacedShown: (page: number) =>
+        `A line that isn’t part of any row, on page ${page}. Click it to say what it is.`,
+      more: 'More options: header, row start, patterns',
       started: 'Table found. Now click any line in it to say what it is.',
       lineTitle: 'What is this line?',
       lineHint: 'Your choice applies to every line like it, on every page.',
@@ -333,6 +371,14 @@ export const S = {
       mustNotContain: 'Must not contain (one per line)',
       abn: 'ABN',
       anyPage: 'Look on any page (not just page 1)',
+    },
+    rail: {
+      title: 'Your CSV',
+      hint: 'Everything here becomes a column of the CSV. Click the page to add more.',
+      details: 'Bill details',
+      detailsHint: 'The same on every row, such as the account number and bill date.',
+      recognise: 'Recognise this supplier',
+      checks: (n: number) => `Checks (${n} on)`,
     },
     output: {
       title: 'Output',

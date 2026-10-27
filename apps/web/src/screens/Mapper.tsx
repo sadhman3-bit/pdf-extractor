@@ -93,9 +93,6 @@ function emptyTemplate(id: string, name: string, fp: Template['fingerprint']): T
   };
 }
 
-type Panel = 'fields' | 'table' | 'checks' | 'fingerprint';
-const PANELS: Panel[] = ['fields', 'table', 'checks', 'fingerprint'];
-
 export function MapperScreen() {
   const s = useApp();
   const route = useRoute();
@@ -121,7 +118,6 @@ export function MapperScreen() {
   const [changing, setChanging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nonce, setNonce] = useState(0);
-  const [panel, setPanel] = useState<Panel>('fields');
   // A field or suggestion pointed at in the list, outlined on the page.
   const [hot, setHot] = useState<string | null>(null);
   // A word clicked on a line of the mapped table, waiting for "what is this line?".
@@ -133,6 +129,8 @@ export function MapperScreen() {
   const created = useRef<string | null>(null);
   // The latest draft, for undo actions that run after later edits.
   const latest = useRef<Template | null>(null);
+  // Which line "Show" jumps to next, among those that aren't part of any row.
+  const unplacedAt = useRef(0);
   const pdf = usePdf(sample?.bytes ?? null);
 
   const ws = s.ws;
@@ -338,7 +336,6 @@ export function MapperScreen() {
   const onToken = (t: Token, shift: boolean) => {
     if (!layout) return;
     if (mode === 'table') {
-      setPanel('table');
       if (table) {
         setLineAt(t);
         setSelected(lineOf(t)?.tokens ?? [t]);
@@ -356,7 +353,6 @@ export function MapperScreen() {
       setTable({ ...table, end: { labels: [label], match: 'starts-with' } });
       app.announce(S.mapper.endMarkerSet(label));
       setMode('value');
-      setPanel('table');
       return;
     }
     // Click a value
@@ -378,7 +374,6 @@ export function MapperScreen() {
     const existing = fieldAt(t);
     if (existing) {
       setSelected([]);
-      setPanel('fields');
       setEditing(existing.id);
       app.announce(S.mapper.opened(existing.name));
       return;
@@ -386,7 +381,6 @@ export function MapperScreen() {
     const sg = suggestions.find((x) => x.rule.hint?.page === t.page && inBox(t, x.rule.hint.bbox));
     if (sg) {
       setSelected([]);
-      setPanel('fields');
       setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
       setEditing(sg.rule.id);
       app.announce(`${S.common.accept}: ${sg.rule.name}`);
@@ -435,6 +429,17 @@ export function MapperScreen() {
         setDraft({ ...cur, tables: [prev, ...(cur.tables ?? []).slice(1)] });
       },
     });
+  };
+
+  const showUnplaced = () => {
+    const all = tableResult?.stats?.unplaced ?? [];
+    if (!all.length) return;
+    const b = all[unplacedAt.current++ % all.length]!;
+    setMode('table');
+    setPageNo(b.page);
+    setSelected((pages?.[b.page - 1]?.tokens ?? []).filter((t) => inBox(t, b.bbox)));
+    setReveal((n) => n + 1);
+    app.announce(S.mapper.table.unplacedShown(b.page));
   };
 
   const removeColumn = (name: string) => {
@@ -493,7 +498,6 @@ export function MapperScreen() {
       return;
     }
     setMessage(null);
-    setPanel('fields');
     setDraft({ ...draft, fields: [...draft.fields, inf.rule] });
     setEditing(inf.rule.id);
     app.announce(`${inf.rule.name}: ${inf.value}`);
@@ -695,12 +699,7 @@ export function MapperScreen() {
   };
 
   const fpParts = draft.fingerprint.mustContain.map((x) => `“${x}”`).join(', ');
-  const panelCount = (p: Panel): number | null => {
-    if (p === 'fields') return draft.fields.length;
-    if (p === 'table') return tableResult?.found ? tableResult.rows.length : null;
-    if (p === 'checks') return (draft.checks ?? []).filter((c) => c.enabled !== false).length;
-    return null;
-  };
+  const checksOn = (draft.checks ?? []).filter((c) => c.enabled !== false).length;
   const origin = route.template ? true : false;
 
   return (
@@ -843,7 +842,107 @@ export function MapperScreen() {
         </Banner>
       ) : null}
 
-      <div class="split split-wide">
+      <div class="mapper-layout">
+        <aside class="mapper-rail stack" aria-labelledby="csv-title">
+          <div class="rail-intro">
+            <h2 id="csv-title" class="section-title">
+              {S.mapper.rail.title}
+            </h2>
+            <p class="caption">{S.mapper.rail.hint}</p>
+          </div>
+          <FieldsPanel
+            draft={draft}
+            result={result}
+            suggestions={suggestions}
+            editing={editing}
+            repick={repick}
+            onAccept={(sg) => {
+              setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
+              app.announce(`${S.common.accept}: ${sg.rule.name}`);
+            }}
+            onAcceptAll={() => {
+              setDraft({
+                ...draft,
+                fields: [...draft.fields, ...suggestions.map((x) => x.rule)],
+              });
+              app.announce(`${S.mapper.acceptAll}: ${suggestions.length}`);
+            }}
+            hot={hot}
+            onHot={setHot}
+            onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
+            onEdit={setEditing}
+            onRepick={(id) => {
+              setMode('value');
+              setRepick(repick === id ? null : id);
+            }}
+            onChange={updateField}
+            onRemove={removeField}
+            onAddPreset={(name) => {
+              const p = PRESETS.find((x) => x.name === name)!;
+              const f: FieldRule = {
+                id: `f${Date.now().toString(36)}`,
+                name: p.name,
+                type: p.type,
+                required: true,
+                anchor: { labels: [...p.labels], match: 'exact' },
+                direction: 'right',
+              };
+              setDraft({ ...draft, fields: [...draft.fields, f] });
+              setEditing(f.id);
+            }}
+            onRegion={(id, on) => {
+              const f = draft.fields.find((x) => x.id === id)!;
+              const r = fieldRes(f);
+              const box = r?.boxes[0];
+              const pg = pages?.[(box?.page ?? 1) - 1];
+              if (!on || !box || !pg) {
+                const { region: _r, ...rest } = f;
+                updateField(rest);
+                return;
+              }
+              const pad = 4;
+              updateField({
+                ...f,
+                region: {
+                  page: box.page,
+                  x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
+                  y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
+                  x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
+                  y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
+                },
+              });
+            }}
+          />
+          {table && lineAt ? linePanel(lineAt) : null}
+          <TablePanel
+            table={table}
+            result={tableResult}
+            suggestion={tableSuggestion?.rule ?? null}
+            onAcceptSuggestion={() => tableSuggestion && setTable(tableSuggestion.rule)}
+            onChange={(t) => setTable(t)}
+            onRemove={() => setTable(null)}
+            onRemoveColumn={removeColumn}
+            onShowUnplaced={showUnplaced}
+          />
+          <details class="card rail-more">
+            <summary>{S.mapper.rail.recognise}</summary>
+            <FingerprintPanel
+              bare
+              draft={draft}
+              onChange={(fingerprint) => setDraft({ ...draft, fingerprint })}
+            />
+          </details>
+          <details class="card rail-more">
+            <summary>{S.mapper.rail.checks(checksOn)}</summary>
+            <ChecksPanel
+              bare
+              draft={draft}
+              result={result}
+              onChange={(checks) => setDraft({ ...draft, checks })}
+            />
+          </details>
+        </aside>
+
         <section class="card stack mapper-page" aria-label={sample?.name ?? S.mapper.title}>
           <div class="viewer-toolbar">
             <Segmented<Mode>
@@ -921,134 +1020,6 @@ export function MapperScreen() {
             <DropZone multiple={false} onFiles={async (f) => void (await addAndLoad(f[0]!))} />
           ) : null}
         </section>
-
-        <div class="stack">
-          <div class="tabs" role="tablist" aria-label={S.mapper.panels}>
-            {PANELS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                role="tab"
-                id={`tab-${p}`}
-                aria-selected={panel === p}
-                aria-controls="mapper-panel"
-                class={panel === p ? 'tab on' : 'tab'}
-                onClick={() => setPanel(p)}
-              >
-                {S.mapper.panel[p]}
-                {panelCount(p) !== null ? <span class="tab-count">{panelCount(p)}</span> : null}
-              </button>
-            ))}
-          </div>
-          <div id="mapper-panel" role="tabpanel" aria-labelledby={`tab-${panel}`} class="stack">
-            {panel === 'fields' ? (
-              <FieldsPanel
-                draft={draft}
-                result={result}
-                suggestions={suggestions}
-                editing={editing}
-                repick={repick}
-                onAccept={(sg) => {
-                  setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
-                  app.announce(`${S.common.accept}: ${sg.rule.name}`);
-                }}
-                onAcceptAll={() => {
-                  setDraft({
-                    ...draft,
-                    fields: [...draft.fields, ...suggestions.map((x) => x.rule)],
-                  });
-                  app.announce(`${S.mapper.acceptAll}: ${suggestions.length}`);
-                }}
-                hot={hot}
-                onHot={setHot}
-                onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
-                onEdit={setEditing}
-                onRepick={(id) => {
-                  setMode('value');
-                  setRepick(repick === id ? null : id);
-                }}
-                onChange={updateField}
-                onRemove={removeField}
-                onAddPreset={(name) => {
-                  const p = PRESETS.find((x) => x.name === name)!;
-                  const f: FieldRule = {
-                    id: `f${Date.now().toString(36)}`,
-                    name: p.name,
-                    type: p.type,
-                    required: true,
-                    anchor: { labels: [...p.labels], match: 'exact' },
-                    direction: 'right',
-                  };
-                  setDraft({ ...draft, fields: [...draft.fields, f] });
-                  setEditing(f.id);
-                }}
-                onRegion={(id, on) => {
-                  const f = draft.fields.find((x) => x.id === id)!;
-                  const r = fieldRes(f);
-                  const box = r?.boxes[0];
-                  const pg = pages?.[(box?.page ?? 1) - 1];
-                  if (!on || !box || !pg) {
-                    const { region: _r, ...rest } = f;
-                    updateField(rest);
-                    return;
-                  }
-                  const pad = 4;
-                  updateField({
-                    ...f,
-                    region: {
-                      page: box.page,
-                      x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
-                      y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
-                      x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
-                      y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
-                    },
-                  });
-                }}
-              />
-            ) : null}
-            {panel === 'table' || panel === 'fields' ? (
-              tableSuggestion && !table ? (
-                <Banner
-                  tone="warn"
-                  action={
-                    <button
-                      type="button"
-                      class="btn btn-small"
-                      onClick={() => setTable(tableSuggestion.rule)}
-                    >
-                      {S.common.accept}
-                    </button>
-                  }
-                >
-                  {`${S.mapper.suggested}: ${S.mapper.table.title} (${tableSuggestion.rule.columns.map((c) => c.name).join(', ')})`}
-                </Banner>
-              ) : null
-            ) : null}
-            {panel === 'table' && table && lineAt ? linePanel(lineAt) : null}
-            {panel === 'table' ? (
-              <TablePanel
-                table={table}
-                rows={tableResult?.rows.length ?? 0}
-                onChange={(t) => setTable(t)}
-                onRemove={() => setTable(null)}
-                onRemoveColumn={removeColumn}
-              />
-            ) : null}
-            {panel === 'checks' ? (
-              <ChecksPanel
-                draft={draft}
-                result={result}
-                onChange={(checks) => setDraft({ ...draft, checks })}
-              />
-            ) : null}
-            {panel === 'fingerprint' ? (
-              <FingerprintPanel
-                draft={draft}
-                onChange={(fingerprint) => setDraft({ ...draft, fingerprint })}
-              />
-            ) : null}
-          </div>
-        </div>
       </div>
 
       <OutputDock

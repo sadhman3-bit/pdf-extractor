@@ -30,6 +30,19 @@ export interface ColumnBounds {
   x1: number;
 }
 
+/** How the lines of a table were read, for showing each rule's reach. */
+export interface LineStats {
+  /** Heading lines, by the column they fill. */
+  headings: Record<string, number>;
+  /** Skipped lines, by index in the rule's `skip`. */
+  skipped: number[];
+  /** Lines joined onto the row above. */
+  joined: number;
+  /** Lines that were neither a row nor part of one (at most 500 listed). */
+  unplaced: SourceBox[];
+  unplacedCount: number;
+}
+
 export interface TableResult {
   name: string;
   found: boolean;
@@ -37,6 +50,7 @@ export interface TableResult {
   end?: SourceBox;
   bounds: ColumnBounds[];
   rows: RowResult[];
+  stats?: LineStats;
 }
 
 interface HeaderHit {
@@ -176,7 +190,8 @@ export function extractTable(
   const bounds = columnBounds(rule, header.spans);
   result.bounds = bounds;
 
-  const skip = compile(rule.skip);
+  // An invalid pattern never matches but keeps its place, so counts line up with `rule.skip`.
+  const skip = (rule.skip ?? []).map((p) => compile([p])[0] ?? /(?!)/);
   const groups = (rule.groups ?? []).flatMap((g) => {
     try {
       return [{ g, re: new RegExp(g.pattern) }];
@@ -200,6 +215,13 @@ export function extractTable(
   const raw: RawRow[] = [];
   let ended = false;
   const furniture = furnitureLines(layout);
+  const stats: LineStats = {
+    headings: {},
+    skipped: (rule.skip ?? []).map(() => 0),
+    joined: 0,
+    unplaced: [],
+    unplacedCount: 0,
+  };
   // Lines without a row start join the row above, but never across a group heading.
   let joinable = false;
   const colOf = (t: Token) => {
@@ -229,7 +251,9 @@ export function extractTable(
         break;
       }
       // A skipped line (such as a group's total) also closes the row above it.
-      if (skip.some((re) => re.test(line.text))) {
+      const si = skip.findIndex((re) => re.test(line.text));
+      if (si >= 0) {
+        stats.skipped[si] = (stats.skipped[si] ?? 0) + 1;
         joinable = false;
         continue;
       }
@@ -243,6 +267,7 @@ export function extractTable(
       if (g) {
         const m = g.re.exec(line.text)!;
         groupValues[g.g.name] = (m[g.g.capture ?? 0] ?? m[0]).trim();
+        stats.headings[g.g.name] = (stats.headings[g.g.name] ?? 0) + 1;
         joinable = false;
         continue;
       }
@@ -273,11 +298,17 @@ export function extractTable(
           arr.push(...toks);
           prev.cells.set(name, arr);
         }
+        stats.joined++;
+      } else {
+        stats.unplacedCount++;
+        if (stats.unplaced.length < 500)
+          stats.unplaced.push({ page: p.page, bbox: [line.x0, line.y0, line.x1, line.y1] });
       }
     }
   }
 
   result.rows = raw.map((r) => typeRow(rule, r, opts));
+  result.stats = stats;
   return result;
 }
 

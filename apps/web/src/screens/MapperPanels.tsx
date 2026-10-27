@@ -10,10 +10,12 @@ import {
   type Extraction,
   type FieldRule,
   type InferredField,
+  type TableResult,
   type TableRule,
   type Template,
 } from '@pdfx/engine';
 import { S } from '../strings';
+import { lineRules } from '../lib/rules';
 import { CheckIcon, XIcon } from '../components/Icons';
 
 const ruleText = (f: FieldRule) => {
@@ -77,9 +79,12 @@ export function FieldsPanel(props: {
   const unused = PRESETS.filter((p) => !draft.fields.some((f) => f.name === p.name));
   return (
     <section class="card stack" aria-labelledby="fields-title">
-      <h2 id="fields-title" class="card-title">
-        {S.mapper.fields}
-      </h2>
+      <div>
+        <h2 id="fields-title" class="card-title">
+          {S.mapper.rail.details}
+        </h2>
+        <p class="caption">{S.mapper.rail.detailsHint}</p>
+      </div>
       {!draft.fields.length ? <p class="muted small">{S.mapper.noFields}</p> : null}
       {draft.fields.map((f) => {
         const r = result?.fields[f.name];
@@ -514,18 +519,26 @@ export function LinePanel({
   );
 }
 
+/** The table as CSV columns, headings and plain-word line rules; patterns under More options. */
 export function TablePanel({
   table,
-  rows,
+  result,
+  suggestion,
+  onAcceptSuggestion,
   onChange,
   onRemove,
   onRemoveColumn,
+  onShowUnplaced,
 }: {
   table: TableRule | undefined;
-  rows: number;
+  result: TableResult | undefined;
+  /** A table the app found on its own, offered when none is mapped. */
+  suggestion: TableRule | null;
+  onAcceptSuggestion: () => void;
   onChange: (t: TableRule) => void;
   onRemove: () => void;
   onRemoveColumn: (name: string) => void;
+  onShowUnplaced: () => void;
 }) {
   if (!table) {
     return (
@@ -534,17 +547,49 @@ export function TablePanel({
           {S.mapper.table.title}
         </h2>
         <p class="muted small">{S.mapper.table.none}</p>
+        {suggestion ? (
+          <div class="suggest-box stack">
+            <p class="small">
+              {S.mapper.table.suggestion(suggestion.columns.map((c) => c.name).join(', '))}
+            </p>
+            <div class="row">
+              <button type="button" class="btn btn-small" onClick={onAcceptSuggestion}>
+                {S.common.accept}
+              </button>
+            </div>
+          </div>
+        ) : null}
       </section>
     );
   }
   const set = (patch: Partial<TableRule>) => onChange({ ...table, ...patch });
+  const stats = result?.stats;
+  const rules = lineRules(table);
+  const setColumn = (i: number, patch: Partial<TableRule['columns'][number]>) => {
+    const columns = [...table.columns];
+    const old = columns[i]!;
+    columns[i] = { ...old, ...patch };
+    const rowStart =
+      patch.name !== undefined && table.rowStart?.column === old.name
+        ? { ...table.rowStart, column: patch.name }
+        : table.rowStart;
+    set({ columns, ...(rowStart ? { rowStart } : {}) });
+  };
+  const countOf = (r: (typeof rules)[number]) =>
+    r.kind === 'heading'
+      ? (stats?.headings[r.name!] ?? 0)
+      : r.kind === 'skip'
+        ? stats?.skipped[r.index!]
+        : r.kind === 'row'
+          ? result?.rows.length
+          : undefined;
   return (
     <section class="card stack" aria-labelledby="table-title">
       <div class="card-head">
         <h2 id="table-title" class="card-title">
           {S.mapper.table.title}
         </h2>
-        <span class="chip chip-accent">{S.mapper.table.rowsFound(rows)}</span>
+        <span class="chip chip-accent">{S.mapper.table.rowsFound(result?.rows.length ?? 0)}</span>
       </div>
       <label class="field">
         {S.mapper.table.name}
@@ -555,246 +600,262 @@ export function TablePanel({
           onInput={(e) => set({ name: (e.target as HTMLInputElement).value.replace(/[^\w]/g, '') })}
         />
       </label>
-      <label class="field">
-        {S.mapper.table.header}
-        <input
-          type="text"
-          value={table.header.labels.join(', ')}
-          onInput={(e) =>
-            set({ header: { ...table.header, labels: list((e.target as HTMLInputElement).value) } })
-          }
-        />
-      </label>
-      <fieldset class="stack">
-        <legend class="field">{S.mapper.table.columns(table.columns.length)}</legend>
-        <div class="table-wrap" tabIndex={0}>
-          <table class="data">
-            <thead>
-              <tr>
-                <th scope="col">{S.mapper.table.colName}</th>
-                <th scope="col">{S.mapper.table.colType}</th>
-                <th scope="col">{S.mapper.table.colRequired}</th>
-                <th scope="col">
-                  <span class="sr-only">{S.common.remove}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {table.columns.map((c, i) => (
-                <tr key={i}>
-                  <td>
-                    <input
-                      type="text"
-                      aria-label={`${S.mapper.table.colName} ${c.header}`}
-                      value={c.name}
-                      onInput={(e) => {
-                        const columns = [...table.columns];
-                        const oldName = c.name;
-                        const name = (e.target as HTMLInputElement).value.replace(/[^\w]/g, '');
-                        columns[i] = { ...c, name };
-                        const rowStart =
-                          table.rowStart?.column === oldName
-                            ? { ...table.rowStart, column: name }
-                            : table.rowStart;
-                        set({ columns, ...(rowStart ? { rowStart } : {}) });
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      aria-label={`${S.mapper.table.colType} ${c.header}`}
-                      value={c.type ?? 'text'}
-                      onChange={(e) => {
-                        const columns = [...table.columns];
-                        columns[i] = {
-                          ...c,
-                          type: (e.target as HTMLSelectElement).value as FieldRule['type'],
-                        };
-                        set({ columns });
-                      }}
-                    >
-                      {FIELD_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {S.options.type[t]}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      type="checkbox"
-                      aria-label={`${S.mapper.table.colRequired} ${c.header}`}
-                      checked={!!c.required}
-                      onChange={(e) => {
-                        const columns = [...table.columns];
-                        columns[i] = { ...c, required: (e.target as HTMLInputElement).checked };
-                        set({ columns });
-                      }}
-                    />
-                  </td>
-                  <td>
-                    {table.columns.length > 1 ? (
-                      <button
-                        type="button"
-                        class="icon-btn"
-                        aria-label={S.mapper.table.removeColumn(c.name)}
-                        onClick={() => onRemoveColumn(c.name)}
-                      >
-                        <XIcon size={14} />
-                      </button>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </fieldset>
-      <div class="grid-2">
-        <label class="field">
-          {`${S.mapper.table.rowStart}: ${S.mapper.table.rowStartColumn}`}
-          <select
-            value={table.rowStart?.column ?? ''}
-            onChange={(e) =>
-              set({
-                rowStart: {
-                  column: (e.target as HTMLSelectElement).value,
-                  pattern: table.rowStart?.pattern ?? '\\S',
-                },
-              })
-            }
-          >
-            {table.columns.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label class="field">
-          {S.mapper.table.rowStartPattern}
-          <input
-            type="text"
-            class="mono"
-            value={table.rowStart?.pattern ?? ''}
-            onInput={(e) =>
-              set({
-                rowStart: {
-                  column: table.rowStart?.column ?? table.columns[0]!.name,
-                  pattern: (e.target as HTMLInputElement).value,
-                },
-              })
-            }
-          />
-        </label>
-      </div>
-      <label class="field">
-        {S.mapper.table.end}
-        <input
-          type="text"
-          value={table.end?.labels.join(', ') ?? ''}
-          onInput={(e) => {
-            const labels = list((e.target as HTMLInputElement).value);
-            const { end: _e, ...rest } = table;
-            onChange(
-              labels.length
-                ? { ...rest, end: { labels, match: table.end?.match ?? 'starts-with' } }
-                : rest,
-            );
-          }}
-        />
-        <span class="caption">{S.mapper.table.endHint}</span>
-      </label>
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={table.continuesOnNextPage ?? true}
-          onChange={(e) => set({ continuesOnNextPage: (e.target as HTMLInputElement).checked })}
-        />
-        {S.mapper.table.continues}
-      </label>
-      <label class="field">
-        {S.mapper.table.wrapped}
-        <select
-          value={table.wrappedLines ?? 'join'}
-          onChange={(e) =>
-            set({ wrappedLines: (e.target as HTMLSelectElement).value as 'join' | 'ignore' })
-          }
-        >
-          <option value="join">{S.mapper.table.wrappedJoin}</option>
-          <option value="ignore">{S.mapper.table.wrappedIgnore}</option>
-        </select>
-      </label>
-      <label class="field">
-        {S.mapper.table.skip}
-        <textarea
-          class="mono"
-          value={(table.skip ?? []).join('\n')}
-          onInput={(e) => set({ skip: lines((e.target as HTMLTextAreaElement).value) })}
-        />
-      </label>
-      <fieldset class="stack">
-        <legend class="field">{S.mapper.table.groups}</legend>
-        {(table.groups ?? []).map((g, i) => (
-          <div class="row group-row" key={i}>
-            <input
-              type="text"
-              aria-label={S.mapper.table.groupName}
-              value={g.name}
-              onInput={(e) => {
-                const groups = [...(table.groups ?? [])];
-                groups[i] = {
-                  ...g,
-                  name: (e.target as HTMLInputElement).value.replace(/[^\w]/g, ''),
-                };
-                set({ groups });
-              }}
-            />
+
+      <h3 class="card-subtitle">{S.mapper.table.columns(table.columns.length)}</h3>
+      <ul class="col-list">
+        {table.columns.map((c, i) => (
+          <li key={i} class="col-row">
             <input
               type="text"
               class="mono"
-              aria-label={S.mapper.table.groupPattern}
-              value={g.pattern}
+              aria-label={`${S.mapper.table.colName} ${c.header}`}
+              value={c.name}
+              onInput={(e) =>
+                setColumn(i, { name: (e.target as HTMLInputElement).value.replace(/[^\w]/g, '') })
+              }
+            />
+            <select
+              aria-label={`${S.mapper.table.colType} ${c.header}`}
+              value={c.type ?? 'text'}
+              onChange={(e) =>
+                setColumn(i, { type: (e.target as HTMLSelectElement).value as FieldRule['type'] })
+              }
+            >
+              {FIELD_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {S.options.type[t]}
+                </option>
+              ))}
+            </select>
+            <label class="check small" title={S.mapper.table.colRequired}>
+              <input
+                type="checkbox"
+                aria-label={`${S.mapper.table.colRequired} ${c.header}`}
+                checked={!!c.required}
+                onChange={(e) => setColumn(i, { required: (e.target as HTMLInputElement).checked })}
+              />
+              {S.mapper.table.req}
+            </label>
+            {table.columns.length > 1 ? (
+              <button
+                type="button"
+                class="icon-btn"
+                aria-label={S.mapper.table.removeColumn(c.name)}
+                onClick={() => onRemoveColumn(c.name)}
+              >
+                <XIcon size={14} />
+              </button>
+            ) : (
+              <span />
+            )}
+          </li>
+        ))}
+      </ul>
+      <p class="caption">{S.mapper.table.columnsHint}</p>
+
+      <h3 class="card-subtitle">{S.mapper.table.howRead}</h3>
+      <ul class="rule-list">
+        {rules.map((r, i) => {
+          const n = countOf(r);
+          const text = S.mapper.table.ruleText(r.kind, r.match, r.name);
+          return (
+            <li key={i} class={`rule-row rule-${r.kind}`}>
+              <span class="rule-mark" aria-hidden="true">
+                {S.mapper.table.mark[r.kind]}
+              </span>
+              <span class="rule-text">{text}</span>
+              {n !== undefined ? (
+                <span class="rule-count">
+                  {r.kind === 'row' ? S.mapper.table.rowsFound(n) : S.mapper.table.lines(n)}
+                </span>
+              ) : null}
+              {r.kind === 'row' ? null : (
+                <button
+                  type="button"
+                  class="icon-btn"
+                  aria-label={
+                    r.kind === 'heading'
+                      ? S.mapper.table.removeGroup(r.name!)
+                      : S.mapper.table.removeRule(text)
+                  }
+                  onClick={() => {
+                    if (r.kind === 'heading')
+                      set({ groups: (table.groups ?? []).filter((_, k) => k !== r.index) });
+                    else if (r.kind === 'skip')
+                      set({ skip: (table.skip ?? []).filter((_, k) => k !== r.index) });
+                    else {
+                      const { end: _e, ...rest } = table;
+                      onChange(rest);
+                    }
+                  }}
+                >
+                  <XIcon size={14} />
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {stats?.unplacedCount ? (
+        <div class="unplaced">
+          <span class="small">{S.mapper.table.unplaced(stats.unplacedCount)}</span>
+          <button type="button" class="btn btn-small" onClick={onShowUnplaced}>
+            {S.mapper.table.showUnplaced}
+          </button>
+        </div>
+      ) : null}
+      <p class="caption">{S.mapper.table.howReadHint}</p>
+
+      <details class="more">
+        <summary>{S.mapper.table.more}</summary>
+        <div class="stack">
+          <label class="field">
+            {S.mapper.table.header}
+            <input
+              type="text"
+              value={table.header.labels.join(', ')}
+              onInput={(e) =>
+                set({
+                  header: { ...table.header, labels: list((e.target as HTMLInputElement).value) },
+                })
+              }
+            />
+          </label>
+          <div class="grid-2">
+            <label class="field">
+              {`${S.mapper.table.rowStart}: ${S.mapper.table.rowStartColumn}`}
+              <select
+                value={table.rowStart?.column ?? ''}
+                onChange={(e) =>
+                  set({
+                    rowStart: {
+                      column: (e.target as HTMLSelectElement).value,
+                      pattern: table.rowStart?.pattern ?? '\\S',
+                    },
+                  })
+                }
+              >
+                {table.columns.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label class="field">
+              {S.mapper.table.rowStartPattern}
+              <input
+                type="text"
+                class="mono"
+                value={table.rowStart?.pattern ?? ''}
+                onInput={(e) =>
+                  set({
+                    rowStart: {
+                      column: table.rowStart?.column ?? table.columns[0]!.name,
+                      pattern: (e.target as HTMLInputElement).value,
+                    },
+                  })
+                }
+              />
+            </label>
+          </div>
+          <label class="field">
+            {S.mapper.table.end}
+            <input
+              type="text"
+              value={table.end?.labels.join(', ') ?? ''}
               onInput={(e) => {
-                const groups = [...(table.groups ?? [])];
-                groups[i] = {
-                  ...g,
-                  pattern: (e.target as HTMLInputElement).value,
-                  capture: /\(/.test((e.target as HTMLInputElement).value) ? 1 : 0,
-                };
-                set({ groups });
+                const labels = list((e.target as HTMLInputElement).value);
+                const { end: _e, ...rest } = table;
+                onChange(
+                  labels.length
+                    ? { ...rest, end: { labels, match: table.end?.match ?? 'starts-with' } }
+                    : rest,
+                );
               }}
             />
+          </label>
+          <label class="check">
+            <input
+              type="checkbox"
+              checked={table.continuesOnNextPage ?? true}
+              onChange={(e) => set({ continuesOnNextPage: (e.target as HTMLInputElement).checked })}
+            />
+            {S.mapper.table.continues}
+          </label>
+          <label class="field">
+            {S.mapper.table.wrapped}
+            <select
+              value={table.wrappedLines ?? 'join'}
+              onChange={(e) =>
+                set({ wrappedLines: (e.target as HTMLSelectElement).value as 'join' | 'ignore' })
+              }
+            >
+              <option value="join">{S.mapper.table.wrappedJoin}</option>
+              <option value="ignore">{S.mapper.table.wrappedIgnore}</option>
+            </select>
+          </label>
+          <label class="field">
+            {S.mapper.table.skip}
+            <textarea
+              class="mono"
+              value={(table.skip ?? []).join('\n')}
+              onInput={(e) => set({ skip: lines((e.target as HTMLTextAreaElement).value) })}
+            />
+          </label>
+          <fieldset class="stack">
+            <legend class="field">{S.mapper.table.groups}</legend>
+            {(table.groups ?? []).map((g, i) => (
+              <div class="row group-row" key={i}>
+                <input
+                  type="text"
+                  aria-label={S.mapper.table.groupName}
+                  value={g.name}
+                  onInput={(e) => {
+                    const groups = [...(table.groups ?? [])];
+                    groups[i] = {
+                      ...g,
+                      name: (e.target as HTMLInputElement).value.replace(/[^\w]/g, ''),
+                    };
+                    set({ groups });
+                  }}
+                />
+                <input
+                  type="text"
+                  class="mono"
+                  aria-label={S.mapper.table.groupPattern}
+                  value={g.pattern}
+                  onInput={(e) => {
+                    const groups = [...(table.groups ?? [])];
+                    const pattern = (e.target as HTMLInputElement).value;
+                    groups[i] = { ...g, pattern, capture: /\(/.test(pattern) ? 1 : 0 };
+                    set({ groups });
+                  }}
+                />
+              </div>
+            ))}
             <button
               type="button"
-              class="icon-btn"
-              aria-label={S.mapper.table.removeGroup(g.name)}
-              onClick={() => set({ groups: (table.groups ?? []).filter((_, k) => k !== i) })}
+              class="btn btn-dashed"
+              onClick={() =>
+                set({
+                  groups: [
+                    ...(table.groups ?? []),
+                    { name: 'Group', pattern: '^Group (.+)$', capture: 1 },
+                  ],
+                })
+              }
             >
-              <XIcon size={14} />
+              {S.mapper.table.addGroup}
+            </button>
+          </fieldset>
+          <div class="row">
+            <button type="button" class="btn btn-danger" onClick={onRemove}>
+              {S.mapper.table.remove}
             </button>
           </div>
-        ))}
-        <button
-          type="button"
-          class="btn btn-dashed"
-          onClick={() =>
-            set({
-              groups: [
-                ...(table.groups ?? []),
-                { name: 'Group', pattern: '^Group (.+)$', capture: 1 },
-              ],
-            })
-          }
-        >
-          {S.mapper.table.addGroup}
-        </button>
-      </fieldset>
-      <div class="row">
-        <button type="button" class="btn btn-danger" onClick={onRemove}>
-          {S.mapper.table.remove}
-        </button>
-      </div>
+        </div>
+      </details>
     </section>
   );
 }
@@ -805,10 +866,13 @@ export function ChecksPanel({
   draft,
   result,
   onChange,
+  bare = false,
 }: {
   draft: Template;
   result: Extraction | null;
   onChange: (checks: CheckRule[]) => void;
+  /** Without its own card and heading (inside a section that has one). */
+  bare?: boolean;
 }) {
   const [expr, setExpr] = useState('');
   const [label, setLabel] = useState('');
@@ -825,10 +889,16 @@ export function ChecksPanel({
   const custom = checks.filter((c) => !defaults.some((d) => d.expr === c.expr));
   const resultFor = (c: CheckRule) => result?.checks.find((r) => r.id === c.id)?.result;
   return (
-    <section class="card stack" aria-labelledby="checks-title">
-      <h2 id="checks-title" class="card-title">
-        {S.mapper.checks.title}
-      </h2>
+    <section
+      class={bare ? 'stack' : 'card stack'}
+      aria-labelledby={bare ? undefined : 'checks-title'}
+      aria-label={bare ? S.mapper.checks.title : undefined}
+    >
+      {bare ? null : (
+        <h2 id="checks-title" class="card-title">
+          {S.mapper.checks.title}
+        </h2>
+      )}
       {defaults.map((d) => {
         const on = checks.find((c) => c.expr === d.expr);
         return (
@@ -950,16 +1020,25 @@ function CheckResultChip({ result }: { result: 'pass' | 'fail' | 'unknown' }) {
 export function FingerprintPanel({
   draft,
   onChange,
+  bare = false,
 }: {
   draft: Template;
   onChange: (fp: Template['fingerprint']) => void;
+  /** Without its own card and heading (inside a section that has one). */
+  bare?: boolean;
 }) {
   const fp = draft.fingerprint;
   return (
-    <section class="card stack" aria-labelledby="fp-title">
-      <h2 id="fp-title" class="card-title">
-        {S.mapper.fingerprint.title}
-      </h2>
+    <section
+      class={bare ? 'stack' : 'card stack'}
+      aria-labelledby={bare ? undefined : 'fp-title'}
+      aria-label={bare ? S.mapper.fingerprint.title : undefined}
+    >
+      {bare ? null : (
+        <h2 id="fp-title" class="card-title">
+          {S.mapper.fingerprint.title}
+        </h2>
+      )}
       <label class="field">
         {S.mapper.fingerprint.mustContain}
         <textarea

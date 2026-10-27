@@ -240,3 +240,11 @@ describe('mapping a grouped service summary', () => {
     expect(names.filter((n) => n.startsWith('TotalFor'))).toEqual([]);
   });
 });
+
+describe('table suggestion on a grouped bill', () => {
+  it('suggests the header that repeats on every page, not a later one-off table', async () => {
+    const l = await layoutOf('summit-voice-jan26.pdf');
+    const t = suggestTable(l)!;
+    expect(t.rule.header.labels).toEqual(['Item', 'Service Summary', 'Excl GST $', 'Incl GST $']);
+  });
+});

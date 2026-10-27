@@ -11,7 +11,7 @@ import type {
   Template,
 } from './template';
 import { extractTable, type ColumnBounds } from './tables';
-import { bboxOf, cx, cy, phrases } from './layout';
+import { bboxOf, cx, cy, furnitureLines, phrases } from './layout';
 import { normalize, normTokens } from './normalize';
 import { guessDateFormat, inferType, parseDate, parseNumber, DATE_GUESS_FORMATS } from './parse';
 import { findAbns } from './fingerprint';
@@ -599,6 +599,28 @@ function retype(layout: DocLayout, rule: TableRule, names: string[]): TableRule 
 
 /** A table suggestion: a header line followed by 3+ aligned lines with a date or number column. */
 export function suggestTable(layout: DocLayout): InferredTable | null {
+  // A header row repeated at the top of page after page is the document's main table,
+  // even when grouped rows (headings, sub-totals) sit between it and the first item.
+  // Page headers repeat too, but sit in the margin and usually carry numbers.
+  const furniture = furnitureLines(layout);
+  const seen = new Map<string, { line: Line; pages: Set<number> }>();
+  for (const page of layout.pages) {
+    for (const l of page.lines) {
+      if (furniture.has(l) || /\d/.test(l.text)) continue;
+      if (!isHeaderish(l) || phrases(l).length < 3) continue;
+      const key = normalize(l.text);
+      const e = seen.get(key) ?? { line: l, pages: new Set<number>() };
+      e.pages.add(page.page);
+      seen.set(key, e);
+    }
+  }
+  const repeated = [...seen.values()]
+    .filter((e) => e.pages.size >= 2)
+    .sort((a, b) => b.pages.size - a.pages.size)[0];
+  if (repeated) {
+    const inf = inferTable(layout, repeated.line.tokens[0]!, 'Items', true);
+    if (inf) return inf;
+  }
   for (const page of layout.pages) {
     for (let i = 0; i < page.lines.length - 3; i++) {
       const h = page.lines[i]!;

@@ -51,8 +51,10 @@ You can drop PDFs into `Inbox/` yourself, in File Explorer, or let a flow do it 
 
 You need one sample PDF from the supplier.
 
+The Mapper has three parts. **Your CSV**, on the left, lists everything that will become a column: the **Bill details** (the same on every row, such as the account number) and the **Line items** (one CSV row per item in the table). The PDF page is on the right. **Output**, at the bottom, shows the CSV as you build it.
+
 1. On **Templates**, choose **New template** (or open **Mapper** and drop a PDF on it).
-2. The app suggests a name and a **fingerprint**: text that appears on every document from this supplier, such as its name and ABN. Check it on the right ("Matches files that contain …").
+2. The app suggests a name and a **fingerprint**: text that appears on every document from this supplier, such as its name and ABN. Check it under **Recognise this supplier** at the bottom of the left-hand list ("Matches files that contain …" under the name).
 3. **Map each value.** With **Click a value** selected, click the value on the page (for example the statement number). Hovering shows exactly what a click will take: a click on any word takes the whole value, so "12 Mar 2026" or "Citric Acid Anhydrous" is one click. The app:
    - finds the label next to it (for example "Statement No"),
    - works out the type (date, amount, number or text),
@@ -71,8 +73,10 @@ You need one sample PDF from the supplier.
    - **The table ends here:** for example at "Call details".
    - **This is the header row:** start the table again from this line.
 
-   Each choice applies to every line like it on every page, and the message at the bottom has **Undo**. Rename the table (for example `Items`) and the columns in the Table panel; **×** removes a column or a heading. Drag a column divider by its grip above the header (or focus it and use the arrow keys).
-6. **Checks.** The app offers sensible checks, such as "the amounts add up to the total" and "GST is the total ÷ 11". Turn them on or off, or add your own (see `TEMPLATE_FORMAT.md` for the expression language).
+   Each choice applies to every line like it on every page, and the message at the bottom has **Undo**. If the app finds a table on its own, **Line items** offers it with **Accept**.
+
+   Under **Line items**, rename the table (for example `Items`) and its columns, and set each column's type; **×** removes a column. **How lines are read** lists the rules in plain words, with how many lines each one matched, for example "Lines starting “Total for” are skipped · 12 lines"; **×** removes a rule. If some lines aren't part of any row, a red note says how many: choose **Show** to go to each one on the page, then click it to say what it is. The header labels, row start and raw patterns are under **More options**. Drag a column divider by its grip above the header (or focus it and use the arrow keys).
+6. **Checks** (at the bottom of the left-hand list). The app offers sensible checks, such as "the amounts add up to the total" and "GST is the total ÷ 11". Turn them on or off, or add your own (see `TEMPLATE_FORMAT.md` for the expression language).
 7. **Output**, docked at the bottom of the screen, shows the CSV exactly as it will be written, for every page of the sample, and updates as you click. It shows the number of rows and any problems (cells that couldn't be read, or required values that are empty), in red. Choose the problem count to see only those rows. Click a value to see where it is on the page. **Download CSV** saves the CSV for this sample straight away; **Larger** and **Hide** change the panel's size.
 8. Choose **Save template**. Each save creates a new version; old versions are kept.
 

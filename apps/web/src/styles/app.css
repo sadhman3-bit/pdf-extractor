@@ -1673,3 +1673,119 @@ details.more[open] > summary {
 .cell-link:hover {
   text-decoration: underline;
 }
+
+/* Mapper: the CSV's columns on the left, the page on the right. */
+.mapper-layout {
+  display: grid;
+  grid-template-columns: minmax(330px, 380px) minmax(0, 1fr);
+  gap: var(--s4);
+  align-items: start;
+}
+.mapper-rail {
+  position: sticky;
+  top: var(--s4);
+  max-height: calc(100vh - var(--dock-space, 0px) - 2 * var(--s4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+.rail-intro .section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+.rail-intro .caption {
+  margin: 2px 0 0;
+}
+.rail-more > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+.rail-more[open] > summary {
+  margin-bottom: var(--s3);
+}
+@media (max-width: 1100px) {
+  .mapper-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mapper-rail {
+    position: static;
+    max-height: none;
+    order: 1;
+  }
+}
+.col-list,
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s1);
+}
+.col-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px auto 28px;
+  gap: var(--s2);
+  align-items: center;
+}
+.col-row input[type='text'],
+.col-row select {
+  min-width: 0;
+  width: 100%;
+}
+.col-row .check {
+  gap: 4px;
+  white-space: nowrap;
+}
+.rule-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto 28px;
+  gap: var(--s2);
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-2);
+  min-height: 28px;
+}
+.rule-mark {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: var(--r-small);
+  padding: 1px 0;
+  color: var(--text-muted);
+}
+.rule-row.rule-row-start .rule-mark,
+.rule-row.rule-row .rule-mark {
+  background: var(--success-tint);
+  color: var(--success-ink);
+}
+.rule-row.rule-heading .rule-mark {
+  background: var(--warn-tint);
+  color: var(--warn-ink);
+}
+.rule-text {
+  overflow-wrap: anywhere;
+}
+.rule-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.unplaced {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r-small);
+  background: var(--danger-tint);
+  color: var(--danger-ink);
+}
+.suggest-box {
+  padding: var(--s3);
+  border: 1px dashed var(--warn-border);
+  border-radius: var(--r-small);
+  background: var(--warn-tint);
+}
