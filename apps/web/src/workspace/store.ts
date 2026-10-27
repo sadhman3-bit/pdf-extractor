@@ -39,6 +39,10 @@ export const settingsSchema = z.looseObject({
   dateOutput: z.literal('iso').default('iso'),
   csvBom: z.boolean().default(true),
   autoCreateFolders: z.boolean().default(true),
+  /** CSV layouts shared across templates: a name and the columns, in order. */
+  layouts: z
+    .array(z.looseObject({ name: z.string().min(1), columns: z.array(z.string().min(1)) }))
+    .default([]),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 export const DEFAULT_SETTINGS: Settings = {
@@ -47,6 +51,7 @@ export const DEFAULT_SETTINGS: Settings = {
   dateOutput: 'iso',
   csvBom: true,
   autoCreateFolders: true,
+  layouts: [],
 };
 
 export async function loadSettings(ws: Workspace): Promise<Settings> {

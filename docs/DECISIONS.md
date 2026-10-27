@@ -146,3 +146,9 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - **Continuous scrolling: not done.** One page at a time, with the strip, find, Page Up/Page Down and the page box, gets anywhere in a 172-page bill in one or two steps. Rendering many pages at once would need every per-page mark, ruler and menu to work across pages; it isn't worth that risk now.
 - **Column headers read as "Item, Text"** for screen readers, not "ItemText".
 
+## Mapper redesign, phase 5: shared layouts, saving, fixing from Review
+
+- **Shared CSV layouts.** A layout is a name and an ordered list of column names, kept in the workspace settings (`layouts`). A template that uses one stores a copy (`layout` in the template), so the engine and old outputs don't depend on settings, and removing a layout changes no template. The layout applies to the main CSV (the first table's, or the only one): `toCsv` and `outputGrid` write exactly its columns in its order, empty where the template has no such column, then the audit columns. Filling a layout column from one of the template's own renames that column (and the row start and second-line columns that refer to it). Checks that name the old column must be updated by hand.
+- **Saving says what the template will do.** After **Save template** the banner lists the words it recognises bills by, its columns (and layout), the rows and problems on the sample, the checks that are on, and offers **Test on samples**.
+- **Fixing from Review.** A file a template read with problems has **Fix the … template with this file** in Review. It opens the template in the Mapper with that file added as a sample; saving makes a new version, and files read before keep the version they were read with.
+

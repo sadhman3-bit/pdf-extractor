@@ -146,6 +146,11 @@ export const S = {
     storageName: 'Browser storage',
   },
   settings: {
+    layouts: 'Shared CSV layouts',
+    layoutsHint:
+      'Templates keep a copy of the layout they use, so removing one here doesn’t change them. Make new layouts in the Mapper.',
+    removeLayout: (name: string) => `Remove ${name}`,
+    layoutRemoved: (name: string) => `Removed the layout ${name}`,
     title: 'Settings',
     name: 'Your name',
     threshold: 'Confidence threshold',
@@ -188,6 +193,26 @@ export const S = {
     noRuns: 'Not run yet',
     copyOf: (name: string) => `${name} (copy)`,
   },
+  layout: {
+    title: (name: string | null, missing: number) =>
+      name
+        ? `CSV layout: ${name}${missing ? ` · ${missing} not in this bill yet` : ''}`
+        : 'CSV layout: this template’s own columns',
+    hint: 'Use the same layout for every supplier’s bills, so one report reads them all. The CSV gets exactly these columns, in this order.',
+    use: 'Columns of the CSV',
+    own: 'This template’s own columns',
+    found: 'Found',
+    notFound: 'Not in this bill yet',
+    fillFrom: (c: string) => `Fill ${c} from`,
+    from: (n: string) => `Fill from ${n}`,
+    left: (names: string) =>
+      `Not in the CSV: ${names}. Fill a layout column from them, or leave them out.`,
+    newName: 'Name for a new shared layout',
+    newPlaceholder: 'For example Telco bills',
+    save: 'Save as a shared layout',
+    saved: (name: string) => `Saved the layout ${name}. Other templates can use it now.`,
+    renamed: (from: string, to: string) => `${from} is now ${to}`,
+  },
   update: {
     title: 'A new version of PDF Extractor is ready.',
     body: 'Reload the page to use it. Your mapping and drafts are saved and come back after the reload.',
@@ -207,6 +232,22 @@ export const S = {
     testOnSamples: 'Test on samples',
     saveTemplate: 'Save template',
     savedAs: (v: number) => `Saved as version ${v}`,
+    saveStage: {
+      recognise: (words: string[]) =>
+        words.length
+          ? `Recognises bills that contain ${words.map((w) => `“${w}”`).join(' and ')}.`
+          : 'Doesn’t recognise any bills yet: add words under Recognise this supplier.',
+      columns: (n: number, layout: string | null) =>
+        layout ? `Writes the ${layout} layout (${n} columns of its own).` : `Writes ${n} columns.`,
+      rows: (rows: number, problems: number) =>
+        `This sample gives ${rows.toLocaleString('en-AU')} ${rows === 1 ? 'row' : 'rows'}${
+          problems
+            ? `, with ${problems} ${problems === 1 ? 'problem' : 'problems'} to look at`
+            : ', with no problems'
+        }.`,
+      checks: (n: number) => (n ? `${n} ${n === 1 ? 'check' : 'checks'} on.` : 'No checks on.'),
+      next: 'Next: test it on other bills from this supplier.',
+    },
     panels: 'Template parts',
     panel: {
       fields: 'Fields',
@@ -562,6 +603,9 @@ export const S = {
     duplicateOf: (path: string) => `Already processed: ${path}`,
   },
   review: {
+    fixTemplate: (name: string) => `Fix the ${name} template with this file`,
+    fixTemplateHint:
+      'Opens the template in the Mapper with this file as a sample. Saving makes a new version; files read before keep theirs.',
     title: 'Review',
     sub: 'Files that need a person.',
     empty: 'Nothing to review. Every file passed its checks.',

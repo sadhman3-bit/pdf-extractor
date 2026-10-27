@@ -125,10 +125,16 @@ export function OutputDock({
             <thead>
               <tr aria-rowindex={1}>
                 {grid.columns.map((c) => (
-                  <th key={c.name} scope="col" class={`col-${c.kind}`}>
+                  <th
+                    key={c.name}
+                    scope="col"
+                    class={`col-${c.missing ? 'missing' : c.kind}`}
+                    aria-label={`${c.name}, ${c.missing ? S.layout.notFound : S.options.type[c.type]}`}
+                  >
                     {c.name}
-                    <span class="sr-only">, </span>
-                    <span class="col-type">{S.options.type[c.type]}</span>
+                    <span class="col-type">
+                      {c.missing ? S.layout.notFound : S.options.type[c.type]}
+                    </span>
                   </th>
                 ))}
               </tr>

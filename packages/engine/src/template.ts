@@ -149,6 +149,13 @@ export const templateSchema = z.looseObject({
   fields: z.array(fieldSchema),
   tables: z.array(tableSchema).optional(),
   checks: z.array(checkSchema).optional(),
+  /**
+   * A CSV layout shared with other templates: the main CSV (the first table's, or
+   * the only one) has exactly these columns, in this order, before the audit columns.
+   */
+  layout: z
+    .looseObject({ name: z.string().min(1), columns: z.array(z.string().min(1)).min(1) })
+    .optional(),
 });
 export type Template = z.infer<typeof templateSchema>;
 

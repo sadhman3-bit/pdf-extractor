@@ -51,6 +51,8 @@ import { usePreview } from '../lib/preview';
 import { OutputDock } from './MapperOutput';
 import { PageView, usePdf, type Mark, type Ruler, type Zoom } from '../components/PageView';
 import { PageStrip, type StripPage } from '../components/PageStrip';
+import { LayoutPanel, type CsvLayout } from './MapperLayout';
+import { saveSettings } from '../workspace/store';
 import { documentText } from '../lib/pipeline';
 import { idbDel, idbGet, idbSet } from '../lib/idb';
 import { DIRS, join, slugify, stem } from '../workspace/paths';
@@ -121,6 +123,7 @@ export function MapperScreen() {
     tone: 'success' | 'warn' | 'danger';
     text: string;
     list?: string[];
+    action?: { label: string; run: () => void };
   } | null>(null);
   const [changing, setChanging] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -630,6 +633,52 @@ export function MapperScreen() {
     p.found = (p.found ?? 0) + 1;
   }
 
+  // The main CSV's own columns (bill details, the first table's columns, its headings).
+  const main = tables[0];
+  const ownColumns = [
+    ...draft.fields.map((f) => f.name),
+    ...(main?.columns ?? []).map((c) => c.name),
+    ...(main?.groups ?? []).map((g) => g.name),
+  ];
+  /** Renames a bill detail, column or heading of the main CSV (to match a shared layout). */
+  const renameOutput = (from: string, to: string) => {
+    if (ownColumns.includes(to)) return;
+    if (draft.fields.some((f) => f.name === from)) {
+      setDraft({
+        ...draft,
+        fields: draft.fields.map((f) => (f.name === from ? { ...f, name: to } : f)),
+      });
+    } else if (main) {
+      const next: TableRule = {
+        ...main,
+        columns: main.columns.map((c) => ({
+          ...c,
+          ...(c.name === from ? { name: to } : {}),
+          ...(c.partOf === from ? { partOf: to } : {}),
+        })),
+        groups: (main.groups ?? []).map((g) => (g.name === from ? { ...g, name: to } : g)),
+        ...(main.rowStart?.column === from ? { rowStart: { ...main.rowStart, column: to } } : {}),
+      };
+      setDraft({ ...draft, tables: [next, ...tables.slice(1)] });
+    }
+    app.announce(S.layout.renamed(from, to));
+  };
+  const applyLayout = (l: CsvLayout | null) => {
+    const { layout: _l, ...rest } = draft;
+    setDraft(l ? { ...rest, layout: { name: l.name, columns: [...l.columns] } } : rest);
+  };
+  const saveLayout = async (name: string) => {
+    const layout = { name, columns: ownColumns };
+    const settings = {
+      ...s.settings,
+      layouts: [...(s.settings.layouts ?? []).filter((l) => l.name !== name), layout],
+    };
+    await saveSettings(ws, settings);
+    app.set({ settings });
+    applyLayout(layout);
+    toast(S.layout.saved(name));
+  };
+
   const showUnplaced = () => {
     const all = tableResult?.stats?.unplaced ?? [];
     if (!all.length) return;
@@ -949,7 +998,22 @@ export function MapperScreen() {
     setDraftState(saved);
     setLatestVersion(saved.version);
     setSavedAt(null);
-    setMessage({ tone: 'success', text: S.mapper.savedAs(saved.version) });
+    const rows = grid?.rows.length ?? 0;
+    setMessage({
+      tone: 'success',
+      text: S.mapper.savedAs(saved.version),
+      list: [
+        S.mapper.saveStage.recognise(saved.fingerprint.mustContain),
+        S.mapper.saveStage.columns(ownColumns.length, saved.layout?.name ?? null),
+        S.mapper.saveStage.rows(rows, grid?.problems ?? 0),
+        S.mapper.saveStage.checks((saved.checks ?? []).filter((c) => c.enabled !== false).length),
+        S.mapper.saveStage.next,
+      ],
+      action: {
+        label: S.mapper.testOnSamples,
+        run: () => navigate({ view: 'test', template: saved.id }),
+      },
+    });
     app.announce(S.mapper.savedAs(saved.version));
     setSourceFile((await idbGet<string>(`origin:${saved.id}`)) ?? null);
     await refresh();
@@ -1087,7 +1151,16 @@ export function MapperScreen() {
         </Banner>
       ) : null}
       {message ? (
-        <Banner tone={message.tone}>
+        <Banner
+          tone={message.tone}
+          action={
+            message.action ? (
+              <button type="button" class="btn btn-primary" onClick={message.action.run}>
+                {message.action.label}
+              </button>
+            ) : undefined
+          }
+        >
           <p>{message.text}</p>
           {message.list ? (
             <ul>
@@ -1181,6 +1254,14 @@ export function MapperScreen() {
               options={tables.map((tb, i) => ({ value: String(i), label: tb.name }))}
             />
           ) : null}
+          <LayoutPanel
+            draft={draft}
+            layouts={s.settings.layouts ?? []}
+            own={ownColumns}
+            onUse={applyLayout}
+            onSave={(n) => void saveLayout(n)}
+            onFill={(c, from) => renameOutput(from, c)}
+          />
           <TablePanel
             table={table}
             result={tableResult}

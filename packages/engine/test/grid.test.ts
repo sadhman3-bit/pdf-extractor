@@ -85,3 +85,26 @@ describe('outputGrid', () => {
     expect(g.rows).toEqual([[expect.objectContaining({ text: 'A-77' })]]);
   });
 });
+
+describe('shared CSV layouts', () => {
+  it('writes exactly the layout columns, in order, with empty ones it lacks', () => {
+    const t = {
+      ...template(),
+      layout: { name: 'Telco', columns: ['Date', 'AccountNo', 'Amount', 'Period', 'Card'] },
+    };
+    const r = extractWith(buildLayout(doc(page())), t);
+    const csv = toCsv(r, t, { file: 'a.pdf', sha256: '', extractedAt: '' })[0]!.content;
+    const lines = csv.trimStart().split('\r\n');
+    expect(lines[0]!.startsWith('Date,AccountNo,Amount,Period,Card,_SourceFile')).toBe(true);
+    expect(lines[1]!.startsWith('2026-09-01,A-77,10.00,,12,')).toBe(true);
+    const g = outputGrid(r, t);
+    expect(g.columns.map((c) => `${c.name}${c.missing ? '?' : ''}`)).toEqual([
+      'Date',
+      'AccountNo',
+      'Amount',
+      'Period?',
+      'Card',
+    ]);
+    expect(g.rows[0]!.map((c) => c.text)).toEqual(['2026-09-01', 'A-77', '10.00', '', '12']);
+  });
+});

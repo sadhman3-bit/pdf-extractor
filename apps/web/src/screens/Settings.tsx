@@ -102,6 +102,38 @@ export function SettingsDialog() {
               />
               {S.settings.bom}
             </label>
+            {(s.settings.layouts ?? []).length ? (
+              <fieldset class="stack settings-group">
+                <legend class="field">{S.settings.layouts}</legend>
+                <ul class="list-plain stack">
+                  {(s.settings.layouts ?? []).map((l) => (
+                    <li key={l.name} class="row">
+                      <span>
+                        <strong>{l.name}</strong>
+                        <span class="caption"> · {l.columns.join(', ')}</span>
+                      </span>
+                      <button
+                        type="button"
+                        class="btn btn-small"
+                        onClick={async () => {
+                          if (!s.ws) return;
+                          const settings = {
+                            ...s.settings,
+                            layouts: (s.settings.layouts ?? []).filter((x) => x.name !== l.name),
+                          };
+                          await saveSettings(s.ws, settings);
+                          app.set({ settings });
+                          app.announce(S.settings.layoutRemoved(l.name));
+                        }}
+                      >
+                        {S.settings.removeLayout(l.name)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p class="caption">{S.settings.layoutsHint}</p>
+              </fieldset>
+            ) : null}
           </>
         ) : null}
         {msg ? <Banner tone="success">{msg}</Banner> : null}

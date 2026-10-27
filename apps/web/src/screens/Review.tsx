@@ -371,6 +371,22 @@ function Detail({ item, onDone }: { item: ReviewItem; onDone: (msg: string) => v
         </Banner>
       )}
 
+      {ex.template && ex.status !== 'ok' && ex.status !== 'error' ? (
+        <section class="card row">
+          <button
+            type="button"
+            class="btn"
+            onClick={() => {
+              if (!bytes || !ex.template) return;
+              app.set({ pendingSample: { name: item.name, bytes, fromException: item.name } });
+              navigate({ view: 'mapper', template: ex.template.id });
+            }}
+          >
+            {S.review.fixTemplate(ex.template.name)}
+          </button>
+          <span class="caption">{S.review.fixTemplateHint}</span>
+        </section>
+      ) : null}
       {ex.status === 'unknown' ? (
         <section class="card row">
           <button

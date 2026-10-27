@@ -2084,3 +2084,26 @@ details.more[open] > summary {
 .find-count {
   white-space: nowrap;
 }
+
+/* A shared CSV layout: each column found here, or filled from one of this template's. */
+.layout-list {
+  display: grid;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.layout-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--s2);
+  align-items: center;
+  font-size: 13px;
+}
+.layout-row > .chip {
+  justify-self: start;
+}
+.col-missing {
+  color: var(--warn-ink);
+  background: var(--warn-tint);
+}

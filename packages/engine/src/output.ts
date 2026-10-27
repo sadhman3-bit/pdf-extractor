@@ -116,6 +116,23 @@ export interface CsvFile {
 }
 
 /**
+ * Where each column of a shared layout comes from among a CSV's own columns
+ * (null: not in this template, written empty), or null without a layout. The
+ * layout applies to the main CSV: the first table's, or the only one.
+ */
+export function layoutOrder(
+  t: Template,
+  tableName: string | null,
+  names: string[],
+): (number | null)[] | null {
+  if (!t.layout || tableName !== (t.tables?.[0]?.name ?? null)) return null;
+  return t.layout.columns.map((n) => {
+    const i = names.indexOf(n);
+    return i >= 0 ? i : null;
+  });
+}
+
+/**
  * CSV files for one extraction: one file, or one per table when the template has
  * more than one. Header fields repeat on every row; audit columns come last.
  */
@@ -144,20 +161,28 @@ export function toCsv(
     const tb = tables.find((x) => x.name === tableName);
     const cols = tb ? tb.columns.map((c) => c.name) : [];
     const groups = tb ? groupColumns(t, tb.name) : [];
-    const header = [...fieldNames, ...cols, ...groups, ...AUDIT_COLUMNS];
-    const lines = [csvLine(header)];
+    const own = [...fieldNames, ...cols, ...groups];
+    const order = layoutOrder(t, tb?.name ?? null, own);
+    const arrange = (cells: string[]) =>
+      order ? order.map((i) => (i === null ? '' : cells[i]!)) : cells;
+    const lines = [csvLine([...(order ? t.layout!.columns : own), ...AUDIT_COLUMNS])];
     const rows = tb ? (result.tables[tb.name]?.rows ?? []) : [];
     if (!tb || !rows.length) {
       lines.push(
-        csvLine([...fieldCells, ...cols.map(() => ''), ...groups.map(() => ''), ...audit]),
+        csvLine([
+          ...arrange([...fieldCells, ...cols.map(() => ''), ...groups.map(() => '')]),
+          ...audit,
+        ]),
       );
     } else {
       for (const row of rows) {
         lines.push(
           csvLine([
-            ...fieldCells,
-            ...cols.map((c) => row.cells[c]?.csv ?? ''),
-            ...groups.map((g) => row.groups[g] ?? ''),
+            ...arrange([
+              ...fieldCells,
+              ...cols.map((c) => row.cells[c]?.csv ?? ''),
+              ...groups.map((g) => row.groups[g] ?? ''),
+            ]),
             ...audit,
           ]),
         );
@@ -182,6 +207,8 @@ export interface GridColumn {
   /** Bill detail (same on every row), table column, or heading copied onto rows. */
   kind: 'field' | 'column' | 'group';
   type: FieldType;
+  /** A column of the shared layout that this template doesn't fill (written empty). */
+  missing?: boolean;
 }
 
 export interface GridCell {
@@ -235,13 +262,31 @@ export function outputGrid(
     return cell;
   });
   const rows = tb ? (result.tables[tb.name]?.rows ?? []) : [];
+  // A shared layout picks and orders the columns; ones this template lacks are empty.
+  const order = layoutOrder(
+    t,
+    tb?.name ?? null,
+    columns.map((c) => c.name),
+  );
+  const shape = (g: OutputGrid): OutputGrid =>
+    order
+      ? {
+          ...g,
+          columns: order.map((i, k) =>
+            i === null
+              ? { name: t.layout!.columns[k]!, kind: 'field', type: 'text', missing: true }
+              : g.columns[i]!,
+          ),
+          rows: g.rows.map((r) => order.map((i) => (i === null ? { text: '' } : r[i]!))),
+        }
+      : g;
   if (!rows.length) {
-    return {
+    return shape({
       table: tb?.name ?? null,
       columns,
       rows: [[...fieldCells, ...columns.slice(fieldCells.length).map(() => ({ text: '' }))]],
       problems,
-    };
+    });
   }
   const out = rows.map((row) => [
     ...fieldCells,
@@ -258,5 +303,5 @@ export function outputGrid(
     }),
     ...groups.map((g) => ({ text: row.groups[g] ?? '' })),
   ]);
-  return { table: tb!.name, columns, rows: out, problems };
+  return shape({ table: tb!.name, columns, rows: out, problems });
 }

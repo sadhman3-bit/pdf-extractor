@@ -36,6 +36,10 @@ test('correcting row 4 of the scan turns the checks green; approving saves corre
   await page.getByRole('button', { name: 'Open' }).first().click();
   await expect(page.getByRole('button', { name: 'Approve and save' })).toBeDisabled();
   await expect(page.getByText(/Short by \$9\.00/)).toBeVisible();
+  // A file the template read with problems can go to the Mapper to fix the template.
+  await expect(
+    page.getByRole('button', { name: /^Fix the .+ template with this file$/ }),
+  ).toBeVisible();
   await expectNoAxe(page);
 
   const amount = page.getByRole('textbox', { name: 'Transactions row 4 Amount' });
