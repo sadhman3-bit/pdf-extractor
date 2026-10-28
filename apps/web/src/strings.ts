@@ -2,6 +2,24 @@
 import type { LinePattern } from './lib/rules';
 
 export const S = {
+  examples: {
+    title: 'Label examples',
+    hint: 'Name a CSV column, then highlight its value on the PDF. Add more examples to teach different heading styles.',
+    start: 'Start labelling',
+    stop: 'Use detailed mapping',
+    column: 'CSV column name',
+    selected: 'Your selection',
+    select: 'Drag over the words, or click words while holding Shift to select several.',
+    apply: 'Use this example',
+    added: 'Example added. Check the matching rows below before exporting.',
+    unsupported:
+      'Select one value on a single line. For a service name, a matching total is needed. Map the table header first if it was not recognised. Remove a conflicting saved example before changing what the column means.',
+    saved: 'Saved examples',
+    remove: (text: string) => `Remove example: ${text}`,
+    empty:
+      'No examples yet. Start with a name after a service number, or a value in a table column.',
+    tools: 'Detailed mapping tools',
+  },
   appName: 'PDF Extractor',
   nav: {
     label: 'Main',

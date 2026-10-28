@@ -1,5 +1,15 @@
 # User guide
 
+## Label examples to build your CSV
+
+Open a sample PDF in Mapper. New samples open with **Label examples** ready; for an existing template, choose **Start labelling**. Enter a CSV column name, such as Name. Drag over the value on the page, or click words with Shift held down to select several. Choose **Use this example**.
+
+For a service heading such as “MobileNet 0400 555 010 West Depot”, select just “West Depot”. The app looks for the table and matching total, then previews Name, PhoneNumber and the amount columns. If it cannot find a clear table, use detailed mapping to mark the header first. Add another Name example for another heading style, such as Telephone. Each service becomes a row; a missing name stays blank.
+
+You can also label a value in an ordinary table to name its column. Saved examples appear in the card. Remove an incorrect example, or use Undo. Examples survive saving and reopening a template. Check the preview and sample results before exporting; examples teach text relationships, not guaranteed understanding of every layout.
+
+Use **Detailed mapping tools** for table endings, unusual layouts and checks. Table endings can still use text patterns rather than fixed page numbers. Wide spreadsheets scroll sideways so all columns remain accessible.
+
 PDF Extractor turns supplier PDFs (statements, invoices, certificates of analysis) into identical, checked CSV and JSON files. You teach it each supplier's layout once by clicking on a sample. From then on, every PDF from that supplier is read the same way, checked, and saved for Power Automate and Power BI.
 
 Everything happens in your browser. Your documents are never uploaded (see `PRIVACY.md`).

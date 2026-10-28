@@ -163,6 +163,9 @@ export async function startFromSample(page: Page, file: string): Promise<void> {
   await expect(page.getByRole('textbox', { name: 'Template name' })).toBeVisible();
   await expect(page).toHaveURL(/template=/);
   await expect(page.locator('.tok').first()).toBeAttached();
+  // Existing Mapper tests exercise the detailed tools; new samples open in example mode.
+  const detailed = page.getByRole('button', { name: 'Use detailed mapping', exact: true });
+  if (await detailed.isVisible()) await detailed.click();
 }
 
 export async function savedTemplate(page: Page): Promise<{ id: string; json: string }> {

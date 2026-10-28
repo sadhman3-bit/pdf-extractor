@@ -210,4 +210,6 @@ If `keyGroup` is set, its value must match the capture from `rowKeyPattern` on t
 
 Carried values retain their heading source boxes and OCR confidence in the internal extraction result for review and source highlighting.
 
+A group can contain `examples: [{ text, pattern }]`. Each pattern supplies the group's configured capture. Patterns are tried in order, with the first matching example used for that group. `text` records the user's selected example for the editor. Without examples, `pattern` behaves as before. The editor learns literal surrounding words with variable digits; different heading styles can have separate examples. Removing all examples removes that example column. Block boundaries still clear all carried values before reading a new heading.
+
 See `fixtures/templates/northline-fuel-statement/v2.json` in the repository for a complete, working template.

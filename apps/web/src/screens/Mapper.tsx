@@ -6,6 +6,7 @@ import {
   inferField,
   groupFor,
   blockFromHeading,
+  learnExample,
   findHeaderOnPage,
   inferTable,
   looksLikeHeader,
@@ -57,6 +58,7 @@ import {
 import { usePreview } from '../lib/preview';
 import { OutputDock } from './MapperOutput';
 import { BlockPanel } from './MapperBlock';
+import { ExamplePanel } from './MapperExamples';
 import {
   PageView,
   usePdf,
@@ -128,6 +130,8 @@ export function MapperScreen() {
   const [pageNo, setPageNo] = useState(1);
   const [zoom, setZoom] = useState<Zoom>('fit');
   const [selected, setSelected] = useState<Token[]>([]);
+  const [exampleMode, setExampleMode] = useState(false);
+  const [exampleName, setExampleName] = useState('Name');
   const [editing, setEditing] = useState<string | null>(null);
   const [repick, setRepick] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -306,6 +310,7 @@ export function MapperScreen() {
         for (let n = 2; ids.has(newId) || (await ws.exists(join(DIRS.templates, newId))); n++)
           newId = `${slugify(name)}-${n}`;
         const t = emptyTemplate(newId, name, fp);
+        setExampleMode(true);
         await addSample(ws, newId, pending.name, pending.bytes);
         setLatestVersion(0);
         setDraftState(t);
@@ -436,6 +441,17 @@ export function MapperScreen() {
 
   const onToken = (t: Token, shift: boolean) => {
     if (!layout) return;
+    if (exampleMode) {
+      setLineAt(null);
+      setSelected(
+        shift
+          ? selected.includes(t)
+            ? selected.filter((x) => x !== t)
+            : [...selected, t].sort(byReading)
+          : [t],
+      );
+      return;
+    }
     if (pickHeader) {
       setPickHeader(false);
       return startTable(t, true);
@@ -786,6 +802,10 @@ export function MapperScreen() {
   // A box drawn round several lines: map them as a table (or take the words as a bill detail).
   const onTokens = (ts: Token[], box: BBox) => {
     setLineAt(null);
+    if (exampleMode) {
+      setSelected([...ts].sort(byReading));
+      return;
+    }
     const lines = new Set(ts.map((t) => lineOf(t)));
     if (table && lines.size === 1 && ts[0] && inTable(ts[0]) && !repick) {
       setLineAt(ts[0]);
@@ -1350,137 +1370,165 @@ export function MapperScreen() {
             </h2>
             <p class="caption">{S.mapper.rail.hint}</p>
           </div>
-          {table ? <BlockPanel table={table} result={tableResult} onChange={setTable} /> : null}
-          <details class="bill-details" open={!table || !!editing || !!repick}>
-            <summary>{S.mapper.block.suggestions}</summary>
-            <FieldsPanel
+          <ExamplePanel
+            active={exampleMode}
+            setActive={(on) => {
+              setExampleMode(on);
+              setSelected([]);
+              setLineAt(null);
+              setBoxAt(null);
+            }}
+            name={exampleName}
+            setName={setExampleName}
+            selected={selected}
+            table={table ?? null}
+            onChange={setTable}
+            apply={() => {
+              if (!layout) return;
+              const next = learnExample(layout, table ?? null, selected, exampleName);
+              if (!next) {
+                setMessage({ tone: 'warn', text: S.examples.unsupported });
+                return;
+              }
+              changeTable(next, S.examples.added);
+              setSelected([]);
+              setMessage({ tone: 'success', text: S.examples.added });
+            }}
+          />
+          <details class="mapping-tools" open={!exampleMode}>
+            <summary>{S.examples.tools}</summary>
+            {table ? <BlockPanel table={table} result={tableResult} onChange={setTable} /> : null}
+            <details class="bill-details" open={!table || !!editing || !!repick}>
+              <summary>{S.mapper.block.suggestions}</summary>
+              <FieldsPanel
+                draft={draft}
+                result={result}
+                suggestions={suggestions}
+                editing={editing}
+                repick={repick}
+                onAccept={(sg) => {
+                  setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
+                  app.announce(`${S.common.accept}: ${sg.rule.name}`);
+                }}
+                onAcceptAll={() => {
+                  setDraft({
+                    ...draft,
+                    fields: [...draft.fields, ...suggestions.map((x) => x.rule)],
+                  });
+                  app.announce(`${S.mapper.acceptAll}: ${suggestions.length}`);
+                }}
+                hot={hot}
+                onHot={setHot}
+                onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
+                onEdit={setEditing}
+                onRepick={(id) => {
+                  setRepick(repick === id ? null : id);
+                }}
+                onChange={updateField}
+                onRemove={removeField}
+                onAddPreset={(name) => {
+                  const p = PRESETS.find((x) => x.name === name)!;
+                  const f: FieldRule = {
+                    id: `f${Date.now().toString(36)}`,
+                    name: p.name,
+                    type: p.type,
+                    required: true,
+                    anchor: { labels: [...p.labels], match: 'exact' },
+                    direction: 'right',
+                  };
+                  setDraft({ ...draft, fields: [...draft.fields, f] });
+                  setEditing(f.id);
+                }}
+                onRegion={(id, on) => {
+                  const f = draft.fields.find((x) => x.id === id)!;
+                  const r = fieldRes(f);
+                  const box = r?.boxes[0];
+                  const pg = pages?.[(box?.page ?? 1) - 1];
+                  if (!on || !box || !pg) {
+                    const { region: _r, ...rest } = f;
+                    updateField(rest);
+                    return;
+                  }
+                  const pad = 4;
+                  updateField({
+                    ...f,
+                    region: {
+                      page: box.page,
+                      x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
+                      y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
+                      x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
+                      y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
+                    },
+                  });
+                }}
+              />
+            </details>
+            {tables.length > 1 ? (
+              <Segmented<string>
+                label={S.mapper.table.tables}
+                value={String(ti)}
+                onChange={(v) => {
+                  setTableAt(Number(v));
+                  setLineAt(null);
+                  setSelected([]);
+                }}
+                options={tables.map((tb, i) => ({ value: String(i), label: tb.name }))}
+              />
+            ) : null}
+            <LayoutPanel
               draft={draft}
-              result={result}
-              suggestions={suggestions}
-              editing={editing}
-              repick={repick}
-              onAccept={(sg) => {
-                setDraft({ ...draft, fields: [...draft.fields, sg.rule] });
-                app.announce(`${S.common.accept}: ${sg.rule.name}`);
-              }}
-              onAcceptAll={() => {
-                setDraft({
-                  ...draft,
-                  fields: [...draft.fields, ...suggestions.map((x) => x.rule)],
-                });
-                app.announce(`${S.mapper.acceptAll}: ${suggestions.length}`);
-              }}
-              hot={hot}
-              onHot={setHot}
-              onDismiss={(sg) => setDismissed(new Set([...dismissed, sg.rule.name]))}
-              onEdit={setEditing}
-              onRepick={(id) => {
-                setRepick(repick === id ? null : id);
-              }}
-              onChange={updateField}
-              onRemove={removeField}
-              onAddPreset={(name) => {
-                const p = PRESETS.find((x) => x.name === name)!;
-                const f: FieldRule = {
-                  id: `f${Date.now().toString(36)}`,
-                  name: p.name,
-                  type: p.type,
-                  required: true,
-                  anchor: { labels: [...p.labels], match: 'exact' },
-                  direction: 'right',
-                };
-                setDraft({ ...draft, fields: [...draft.fields, f] });
-                setEditing(f.id);
-              }}
-              onRegion={(id, on) => {
-                const f = draft.fields.find((x) => x.id === id)!;
-                const r = fieldRes(f);
-                const box = r?.boxes[0];
-                const pg = pages?.[(box?.page ?? 1) - 1];
-                if (!on || !box || !pg) {
-                  const { region: _r, ...rest } = f;
-                  updateField(rest);
-                  return;
-                }
-                const pad = 4;
-                updateField({
-                  ...f,
-                  region: {
-                    page: box.page,
-                    x0: Math.max(0, (box.bbox[0] - pad) / pg.width),
-                    y0: Math.max(0, (box.bbox[1] - pad) / pg.height),
-                    x1: Math.min(1, (box.bbox[2] + pad) / pg.width),
-                    y1: Math.min(1, (box.bbox[3] + pad) / pg.height),
-                  },
-                });
-              }}
+              layouts={s.settings.layouts ?? []}
+              own={ownColumns}
+              onUse={applyLayout}
+              onSave={(n) => void saveLayout(n)}
+              onFill={(c, from) => renameOutput(from, c)}
             />
-          </details>
-          {tables.length > 1 ? (
-            <Segmented<string>
-              label={S.mapper.table.tables}
-              value={String(ti)}
-              onChange={(v) => {
-                setTableAt(Number(v));
+            <TablePanel
+              table={table}
+              result={tableResult}
+              suggestion={tableSuggestion?.rule ?? null}
+              onAcceptSuggestion={() => tableSuggestion && setTable(tableSuggestion.rule)}
+              onChange={(t) => setTable(t)}
+              onRemove={() => setTable(null)}
+              onRemoveColumn={removeColumn}
+              onClearBreaks={() => {
+                if (!layout || !table) return;
+                let next = table;
+                for (let r = removeBreak(layout, next, 0); r; r = removeBreak(layout, next, 0))
+                  next = r;
+                changeTable(next, S.mapper.table.breaksCleared);
+              }}
+              onShowUnplaced={showUnplaced}
+              picking={pickHeader}
+              onPickHeader={() => {
                 setLineAt(null);
-                setSelected([]);
+                setAdding(false);
+                setPickHeader(!pickHeader);
               }}
-              options={tables.map((tb, i) => ({ value: String(i), label: tb.name }))}
+              adding={pickHeader && adding}
+              onAddTable={() => {
+                setLineAt(null);
+                setAdding(!(pickHeader && adding));
+                setPickHeader(!(pickHeader && adding));
+              }}
             />
-          ) : null}
-          <LayoutPanel
-            draft={draft}
-            layouts={s.settings.layouts ?? []}
-            own={ownColumns}
-            onUse={applyLayout}
-            onSave={(n) => void saveLayout(n)}
-            onFill={(c, from) => renameOutput(from, c)}
-          />
-          <TablePanel
-            table={table}
-            result={tableResult}
-            suggestion={tableSuggestion?.rule ?? null}
-            onAcceptSuggestion={() => tableSuggestion && setTable(tableSuggestion.rule)}
-            onChange={(t) => setTable(t)}
-            onRemove={() => setTable(null)}
-            onRemoveColumn={removeColumn}
-            onClearBreaks={() => {
-              if (!layout || !table) return;
-              let next = table;
-              for (let r = removeBreak(layout, next, 0); r; r = removeBreak(layout, next, 0))
-                next = r;
-              changeTable(next, S.mapper.table.breaksCleared);
-            }}
-            onShowUnplaced={showUnplaced}
-            picking={pickHeader}
-            onPickHeader={() => {
-              setLineAt(null);
-              setAdding(false);
-              setPickHeader(!pickHeader);
-            }}
-            adding={pickHeader && adding}
-            onAddTable={() => {
-              setLineAt(null);
-              setAdding(!(pickHeader && adding));
-              setPickHeader(!(pickHeader && adding));
-            }}
-          />
-          <details class="card rail-more">
-            <summary>{S.mapper.rail.recognise}</summary>
-            <FingerprintPanel
-              bare
-              draft={draft}
-              onChange={(fingerprint) => setDraft({ ...draft, fingerprint })}
-            />
-          </details>
-          <details class="card rail-more">
-            <summary>{S.mapper.rail.checks(checksOn)}</summary>
-            <ChecksPanel
-              bare
-              draft={draft}
-              result={result}
-              onChange={(checks) => setDraft({ ...draft, checks })}
-            />
+            <details class="card rail-more">
+              <summary>{S.mapper.rail.recognise}</summary>
+              <FingerprintPanel
+                bare
+                draft={draft}
+                onChange={(fingerprint) => setDraft({ ...draft, fingerprint })}
+              />
+            </details>
+            <details class="card rail-more">
+              <summary>{S.mapper.rail.checks(checksOn)}</summary>
+              <ChecksPanel
+                bare
+                draft={draft}
+                result={result}
+                onChange={(checks) => setDraft({ ...draft, checks })}
+              />
+            </details>
           </details>
         </aside>
 
@@ -1555,13 +1603,15 @@ export function MapperScreen() {
             </div>
           </div>
           <p class="caption">
-            {pickHeader
-              ? S.mapper.table.pickHeaderHint
-              : repick
-                ? S.mapper.repickHint
-                : table
-                  ? S.mapper.clickHint.table
-                  : S.mapper.clickHint.start}
+            {exampleMode
+              ? S.examples.select
+              : pickHeader
+                ? S.mapper.table.pickHeaderHint
+                : repick
+                  ? S.mapper.repickHint
+                  : table
+                    ? S.mapper.clickHint.table
+                    : S.mapper.clickHint.start}
           </p>
           {sample ? <p class="caption mono">{sample.name}</p> : null}
           {loading ? <p class="muted">{S.common.loading}</p> : null}
@@ -1577,7 +1627,7 @@ export function MapperScreen() {
                 tokens={pages[pageNo - 1]?.tokens ?? []}
                 marks={marks}
                 selected={selected}
-                ruler={ruler}
+                ruler={exampleMode ? undefined : ruler}
                 lineMarks={(tableResult?.stats?.lines ?? []).filter((m) => m.page === pageNo)}
                 grips={grips}
                 overlay={

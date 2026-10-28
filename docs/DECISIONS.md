@@ -181,3 +181,11 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - **Lines left out on purpose aren't problems.** When only lines like a chosen one are rows (wrapped lines "Ignore", as after "Make lines starting “Total for” the rows"), the item lines between totals are marked skipped (–), not "not part of any row" (red ?), and don't count towards the unplaced warning.
 - **Buttons wait for the file.** In Review, "Create template from this file" and "Fix the … template" are disabled until the PDF has loaded; before, a quick click did nothing.
 
+## MVP: labelled examples and readable controls
+
+- The example card is the short path: name a CSV column, highlight a value and apply it. The existing detailed mapping controls remain available. A recognised table can be inferred from its header, and a service heading can be paired with its total without asking the user to configure groups or patterns.
+- Heading examples teach a selected fragment after a numeric service identifier. Several prefixes can feed one column. Digits in the context vary; surrounding words remain literal. Table cell examples rename their containing column. Disjoint selections and conflicting examples are rejected. This is deterministic assistance, not general language understanding.
+- Optional `groups[].examples` stores the selected text and extraction pattern. Source locations, cross-page matching and block diagnostics use the existing engine. Blank names remain blank. The owner’s documents are never added to fixtures.
+- Read-only labels, messages, navigation and buttons wrap. Column editors have their own line rather than sharing a narrow row with several controls. Output headings size to their text and wide output scrolls explicitly. The narrow-screen output is not sticky so it cannot cover most of the document.
+- Local LLMs remain outside this MVP. No runtime model download, external request or installed helper is required. The new plan is in `docs/MVP_UPDATE_PLAN.md`; the original build plan is unchanged.
+

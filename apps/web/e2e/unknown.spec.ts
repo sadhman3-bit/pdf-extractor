@@ -20,6 +20,7 @@ test('a template created from an unknown invoice extracts it on re-run', async (
   await page.getByRole('button', { name: 'Create template from this file' }).click();
   await expect(page).toHaveURL(/view=mapper&template=/);
   await expect(page.locator('.tok').first()).toBeAttached();
+  await page.getByRole('button', { name: 'Use detailed mapping', exact: true }).click();
   await mapValue(page, '88231', 'InvoiceNumber');
   await mapValue(page, '15/09/2026', 'InvoiceDate');
   await mapValue(page, 'PO-66104', 'PONumber');

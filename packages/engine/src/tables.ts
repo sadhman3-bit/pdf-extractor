@@ -270,13 +270,15 @@ export function extractTable(
 
   // An invalid pattern never matches but keeps its place, so counts line up with `rule.skip`.
   const skip = (rule.skip ?? []).map((p) => compile([p])[0] ?? /(?!)/);
-  const groups = (rule.groups ?? []).flatMap((g) => {
-    try {
-      return [{ g, re: new RegExp(g.pattern) }];
-    } catch {
-      return [];
-    }
-  });
+  const groups = (rule.groups ?? []).flatMap((g) =>
+    (g.examples?.length ? g.examples : [{ pattern: g.pattern }]).flatMap((example) => {
+      try {
+        return [{ g, re: new RegExp(example.pattern) }];
+      } catch {
+        return [];
+      }
+    }),
+  );
   let rowStart: { column: string; re: RegExp } | null = null;
   if (rule.rowStart) {
     try {
@@ -293,7 +295,10 @@ export function extractTable(
   const groupBoxes: Record<string, SourceBox> = {};
   const groupConfidence: Record<string, number> = {};
   const issues: NonNullable<TableResult['issues']> = [];
-  if (rule.block && groups.length !== (rule.groups ?? []).length)
+  if (
+    rule.block &&
+    groups.length !== (rule.groups ?? []).reduce((n, g) => n + (g.examples?.length || 1), 0)
+  )
     issues.push({ message: 'A heading value pattern is invalid. Edit the block rule.' });
   if (rule.block?.keyGroup && !rule.groups?.some((g) => g.name === rule.block!.keyGroup))
     issues.push({ message: 'The number used to match totals is missing from the heading rules.' });
@@ -410,7 +415,10 @@ export function extractTable(
           (g.x0 === undefined || Math.abs(line.x0 - g.x0) <= TOLERANCES.indent),
       );
       if (matches.length) {
+        const seen = new Set<string>();
         for (const g of rule.block ? matches : matches.slice(0, 1)) {
+          if (seen.has(g.g.name)) continue;
+          seen.add(g.g.name);
           const m = g.re.exec(line.text)!;
           const value = (m[g.g.capture ?? 0] ?? m[0]).trim();
           groupValues[g.g.name] = value;

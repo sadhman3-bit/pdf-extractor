@@ -166,6 +166,7 @@ export function OutputDock({
                   >
                     <input
                       class="output-name"
+                      style={{ width: `${Math.max(16, c.name.length + 3)}ch`, maxWidth: 'none' }}
                       aria-label={S.mapper.block.rename(c.name)}
                       value={c.name}
                       onChange={(e) => onRename(c.name, (e.target as HTMLInputElement).value)}
