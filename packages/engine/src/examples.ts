@@ -1,6 +1,6 @@
-import type { DocLayout, Token } from './types';
+import type { DocLayout, Line, Token } from './types';
 import type { GroupRule, TableRule } from './template';
-import { blockFromHeading, rowsLike, suggestTable, tableFrame } from './infer';
+import { blockFromHeading, rowsLike, skipPatternFor, suggestTable, tableFrame } from './infer';
 import { cx, phrases } from './layout';
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -257,5 +257,113 @@ export function learnExample(
     })),
     rowStart: rule.rowStart?.column === old ? { ...rule.rowStart, column: name } : rule.rowStart,
     outputColumns: rule.outputColumns?.map((n) => (n === old ? name : n)),
+  };
+}
+
+const NUMBER = /[+\d][\d ()-]{6,}\d/;
+const keyOf = (s: string) => s.replace(/[ ()-]/g, '');
+const isTotal = (s: string) => /^\s*(?:Total|Subtotal)\b/i.test(s);
+
+/** The words of a line that start between two character offsets of its text. */
+function wordsAt(line: Line, from: number, to = Infinity): Token[] {
+  let at = 0;
+  return line.tokens.filter((t) => {
+    const start = at;
+    at += t.text.length + 1;
+    return start >= from && start < to;
+  });
+}
+
+/** The lines below a table's header, across pages. */
+function bodyOf(layout: DocLayout, rule: TableRule): Line[] {
+  const f = tableFrame(layout, rule);
+  if (!f) return [];
+  return layout.pages
+    .flatMap((p) => p.lines)
+    .filter((l) => l.page > f.page || (l.page === f.page && l.y0 > f.bbox[3]));
+}
+
+/**
+ * Finds repeating blocks on its own: a heading with a number ("Telephone 02 5550
+ * 0101 West Depot") whose total repeats the number ("Total for 02 5550 0101").
+ * Each block becomes one row: the words after the number name it, the total gives
+ * the amounts. Null when the table has no such pairs.
+ */
+export function findBlocks(layout: DocLayout, rule: TableRule): TableRule | null {
+  const lines = bodyOf(layout, rule);
+  for (let i = 0; i < lines.length; i++) {
+    const total = lines[i]!;
+    const n = isTotal(total.text) ? NUMBER.exec(total.text) : null;
+    if (!n) continue;
+    for (let j = i - 1; j >= 0 && i - j < 200; j--) {
+      const h = lines[j]!;
+      if (isTotal(h.text)) break;
+      const m = NUMBER.exec(h.text);
+      if (!m || m.index === 0 || keyOf(m[0]) !== keyOf(n[0])) continue;
+      const end = m.index + m[0].length;
+      const after = wordsAt(h, end);
+      return (
+        (after.length ? learnExample(layout, rule, after, 'Name') : null) ??
+        learnExample(layout, rule, wordsAt(h, m.index, end), 'Number')
+      );
+    }
+  }
+  return null;
+}
+
+/** What one row of a table is: a whole block, each item line, every line, or lines like one. */
+export type RowKind = 'block' | 'items' | 'lines' | 'custom';
+
+export function rowKindOf(rule: TableRule): RowKind {
+  if (rule.block)
+    return rule.block.rows === 'items' ? 'items' : rule.block.rows === 'lines' ? 'lines' : 'block';
+  if (!rule.rowStart) return 'lines';
+  return rule.wrappedLines === 'ignore' ? 'custom' : 'items';
+}
+
+/** Changes what one row of the table is. Null when it can't (no blocks to find). */
+export function setRowKind(
+  layout: DocLayout,
+  rule: TableRule,
+  kind: Exclude<RowKind, 'custom'>,
+): TableRule | null {
+  const f = tableFrame(layout, rule);
+  if (!f) return null;
+  const totalLine = bodyOf(layout, rule).find((l) => isTotal(l.text) && NUMBER.test(l.text));
+  const { rowStart: _rowStart, ...rest } = rule;
+  const block = rule.block ? (({ rows: _rows, ...b }) => b)(rule.block) : undefined;
+  const allColumns = rule.block
+    ? {
+        outputColumns: [
+          ...(rule.groups ?? []).map((g) => g.name),
+          ...rule.columns.map((c) => c.name),
+        ],
+      }
+    : {};
+  if (kind === 'block') {
+    if (!block) return findBlocks(layout, rule);
+    return totalLine ? rowsLike(layout, { ...rule, block }, totalLine) : null;
+  }
+  if (kind === 'lines')
+    return {
+      ...rest,
+      wrappedLines: 'join',
+      ...(block ? { block: { ...block, rows: 'lines' as const } } : {}),
+      ...allColumns,
+    };
+  // Each item: a row starts where the first column has text; the block's total is left out.
+  const own = totalLine ? skipPatternFor(totalLine) : null;
+  const skip = rule.skip ?? [];
+  return {
+    ...rest,
+    rowStart: { column: f.bounds[0]?.name ?? rule.columns[0]!.name, pattern: '\\S' },
+    wrappedLines: 'join',
+    ...(block
+      ? {
+          block: { ...block, rows: 'items' as const },
+          skip: own && !skip.includes(own) ? [...skip, own] : skip,
+        }
+      : {}),
+    ...allColumns,
   };
 }

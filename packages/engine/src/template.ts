@@ -121,6 +121,8 @@ export const tableSchema = z.looseObject({
       keyGroup: z.string().optional(),
       rowKeyPattern: z.string().optional(),
       rowKeyCapture: z.number().int().min(0).optional(),
+      /** What one row is: the block's total (the default), each item line, or every line. */
+      rows: z.enum(['total', 'items', 'lines']).optional(),
     })
     .optional(),
   requireEnd: z.boolean().optional(),

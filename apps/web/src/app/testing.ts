@@ -11,6 +11,8 @@ export interface TestHooks {
   crashAfterStep?: number | null;
   /** Mapper previews run in the worker above this many words (to test that path on a short sample). */
   previewWorkerWords?: number;
+  /** False: a new sample opens without its table found (tests that map it by hand). */
+  autoTable?: boolean;
 }
 
 export function testHooks(): TestHooks | null {

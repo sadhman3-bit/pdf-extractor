@@ -7,7 +7,7 @@ import { S } from '../strings';
 
 export interface Mark {
   bbox: BBox;
-  kind: 'field' | 'suggest' | 'table' | 'end' | 'error' | 'selected';
+  kind: 'field' | 'suggest' | 'table' | 'end' | 'error' | 'selected' | 'row' | 'row-check';
   label?: string;
   /** The field being edited: drawn with a stronger outline. */
   active?: boolean;

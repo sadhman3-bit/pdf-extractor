@@ -2,6 +2,37 @@
 import type { LinePattern } from './lib/rules';
 
 export const S = {
+  rows: {
+    title: 'Your table',
+    found: (n: number) => `Table found · ${n} ${n === 1 ? 'row' : 'rows'}`,
+    toCheck: (n: number) => `${n} to check`,
+    allGood: 'All rows read',
+    none: 'No table found yet. Draw a box round it on the page, or use detailed mapping.',
+    rowIs: 'One row is',
+    kinds: {
+      block: 'A block: heading to total',
+      items: 'Each item line, with its heading',
+      lines: 'Every line',
+    },
+    kindHints: {
+      block:
+        'One row per service. The heading gives the name and number; the total gives the amounts.',
+      items: 'One row per item. Each item keeps the heading above it. Totals are left out.',
+      lines: 'One row per line of the table, with nothing joined or left out.',
+    },
+    custom: 'Rows start at lines you chose on the page.',
+    noBlocks:
+      'No headings with matching totals were found. Click a heading on the page and choose how to read it.',
+    changed: (kind: string) => `Rows are now: ${kind.toLowerCase()}.`,
+    columns: 'Columns',
+    fromHeading: 'from heading',
+    fromTotal: 'from total',
+    fromRow: 'from the row',
+    addColumn: 'Highlight a word in any row to add a column.',
+    row: (n: number) => `Row ${n}`,
+    rowCheck: (n: number) => `Row ${n} · check`,
+    nextCheck: 'Show the next row to check',
+  },
   examples: {
     title: 'Label examples',
     hint: 'Highlight a value on the PDF and name its column. Add another example when the heading changes.',

@@ -2503,3 +2503,151 @@ main.page {
     grid-column: 1 / -1;
   }
 }
+
+/* The Mapper uses the whole window: the PDF gets the room, the rail stays readable. */
+main.page:has(> .mapper-workspace) {
+  max-width: none;
+}
+.mapper-workspace > .mapper-layout {
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 27vw, 440px);
+}
+
+/* Each row of the table on the page, from its first line to its last. */
+.mark-row {
+  border: 1.5px solid var(--accent-border);
+  background: color-mix(in srgb, var(--accent-tint) 30%, transparent);
+  border-radius: 5px;
+}
+.mark-row-check {
+  border: 1.5px dashed var(--warn);
+  background: color-mix(in srgb, var(--warn-tint) 45%, transparent);
+  border-radius: 5px;
+}
+.mark-row > .mark-label,
+.mark-row-check > .mark-label {
+  left: auto;
+  right: -2px;
+  transform: translateY(-60%);
+}
+
+/* The rows panel: what one row is, and where each column comes from. */
+.rows-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+.rows-head .card-title {
+  margin-right: auto;
+}
+.chip-button {
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+.row-kinds {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.row-kind {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-control);
+  cursor: pointer;
+}
+.row-kind > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.row-kind strong {
+  font-weight: 500;
+}
+.row-kind-on {
+  border: 1.5px solid var(--accent);
+  background: var(--accent-tint);
+}
+.row-kind input {
+  margin-top: 3px;
+}
+.row-columns {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.row-column {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: 5px 8px;
+  border-radius: var(--r-control);
+  border: 1px solid transparent;
+}
+.row-column-heading {
+  background: var(--accent-tint);
+  color: var(--accent-ink);
+  border-color: var(--accent-border);
+}
+.row-column-total {
+  background: var(--success-tint);
+  color: var(--success-ink);
+  border-color: var(--success-border);
+}
+.row-column .caption {
+  color: inherit;
+}
+.stack-tight {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* A field's other labels: one per line, the remove button beside it, never a sideways scroll. */
+.label-set {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.label-edit {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.label-edit > input {
+  flex: 1;
+  min-width: 0;
+}
+.more .grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+/* Less chrome above the PDF on laptops: the name and draft chip share a line, the
+   file name (shown under Change sample) is left out. */
+main.page:has(> .mapper-workspace) {
+  padding-top: var(--s3);
+}
+.mapper-workspace .title-input {
+  width: auto;
+  field-sizing: content;
+  min-width: 12ch;
+  max-width: 40vw;
+}
+.mapper-workspace > .page-head .stack > .row {
+  flex-wrap: nowrap;
+}
+.mapper-workspace .mapper-page > .caption.mono {
+  display: none;
+}

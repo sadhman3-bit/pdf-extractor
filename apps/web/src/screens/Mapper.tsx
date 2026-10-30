@@ -7,6 +7,10 @@ import {
   groupFor,
   blockFromHeading,
   learnExample,
+  findBlocks,
+  extractTable,
+  setRowKind,
+  type RowResult,
   findHeaderOnPage,
   inferTable,
   looksLikeHeader,
@@ -59,6 +63,8 @@ import { usePreview } from '../lib/preview';
 import { OutputDock } from './MapperOutput';
 import { BlockPanel } from './MapperBlock';
 import { ExamplePanel } from './MapperExamples';
+import { RowsPanel } from './MapperRows';
+import { testHooks } from '../app/testing';
 import {
   PageView,
   usePdf,
@@ -153,6 +159,9 @@ export function MapperScreen() {
   const [lineAt, setLineAt] = useState<Token | null>(null);
   // "Choose the header row": the next click on the page starts the table there.
   const [pickHeader, setPickHeader] = useState(false);
+  // A table found on its own keeps its column ruler hidden until the table is worked on,
+  // so the ruler never covers the values just above it.
+  const [rulerHidden, setRulerHidden] = useState(false);
   // Which of the template's tables is being mapped; "adding" makes the next header click a new one.
   const [tableAt, setTableAt] = useState(0);
   const [adding, setAdding] = useState(false);
@@ -174,6 +183,8 @@ export function MapperScreen() {
   const [, setHistoryTick] = useState(0);
   // Which line "Show" jumps to next, among those that aren't part of any row.
   const unplacedAt = useRef(0);
+  // Which row "to check" shows next.
+  const checkAt = useRef(0);
   // Ctrl+Z and Ctrl+Shift+Z (or Ctrl+Y) outside text boxes, which keep their own undo.
   const keys = useRef<{ undo: () => void; redo: () => void } | null>(null);
   useEffect(() => {
@@ -309,8 +320,17 @@ export function MapperScreen() {
         let newId = slugify(name);
         for (let n = 2; ids.has(newId) || (await ws.exists(join(DIRS.templates, newId))); n++)
           newId = `${slugify(name)}-${n}`;
-        const t = emptyTemplate(newId, name, fp);
+        // The table is found straight away; repeating blocks become one row each.
+        const found = testHooks()?.autoTable === false ? null : suggestTable(l);
+        // Without blocks, only a plain header (no numbers or "Label:") with rows under it.
+        const plain =
+          !!found &&
+          !/[\d:]/.test(found.headerLine.text) &&
+          extractTable(l, found.rule).rows.length >= 3;
+        const auto = found ? (findBlocks(l, found.rule) ?? (plain ? found.rule : null)) : null;
+        const t = { ...emptyTemplate(newId, name, fp), ...(auto ? { tables: [auto] } : {}) };
         setExampleMode(true);
+        setRulerHidden(!!auto);
         await addSample(ws, newId, pending.name, pending.bytes);
         setLatestVersion(0);
         setDraftState(t);
@@ -419,6 +439,7 @@ export function MapperScreen() {
   const updateField = (f: FieldRule) =>
     setDraft({ ...draft, fields: draft.fields.map((x) => (x.id === f.id ? f : x)) });
   const setTable = (t: TableRule | null, record = true) => {
+    setRulerHidden(false);
     if (!t) setTableAt(Math.max(0, ti - 1));
     setDraft(
       {
@@ -542,6 +563,7 @@ export function MapperScreen() {
     return !!line && headerRow(line) && !fieldAt(t);
   };
   const openLine = (t: Token) => {
+    setRulerHidden(false);
     setLineAt(t);
     setSelected(lineOf(t)?.tokens ?? [t]);
     setEditing(null);
@@ -1033,6 +1055,14 @@ export function MapperScreen() {
   };
 
   // Marks for the current page.
+  // Rows to check: unsure values, values that didn't read, or a heading value missing.
+  const threshold = draft.settings?.confidenceThreshold ?? s.settings.confidenceThreshold;
+  const headingNames = table?.block ? (table.groups ?? []).map((g) => g.name) : [];
+  const needsCheck = (r: RowResult) =>
+    r.conf < threshold ||
+    Object.values(r.cells).some((c) => c.error) ||
+    headingNames.some((g) => !r.groups[g]);
+  const checkRows = (tableResult?.rows ?? []).flatMap((r, i) => (needsCheck(r) ? [i] : []));
   const marks: Mark[] = [];
   if (result) {
     for (const f of draft.fields) {
@@ -1080,6 +1110,26 @@ export function MapperScreen() {
       }
       if (tableResult.end && tableResult.end.page === pageNo)
         marks.push({ bbox: tableResult.end.bbox, kind: 'end' });
+      // A box round each row, from its first line to its last, the table's full width.
+      const [hx0, , hx1] = tableResult.header.bbox;
+      tableResult.rows.forEach((r, i) => {
+        const check = needsCheck(r);
+        for (const b of r.span ?? [])
+          if (b.page === pageNo)
+            marks.push({
+              bbox: [
+                Math.min(hx0, b.bbox[0]) - 3,
+                b.bbox[1] - 2,
+                Math.max(hx1, b.bbox[2]) + 3,
+                b.bbox[3] + 2,
+              ],
+              kind: check ? 'row-check' : 'row',
+              ...(check ? { tag: 'warn' as const } : {}),
+              ...(check || (b.bbox[3] - b.bbox[1] > 20 && b === r.span![0])
+                ? { label: check ? S.rows.rowCheck(i + 1) : S.rows.row(i + 1) }
+                : {}),
+            });
+      });
     }
   }
   // The ruler along the table's top on this page: column breaks to add, move and remove.
@@ -1370,6 +1420,29 @@ export function MapperScreen() {
             </h2>
             <p class="caption">{S.mapper.rail.hint}</p>
           </div>
+          <RowsPanel
+            table={table ?? null}
+            result={tableResult}
+            toCheck={checkRows.length}
+            onKind={(k) => {
+              if (!layout || !table) return;
+              const next = setRowKind(layout, table, k);
+              if (!next) {
+                setMessage({ tone: 'warn', text: S.rows.noBlocks });
+                return;
+              }
+              setMessage(null);
+              changeTable(next, S.rows.changed(S.rows.kinds[k]));
+            }}
+            onNextCheck={() => {
+              const r = tableResult?.rows[checkRows[checkAt.current++ % checkRows.length]!];
+              const b = r?.span?.[0];
+              if (!b) return;
+              setPageNo(b.page);
+              setSelected((pages?.[b.page - 1]?.tokens ?? []).filter((t) => inBox(t, b.bbox)));
+              setReveal((n) => n + 1);
+            }}
+          />
           <ExamplePanel
             active={exampleMode}
             setActive={(on) => {
@@ -1626,7 +1699,7 @@ export function MapperScreen() {
                 tokens={pages[pageNo - 1]?.tokens ?? []}
                 marks={marks}
                 selected={selected}
-                ruler={exampleMode ? undefined : ruler}
+                ruler={exampleMode || rulerHidden ? undefined : ruler}
                 lineMarks={(tableResult?.stats?.lines ?? []).filter((m) => m.page === pageNo)}
                 grips={grips}
                 overlay={

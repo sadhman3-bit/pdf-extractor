@@ -154,8 +154,18 @@ export function stableCsv(csv: string): string[][] {
 }
 
 /** Opens the Mapper with a new sample and waits for the token overlay. */
-export async function startFromSample(page: Page, file: string): Promise<void> {
+export async function startFromSample(
+  page: Page,
+  file: string,
+  opts: { autoTable?: boolean } = {},
+): Promise<void> {
   await page.goto('./?view=mapper');
+  // Most Mapper tests build the table by hand, so the table isn't found for them.
+  const auto = opts.autoTable ?? false;
+  await page.evaluate((on) => {
+    const w = window as unknown as { __PDFX_TEST_WORKSPACE__: { autoTable?: boolean } };
+    w.__PDFX_TEST_WORKSPACE__.autoTable = on;
+  }, auto);
   await page
     .locator('input[type=file]')
     .first()
@@ -165,7 +175,7 @@ export async function startFromSample(page: Page, file: string): Promise<void> {
   await expect(page.locator('.tok').first()).toBeAttached();
   // Existing Mapper tests exercise the detailed tools; new samples open in example mode.
   const detailed = page.getByRole('button', { name: 'Use detailed mapping', exact: true });
-  if (await detailed.isVisible()) await detailed.click();
+  if (!auto && (await detailed.isVisible())) await detailed.click();
 }
 
 export async function savedTemplate(page: Page): Promise<{ id: string; json: string }> {

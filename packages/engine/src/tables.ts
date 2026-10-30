@@ -24,6 +24,8 @@ export interface RowResult {
   conf: number;
   page: number;
   bbox: BBox;
+  /** Every line the row was made from (a block's heading to its total), one box per page. */
+  span?: SourceBox[];
 }
 
 export interface ColumnBounds {
@@ -238,6 +240,7 @@ interface RawRow {
   groupBoxes?: Record<string, SourceBox>;
   groupConfidence?: Record<string, number>;
   page: number;
+  lines: Line[];
 }
 
 /** Extracts one table across pages. */
@@ -314,10 +317,13 @@ export function extractTable(
   } catch {
     issue('The block matching pattern is invalid. Edit the block rule.');
   }
+  // A block's total is its row unless the rule takes each item line, or every line.
+  const totals = !!rule.block && (rule.block.rows ?? 'total') === 'total';
   let activeBlock: Line | undefined;
+  let blockLines: Line[] = [];
   let blockRows = 0;
   const finishBlock = () => {
-    if (activeBlock && blockRows === 0)
+    if (totals && activeBlock && blockRows === 0)
       issue(`No matching total was found for “${activeBlock.text}”.`, activeBlock);
   };
   const raw: RawRow[] = [];
@@ -375,6 +381,7 @@ export function extractTable(
         ended = true;
         break;
       }
+      if (activeBlock && !furniture.has(line)) blockLines.push(line);
       // A skipped line (such as a group's total) also closes the row above it.
       const si = skip.findIndex((re) => re.test(line.text));
       if (si >= 0) {
@@ -409,6 +416,7 @@ export function extractTable(
           line = { ...line, tokens, text: tokens.map((t) => t.text).join(' '), x0, y0, x1, y1 };
         }
         activeBlock = line;
+        blockLines = [...parts];
         blockRows = 0;
         for (const name of Object.keys(groupValues)) delete groupValues[name];
         for (const name of Object.keys(groupBoxes)) delete groupBoxes[name];
@@ -468,7 +476,7 @@ export function extractTable(
           )
         : true;
       if (startsRow) {
-        if (rule.block) {
+        if (totals && rule.block) {
           const key = rowKey?.exec(line.text)?.[rule.block.rowKeyCapture ?? 1];
           const expected = rule.block.keyGroup ? groupValues[rule.block.keyGroup] : undefined;
           const normalKey = (v: string) => v.replace(/[\s()-]/g, '').toLowerCase();
@@ -494,6 +502,8 @@ export function extractTable(
             ? { groupBoxes: { ...groupBoxes }, groupConfidence: { ...groupConfidence } }
             : {}),
           page: p.page,
+          // A total stands for its whole block, from the heading down.
+          lines: totals ? [...blockLines] : [line],
         });
         mark(line, 'row');
         joinable = true;
@@ -505,6 +515,7 @@ export function extractTable(
           arr.push(...toks);
           prev.cells.set(to, arr);
         }
+        prev.lines.push(line);
         stats.joined++;
         mark(line, 'part');
       } else if (wrapped === 'ignore') {
@@ -549,7 +560,22 @@ function typeRow(rule: TableRule, r: RawRow, opts: { decimal?: '.' | ',' }): Row
     conf,
     page: r.page,
     bbox: bboxOf(all.length ? all : [{ x0: 0, y0: 0, x1: 0, y1: 0 }]),
+    span: spanOf(r.lines),
   };
+}
+
+function spanOf(lines: Line[]): SourceBox[] {
+  const byPage = new Map<number, Line[]>();
+  for (const l of lines) byPage.set(l.page, [...(byPage.get(l.page) ?? []), l]);
+  return [...byPage].map(([page, ls]) => ({
+    page,
+    bbox: [
+      Math.min(...ls.map((l) => l.x0)),
+      Math.min(...ls.map((l) => l.y0)),
+      Math.max(...ls.map((l) => l.x1)),
+      Math.max(...ls.map((l) => l.y1)),
+    ],
+  }));
 }
 
 export function typeCell(

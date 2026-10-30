@@ -199,3 +199,10 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - Removing the final named example removes its column, including inferred variants. The interface explains that number and amount columns stay and that Undo restores the example.
 - On laptops the PDF viewer takes whatever height the Mapper's controls leave, and the controls never shrink, so the page tabs are not clipped. In example mode the selection hint shows only once, in the rail. On narrow screens the viewer is at most 65% of the window height.
 
+
+## Mapper: the table first, rows of any size
+
+- A new sample opens with its table found. Where headings with a number have a matching total ("Telephone 02 5550 0101 …" and "Total for 02 5550 0101"), each block becomes one row: the words after the number give the name, the total gives the amounts. Nothing is guessed when there are no such pairs.
+- "One row is" offers three plain choices: a block (heading to total), each item line with its heading, or every line. They are stored as `block.rows` (`total`, `items`, `lines`); old templates without it read as before. Rows chosen from a line on the page still work and show as a custom choice.
+- Each row is boxed on the page from its first line to its last (`span` on each row). Rows with unsure or unread values, or a missing heading value, are marked "check", counted in the rail, and the count jumps to them.
+- The Mapper uses the whole window width; the rail is wider. A field's extra labels sit one per line with the remove button beside them, without a sideways scroll.

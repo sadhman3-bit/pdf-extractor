@@ -293,10 +293,10 @@ function FieldEditor({
       <details class="more">
         <summary>{S.mapper.editor.more}</summary>
         <div class="stack">
-          <fieldset class="stack">
+          <fieldset class="stack label-set">
             <legend class="field">{S.mapper.editor.labels}</legend>
             {f.anchor.labels.map((l, i) => (
-              <div class="row" key={i}>
+              <div class="label-edit" key={i}>
                 <input
                   type="text"
                   class="grow"
