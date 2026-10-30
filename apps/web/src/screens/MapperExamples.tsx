@@ -54,7 +54,7 @@ export function ExamplePanel({
               <option key={n} value={n} />
             ))}
           </datalist>
-          <div class="example-selection">
+          <div class="example-selection" tabIndex={0}>
             <strong>{S.examples.selected}</strong>
             <p>{selected.length ? selected.map((t) => t.text).join(' ') : S.examples.select}</p>
           </div>
@@ -95,7 +95,7 @@ export function ExamplePanel({
                       const left = g.examples!.filter(
                         (x) => x.text !== e.text || x.pattern !== e.pattern,
                       );
-                      return left.length
+                      return left.some((x) => x.text)
                         ? [{ ...g, pattern: left[0]!.pattern, examples: left }]
                         : [];
                     });
@@ -113,6 +113,7 @@ export function ExamplePanel({
               </li>
             ))}
           </ul>
+          <p class="caption">{S.examples.removalHint}</p>
         </details>
       ) : (
         <p class="caption">{S.examples.empty}</p>

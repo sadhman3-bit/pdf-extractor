@@ -20,7 +20,7 @@ test('app loads under the base path and shows the top bar', async ({ page }) => 
 
 test('first run creates the folder tree and remembers the name', async ({ page }) => {
   await resetApp(page);
-  await page.getByRole('button', { name: 'Get started' }).click();
+  await page.getByRole('button', { name: 'Set up a folder for repeat work' }).click();
   await expectNoAxe(page);
   await page.getByRole('button', { name: 'Choose folder' }).click();
   await expect(page.getByRole('heading', { name: 'These folders will be created' })).toBeVisible();

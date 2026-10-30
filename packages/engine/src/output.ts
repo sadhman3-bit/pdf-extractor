@@ -238,6 +238,18 @@ export interface OutputGrid {
   problems: number;
 }
 
+/** Download exactly the columns and values shown in the interactive preview. */
+export function gridCsv(grid: OutputGrid): string {
+  return (
+    '\uFEFF' +
+    [
+      csvLine(grid.columns.map((c) => c.name)),
+      ...grid.rows.map((row) => csvLine(row.map((c) => c.text))),
+    ].join('\r\n') +
+    '\r\n'
+  );
+}
+
 /**
  * One CSV file as a grid for the Mapper: the same columns and rows as `toCsv`
  * (without the audit columns), with each cell's problem and source box.

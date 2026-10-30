@@ -189,3 +189,13 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - Read-only labels, messages, navigation and buttons wrap. Column editors have their own line rather than sharing a narrow row with several controls. Output headings size to their text and wide output scrolls explicitly. The narrow-screen output is not sticky so it cannot cover most of the document.
 - Local LLMs remain outside this MVP. No runtime model download, external request or installed helper is required. The new plan is in `docs/MVP_UPDATE_PLAN.md`; the original build plan is unchanged.
 
+## Digital invoice polish
+
+- Electronic supplier PDFs are the primary path. One labelled service name can teach other heading prefixes only where the same aligned heading has a matching service total. Number punctuation can vary. Numeric tails alone are never invented as names.
+- Wrapped names can be selected across adjacent lines. Repeated body labels also provide evidence for a continuation: the next aligned text-only line must precede a known body label and fit a small line gap. Stored maximum gaps and stop patterns prevent descriptions being appended indiscriminately. Unseen layouts still need review and further examples.
+- The two new synthetic business invoices cover 16 services, changing end pages, wrapped and absent names, four heading styles, credits and different number formatting. Tests compare every exported field, not just row counts. Text-based table endings remain supported.
+- The Mapper reserves separate space for the PDF and output. Each has its own scrolling region on laptops; narrow displays use normal document flow. The simple view hides repeated metadata and success banners. Warnings link back to their source when a location is available.
+- A direct Mapper CSV download contains exactly the preview columns. Batch exports retain their audit metadata. Opening a PDF is the primary welcome action; repeat-work folder setup is secondary.
+- Removing the final named example removes its column, including inferred variants. The interface explains that number and amount columns stay and that Undo restores the example.
+- On laptops the PDF viewer takes whatever height the Mapper's controls leave, and the controls never shrink, so the page tabs are not clipped. In example mode the selection hint shows only once, in the rail. On narrow screens the viewer is at most 65% of the window height.
+

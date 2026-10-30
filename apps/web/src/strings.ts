@@ -4,7 +4,7 @@ import type { LinePattern } from './lib/rules';
 export const S = {
   examples: {
     title: 'Label examples',
-    hint: 'Name a CSV column, then highlight its value on the PDF. Add more examples to teach different heading styles.',
+    hint: 'Highlight a value on the PDF and name its column. Add another example when the heading changes.',
     start: 'Start labelling',
     stop: 'Use detailed mapping',
     column: 'CSV column name',
@@ -13,9 +13,11 @@ export const S = {
     apply: 'Use this example',
     added: 'Example added. Check the matching rows below before exporting.',
     unsupported:
-      'Select one value on a single line. For a service name, a matching total is needed. Map the table header first if it was not recognised. Remove a conflicting saved example before changing what the column means.',
+      'Select the complete value. A name can continue onto the next line. For a service name, a matching total is needed. Use detailed mapping if the table header was not recognised.',
     saved: 'Saved examples',
     remove: (text: string) => `Remove example: ${text}`,
+    removalHint:
+      'Removing the last example removes that name column. The number and amount columns stay. Undo restores the example.',
     empty:
       'No examples yet. Start with a name after a service number, or a value in a table column.',
     tools: 'Detailed mapping tools',
@@ -99,7 +101,7 @@ export const S = {
     welcomeBody:
       'Map each supplier’s PDF layout once by clicking on a sample. From then on every PDF from that supplier is read the same way, checked, and saved as CSV and JSON for Power Automate and Power BI.',
     privacy: 'Your documents never leave this computer. Everything happens in this browser.',
-    start: 'Get started',
+    start: 'Set up a folder for repeat work',
     chooseTitle: 'Choose your working folder',
     chooseBody:
       'This folder holds your templates, the inbox, outputs and logs. Pick the SharePoint folder you sync with OneDrive (for example “PDF Extractor”), so Power Automate and your team can see the same files.',

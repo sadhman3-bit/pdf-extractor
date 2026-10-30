@@ -47,6 +47,11 @@ describe('labelled examples', () => {
     const first = l.pages[0]!.lines.find((x) => x.text.includes('West Depot'))!;
     const second = l.pages[0]!.lines.find((x) => x.text.includes('East Office'))!;
     let rule = learnExample(l, base, first.tokens.slice(-2), 'Name')!;
+    expect(extractTable(l, rule).rows.map((r) => r.groups.Name ?? '')).toEqual([
+      'West Depot',
+      'East Office',
+      '',
+    ]);
     rule = learnExample(l, rule, second.tokens.slice(-2), 'Name')!;
     const result = extractTable(l, rule);
     expect(result.rows.map((r) => r.groups.Name ?? '')).toEqual(['West Depot', 'East Office', '']);

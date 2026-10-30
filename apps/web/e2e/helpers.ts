@@ -104,7 +104,7 @@ export async function existsWs(page: Page, path: string): Promise<boolean> {
 
 /** Runs the first-run flow and lands on the Templates screen. */
 export async function firstRun(page: Page, user = 'Sam Tester'): Promise<void> {
-  await page.getByRole('button', { name: 'Get started' }).click();
+  await page.getByRole('button', { name: 'Set up a folder for repeat work' }).click();
   await page.getByRole('button', { name: 'Choose folder' }).click();
   await page.getByRole('button', { name: 'Create folders' }).click();
   await page.getByRole('textbox', { name: 'Your name' }).fill(user);

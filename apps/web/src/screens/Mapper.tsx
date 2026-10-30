@@ -27,7 +27,7 @@ import {
   skipPatternFor,
   suggestTable,
   tableFrame,
-  toCsv,
+  gridCsv,
   valueTokens,
   type BBox,
   type Line,
@@ -1214,7 +1214,7 @@ export function MapperScreen() {
   const origin = route.template ? true : false;
 
   return (
-    <>
+    <div class={`mapper-workspace${exampleMode ? ' example-workspace' : ''}`}>
       <div class="page-head">
         <div class="stack">
           <nav class="breadcrumb" aria-label={S.mapper.breadcrumb}>
@@ -1340,7 +1340,7 @@ export function MapperScreen() {
           {S.mapper.createdFrom(sourceFile)}
         </Banner>
       ) : null}
-      {message ? (
+      {message && !(exampleMode && message.tone === 'success' && !message.action) ? (
         <Banner
           tone={message.tone}
           action={
@@ -1602,16 +1602,15 @@ export function MapperScreen() {
               />
             </div>
           </div>
-          <p class="caption">
-            {exampleMode
-              ? S.examples.select
-              : pickHeader
-                ? S.mapper.table.pickHeaderHint
-                : repick
-                  ? S.mapper.repickHint
-                  : table
-                    ? S.mapper.clickHint.table
-                    : S.mapper.clickHint.start}
+          {/* In example mode the rail already says how to select. */}
+          <p class="caption" hidden={exampleMode}>
+            {pickHeader
+              ? S.mapper.table.pickHeaderHint
+              : repick
+                ? S.mapper.repickHint
+                : table
+                  ? S.mapper.clickHint.table
+                  : S.mapper.clickHint.start}
           </p>
           {sample ? <p class="caption mono">{sample.name}</p> : null}
           {loading ? <p class="muted">{S.common.loading}</p> : null}
@@ -1710,7 +1709,18 @@ export function MapperScreen() {
         grid={grid}
         busy={busy}
         onRename={renameOutput}
-        issues={tableResult?.issues?.map((i) => i.message)}
+        issues={tableResult?.issues}
+        onIssue={(index) => {
+          const issue = tableResult?.issues?.[index];
+          if (!issue?.page) return;
+          setPageNo(issue.page);
+          setSelected(
+            issue.bbox
+              ? (pages?.[issue.page - 1]?.tokens ?? []).filter((t) => inBox(t, issue.bbox!))
+              : [],
+          );
+          setReveal((n) => n + 1);
+        }}
         onCell={(cell, column) => {
           const b = cell.box;
           if (!b) return;
@@ -1720,18 +1730,10 @@ export function MapperScreen() {
           app.announce(S.mapper.output.shown(column, b.page));
         }}
         onDownload={() => {
-          if (!result) return;
-          const files = toCsv(result, basis ?? draft, {
-            file: sample?.name ?? '',
-            sha256: '',
-            extractedAt: new Date().toISOString(),
-          });
-          const shown = basis?.tables?.[ti]?.name;
-          const file = files.find((f) => f.table === shown) ?? files[0];
-          if (file)
+          if (grid)
             downloadBlob(
-              `${stem(sample?.name ?? draft.name)}${file.table ? `-${slugify(file.table)}` : ''}.csv`,
-              file.content,
+              `${stem(sample?.name ?? draft.name)}${grid.table && ((basis ?? draft).tables?.length ?? 0) > 1 ? `-${slugify(grid.table)}` : ''}.csv`,
+              gridCsv(grid),
               'text/csv',
             );
         }}
@@ -1768,7 +1770,7 @@ export function MapperScreen() {
           />
         </Dialog>
       ) : null}
-    </>
+    </div>
   );
 
   async function addAndLoad(f: File) {

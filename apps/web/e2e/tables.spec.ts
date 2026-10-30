@@ -154,8 +154,8 @@ test('the output shows every row, finds a value on the page and downloads the CS
   const file = await download;
   expect(file.suggestedFilename()).toBe('summit-voice-jan26.csv');
   const text = readFileSync(await file.path(), 'utf8');
-  expect(text.split('\r\n')[0]).toContain(
-    'Item,ServiceSummary,ExclGST,InclGST,Telephone,_SourceFile',
+  expect(text.replace(/^\uFEFF/, '').split('\r\n')[0]).toBe(
+    'Item,ServiceSummary,ExclGST,InclGST,Telephone',
   );
   expect(text).toContain('SVC102B');
   await expectNoAxe(page);

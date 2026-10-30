@@ -116,6 +116,8 @@ export const tableSchema = z.looseObject({
     .looseObject({
       headingPattern: z.string().min(1),
       headingLines: z.number().int().min(1).max(5).optional(),
+      headingMaxGap: z.number().positive().optional(),
+      headingStopPattern: z.string().optional(),
       keyGroup: z.string().optional(),
       rowKeyPattern: z.string().optional(),
       rowKeyCapture: z.number().int().min(0).optional(),

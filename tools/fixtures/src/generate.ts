@@ -18,6 +18,8 @@ import {
   coaPages,
 } from './docs';
 
+import { businessPages } from './business';
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const PDF_DIR = join(ROOT, 'fixtures', 'pdf');
 
@@ -131,6 +133,11 @@ export async function generateAll(): Promise<Record<string, Uint8Array>> {
   files['ridgeway-invoice-88231.pdf'] = await digital('Ridgeway invoice', ridgewayPages);
   files['harbourside-coa-a2391.pdf'] = await digital('Harbourside COA', coaPages);
   files['summit-voice-jan26.pdf'] = await digital('Summit Voice bill', summitPages);
+  files['business-invoice-digital.pdf'] = await digital('Business invoice', businessPages);
+  files['business-invoice-shifted-ending.pdf'] = await digital(
+    'Business invoice, next month',
+    (m) => businessPages(m, true),
+  );
   files['summit-voice-activity.pdf'] = await digital(
     'Summit Voice account activity',
     activityPages,

@@ -23,7 +23,7 @@ for (const scheme of ['light', 'dark'] as const) {
 
     await resetApp(page);
     await shot(page, s('01-welcome'));
-    await page.getByRole('button', { name: 'Get started' }).click();
+    await page.getByRole('button', { name: 'Set up a folder for repeat work' }).click();
     await shot(page, s('02-choose-folder'));
     await page.getByRole('button', { name: 'Choose folder' }).click();
     await expect(page.getByRole('button', { name: 'Create folders' })).toBeVisible();

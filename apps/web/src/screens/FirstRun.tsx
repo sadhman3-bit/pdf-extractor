@@ -307,11 +307,7 @@ export function FirstRun() {
               }}
             />
           </label>
-          <button
-            type="button"
-            class="btn btn-primary"
-            onClick={() => app.set({ phase: 'choose' })}
-          >
+          <button type="button" class="btn btn-text" onClick={() => app.set({ phase: 'choose' })}>
             {S.firstRun.start}
           </button>
         </div>

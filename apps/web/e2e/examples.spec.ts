@@ -25,7 +25,9 @@ test('labels several examples, previews only the selected fragment and saves it'
   await expect(page.getByRole('main').getByText('Saved as version 1')).toBeVisible();
   const saved = JSON.parse((await savedTemplate(page)).json);
   expect(
-    saved.tables[0].groups.find((g: { name: string }) => g.name === 'Name').examples,
+    saved.tables[0].groups
+      .find((g: { name: string }) => g.name === 'Name')
+      .examples.filter((e: { text: string }) => e.text),
   ).toHaveLength(2);
   await page.reload();
   await expect(output.getByText(first!, { exact: true })).toBeVisible();

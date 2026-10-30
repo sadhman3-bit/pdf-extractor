@@ -1,11 +1,11 @@
 // The Mapper's output dock: the CSV as it will be written, for the whole sample,
 // under the page. Only the rows in view are drawn, so long bills stay smooth.
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import type { GridCell, OutputGrid } from '@pdfx/engine';
+import type { GridCell, OutputGrid, TableResult } from '@pdfx/engine';
 import { S } from '../strings';
 
 const ROW_H = 28;
-const HEIGHT = { small: 196, large: 440 } as const;
+const HEIGHT = { small: 118, large: 240 } as const;
 
 export function OutputDock({
   grid,
@@ -14,6 +14,7 @@ export function OutputDock({
   onDownload,
   onRename,
   issues = [],
+  onIssue,
 }: {
   grid: OutputGrid | null;
   busy: boolean;
@@ -21,7 +22,8 @@ export function OutputDock({
   onCell: (cell: GridCell, column: string) => void;
   onDownload: () => void;
   onRename: (from: string, to: string) => void;
-  issues?: string[];
+  issues?: TableResult['issues'];
+  onIssue?: (index: number) => void;
 }) {
   const [size, setSize] = useState<'small' | 'large' | 'closed'>('small');
   const [onlyProblems, setOnlyProblems] = useState(false);
@@ -65,7 +67,7 @@ export function OutputDock({
             <input
               type="range"
               min="100"
-              max="440"
+              max="240"
               step="20"
               value={height}
               onInput={(e) => setCustomHeight(Number((e.target as HTMLInputElement).value))}
@@ -136,7 +138,15 @@ export function OutputDock({
             {S.mapper.block.issues} ({issues.length})
           </summary>
           {issues.map((m, i) => (
-            <p key={i}>{m}</p>
+            <p key={i}>
+              {m.page && onIssue ? (
+                <button class="btn btn-text" type="button" onClick={() => onIssue(i)}>
+                  {m.message}
+                </button>
+              ) : (
+                m.message
+              )}
+            </p>
           ))}
         </details>
       ) : null}

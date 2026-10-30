@@ -306,9 +306,11 @@ export function extractTable(
     issues.push({ message, ...(line ? { page: line.page, bbox: bboxOf(line.tokens) } : {}) });
   let blockHeading: RegExp | undefined;
   let rowKey: RegExp | undefined;
+  let headingStop: RegExp | undefined;
   try {
     if (rule.block) blockHeading = new RegExp(rule.block.headingPattern);
     if (rule.block?.rowKeyPattern) rowKey = new RegExp(rule.block.rowKeyPattern);
+    if (rule.block?.headingStopPattern) headingStop = new RegExp(rule.block.headingStopPattern);
   } catch {
     issue('The block matching pattern is invalid. Edit the block rule.');
   }
@@ -390,6 +392,10 @@ export function extractTable(
           if (
             !next ||
             blockHeading.test(next.text) ||
+            (rule.block?.headingMaxGap !== undefined &&
+              next.cy - parts.at(-1)!.cy > rule.block.headingMaxGap) ||
+            headingStop?.test(next.text) ||
+            /^\s*(?:Total|Subtotal)\b/i.test(next.text) ||
             (rule.end && lineMatches(next, rule.end.labels, endMode))
           )
             break;

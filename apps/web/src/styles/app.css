@@ -2393,3 +2393,113 @@ main.page {
     position: static;
   }
 }
+
+/* Keep source and results in separate, usable regions of the window. */
+.mapper-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  height: calc(100dvh - 48px);
+  min-height: 580px;
+}
+.mapper-workspace > .page-head {
+  margin-bottom: 0;
+  gap: var(--s3);
+  flex-shrink: 0;
+}
+.example-workspace .breadcrumb,
+.example-workspace .page-sub,
+.example-workspace .rail-intro {
+  display: none;
+}
+.mapper-workspace > .mapper-layout {
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: stretch;
+}
+.mapper-workspace .mapper-rail {
+  grid-column: 2;
+  grid-row: 1;
+  position: static;
+  max-height: 100%;
+  overflow: auto;
+  min-height: 0;
+}
+.mapper-workspace .mapper-page {
+  grid-column: 1;
+  grid-row: 1;
+  overflow: hidden;
+  min-height: 0;
+  padding: var(--s3);
+  gap: var(--s2);
+}
+/* The PDF takes whatever height the controls leave; the controls never shrink. */
+.mapper-workspace .mapper-page > * {
+  flex-shrink: 0;
+}
+.mapper-workspace .mapper-page > .viewer {
+  flex: 1 1 0;
+  min-height: 160px;
+  max-height: none;
+}
+.mapper-workspace .mapper-page > .viewer-toolbar {
+  margin-bottom: 0;
+}
+.mapper-workspace > .output-dock {
+  position: relative;
+  bottom: auto;
+  flex-shrink: 0;
+  margin-top: 0;
+  border-radius: var(--r-card);
+  box-shadow: none;
+}
+.mapper-workspace .output-scroll {
+  max-height: 28dvh;
+}
+.mapper-workspace .output-issues[open] {
+  max-height: 100px;
+  overflow: auto;
+}
+.mapper-workspace .example-panel {
+  padding: var(--s3);
+  gap: var(--s3);
+}
+.mapper-workspace .example-selection {
+  max-height: 100px;
+  overflow: auto;
+}
+.mapper-workspace .example-list {
+  max-height: 160px;
+  overflow: auto;
+}
+@container (max-width: 750px) {
+  .mapper-workspace {
+    height: auto;
+    min-height: 0;
+  }
+  .mapper-workspace > .mapper-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .mapper-workspace .mapper-rail {
+    order: 0;
+    max-height: none;
+  }
+  .mapper-workspace .mapper-page {
+    order: 1;
+  }
+  .mapper-workspace .mapper-page > .viewer {
+    flex: 0 0 auto;
+    max-height: 65dvh;
+  }
+  .mapper-workspace .example-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }
+  .mapper-workspace .example-panel > p,
+  .mapper-workspace .example-panel > details {
+    grid-column: 1 / -1;
+  }
+}
