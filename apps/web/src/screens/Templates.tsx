@@ -12,7 +12,6 @@ import {
   fileBytes,
   ActionButton,
 } from '../components/ui';
-import { LayersIcon } from '../components/Icons';
 import { archiveTemplate, saveVersion, type TemplateInfo } from '../workspace/store';
 import { importFiles } from './Settings';
 import { lastRuns } from './lastRuns';
@@ -80,23 +79,21 @@ export function TemplatesScreen() {
               }}
             />
           </label>
-          <button type="button" class="btn btn-primary" onClick={() => setCreating(true)}>
-            {S.templates.newTemplate}
-          </button>
+          {s.templates.length ? (
+            <button type="button" class="btn btn-primary" onClick={() => setCreating(true)}>
+              {S.templates.newTemplate}
+            </button>
+          ) : null}
         </div>
       </div>
       {msg ? <Banner tone={msg.tone}>{msg.text}</Banner> : null}
       {!s.templates.length ? (
-        <section class="card empty">
-          <span class="empty-icon">
-            <LayersIcon size={22} />
-          </span>
-          <h2 class="card-title">{S.templates.emptyTitle}</h2>
-          <p>{S.templates.empty}</p>
-          <button type="button" class="btn btn-primary" onClick={() => setCreating(true)}>
-            {S.templates.emptyButton}
-          </button>
-        </section>
+        <DropZone
+          multiple={false}
+          title={S.templates.tryTitle}
+          hint={S.templates.tryBody}
+          onFiles={(f) => void startNew(f)}
+        />
       ) : (
         <div class="card-grid">
           {s.templates.map((t) => (

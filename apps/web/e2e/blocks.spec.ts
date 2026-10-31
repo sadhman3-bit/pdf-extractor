@@ -2,17 +2,19 @@ import { test, expect, ready, resetApp, fixturePdf, startFromSample, expectNoAxe
 
 test('opens a PDF directly before folder setup', async ({ page }) => {
   await resetApp(page);
-  await page.getByLabel('Open a PDF').setInputFiles({
+  await expect(page.getByRole('heading', { name: 'Drop a PDF here to try it' })).toBeVisible();
+  await page.locator('input[type=file][aria-label="Choose a PDF"]').setInputFiles({
     name: 'summit-voice-jan26.pdf',
     mimeType: 'application/pdf',
     buffer: fixturePdf('summit-voice-jan26.pdf'),
   });
   await expect(page.locator('.tok[data-text="Telephone"]').first()).toBeVisible();
-  await expect(page.getByText(/Your layouts are saved in this browser/)).toBeVisible();
   await expectNoAxe(page);
   await page.reload();
   await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
-  await expect(page.getByText(/Your layouts are saved in this browser/)).toBeVisible();
+  // The sidebar is icons only on the Mapper; Templates shows where work is kept.
+  await page.goto('./?view=templates');
+  await expect(page.getByText('Saved in this browser')).toBeVisible();
 });
 
 test('maps whole headings and phone numbers into four output columns', async ({ page }) => {

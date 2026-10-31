@@ -2,6 +2,7 @@ import type { ComponentChildren, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { S } from '../strings';
 import { app } from '../app/store';
+import { local } from '../lib/local';
 import { AlertIcon, CheckIcon, InfoIcon, QuestionIcon, UploadIcon, XIcon } from './Icons';
 
 export type Tone = 'success' | 'warn' | 'danger' | 'neutral' | 'accent';
@@ -267,12 +268,17 @@ export function DropZone({
   multiple = true,
   label,
   compact = false,
+  title,
+  hint,
 }: {
   onFiles: (f: File[]) => void;
   multiple?: boolean;
   label?: string;
   /** A slim one-line drop bar instead of the large drop area. */
   compact?: boolean;
+  /** The start of the app: a heading, a line under it and one clear button. */
+  title?: string;
+  hint?: string;
 }) {
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -292,12 +298,22 @@ export function DropZone({
       }}
     >
       <UploadIcon />
-      <p>
-        {label ?? S.common.dropHere}{' '}
-        <button type="button" class="btn btn-text" onClick={() => input.current?.click()}>
-          {S.common.chooseFiles}
-        </button>
-      </p>
+      {title ? (
+        <>
+          <h2 class="dropzone-title">{title}</h2>
+          {hint ? <p>{hint}</p> : null}
+          <button type="button" class="btn btn-primary" onClick={() => input.current?.click()}>
+            {S.common.chooseFile}
+          </button>
+        </>
+      ) : (
+        <p>
+          {label ?? S.common.dropHere}{' '}
+          <button type="button" class="btn btn-text" onClick={() => input.current?.click()}>
+            {S.common.chooseFiles}
+          </button>
+        </p>
+      )}
       <input
         ref={input}
         class="sr-only"
@@ -402,6 +418,8 @@ export function Field({
 }
 
 export function downloadBlob(name: string, data: Uint8Array | string, type: string): void {
+  // After the first download from browser storage, offer a folder once.
+  if (app.get().basic && !local.folderOffered()) app.set({ folderOffer: true });
   const blob = new Blob([data as BlobPart], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

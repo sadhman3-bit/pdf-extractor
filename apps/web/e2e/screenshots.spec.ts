@@ -22,8 +22,9 @@ for (const scheme of ['light', 'dark'] as const) {
     const s = (n: string) => `${n}-${scheme}`;
 
     await resetApp(page);
+    await expect(page.getByRole('heading', { name: 'Drop a PDF here to try it' })).toBeVisible();
     await shot(page, s('01-welcome'));
-    await page.getByRole('button', { name: 'Set up a folder for repeat work' }).click();
+    await page.getByRole('button', { name: 'Choose a folder' }).click();
     await shot(page, s('02-choose-folder'));
     await page.getByRole('button', { name: 'Choose folder' }).click();
     await expect(page.getByRole('button', { name: 'Create folders' })).toBeVisible();

@@ -3,7 +3,7 @@ import type { Workspace } from '../workspace/types';
 import { DEFAULT_SETTINGS, type Settings, type TemplateInfo } from '../workspace/store';
 
 export type Phase =
-  'loading' | 'welcome' | 'choose' | 'confirm' | 'name' | 'done' | 'reconnect' | 'ready' | 'basic';
+  'loading' | 'choose' | 'confirm' | 'name' | 'done' | 'reconnect' | 'ready' | 'basic';
 
 export interface AppState {
   phase: Phase;
@@ -17,6 +17,8 @@ export interface AppState {
   exceptionCount: number;
   missing: string[];
   basic: boolean;
+  /** Offer a folder after the first download in browser storage. */
+  folderOffer: boolean;
   /** Announced through the polite live region. */
   announce: string;
   settingsOpen: boolean;
@@ -45,6 +47,7 @@ const initial: AppState = {
   exceptionCount: 0,
   missing: [],
   basic: false,
+  folderOffer: false,
   announce: '',
   settingsOpen: false,
   slowRead: null,

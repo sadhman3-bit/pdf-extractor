@@ -19,6 +19,8 @@ function set(k: string, v: string) {
 export const local = {
   basic: () => get('pdfx.basic') === 'true',
   setBasic: (v: boolean) => set('pdfx.basic', String(v)),
+  folderOffered: () => get('pdfx.folderOffered') === 'true',
+  setFolderOffered: () => set('pdfx.folderOffered', 'true'),
   theme: (): 'light' | 'dark' => (get(KEY.theme) === 'dark' ? 'dark' : 'light'),
   setTheme: (v: 'light' | 'dark') => {
     set(KEY.theme, v);

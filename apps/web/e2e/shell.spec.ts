@@ -14,13 +14,14 @@ import {
 test('app loads under the base path and shows the top bar', async ({ page }) => {
   await page.goto('./');
   await expect(page.getByRole('link', { name: 'PDF Extractor' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Welcome to PDF Extractor' })).toBeVisible();
+  // Nothing to set up first: the app opens ready for a PDF.
+  await expect(page.getByRole('heading', { name: 'Drop a PDF here to try it' })).toBeVisible();
   await expectNoAxe(page);
 });
 
 test('first run creates the folder tree and remembers the name', async ({ page }) => {
   await resetApp(page);
-  await page.getByRole('button', { name: 'Set up a folder for repeat work' }).click();
+  await page.getByRole('button', { name: 'Choose a folder' }).click();
   await expectNoAxe(page);
   await page.getByRole('button', { name: 'Choose folder' }).click();
   await expect(page.getByRole('heading', { name: 'These folders will be created' })).toBeVisible();

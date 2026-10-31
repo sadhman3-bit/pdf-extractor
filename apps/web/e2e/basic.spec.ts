@@ -21,7 +21,7 @@ test('basic mode imports a template, extracts opened files and downloads the CSV
     };
   });
   await resetApp(page);
-  await expect(page.getByText(/Your layouts are saved in this browser/)).toBeVisible();
+  await expect(page.getByText('Saved in this browser')).toBeVisible();
   await expectNoAxe(page);
 
   await page.goto('./?view=templates');
@@ -54,4 +54,13 @@ test('basic mode imports a template, extracts opened files and downloads the CSV
   expect(download.suggestedFilename()).toBe('northline-sep26.csv');
   const csv = readFileSync((await download.path())!, 'utf8');
   expect(stableCsv(csv)).toEqual(stableCsv(golden('northline-sep26.csv')));
+  // After the first download, a folder is offered once.
+  const offer = page.getByText('Want results saved to a folder automatically?');
+  await expect(offer).toBeVisible();
+  await expectNoAxe(page);
+  await page.getByRole('button', { name: 'Not now' }).click();
+  await expect(offer).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Process inbox' })).toBeVisible();
+  await expect(offer).toHaveCount(0);
 });

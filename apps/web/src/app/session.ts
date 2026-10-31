@@ -38,8 +38,9 @@ export async function startup(): Promise<void> {
     return;
   }
   const stored = await idbGet<FileSystemDirectoryHandle>(HANDLE_KEY);
+  // Nothing to set up first: without a folder, work is kept in this browser.
   if (!stored) {
-    app.set({ phase: 'welcome' });
+    await enterBasic();
     return;
   }
   const kind = (await idbGet<'fs' | 'opfs'>(`${HANDLE_KEY}-kind`)) ?? 'fs';
@@ -97,7 +98,8 @@ export async function chooseFolder(): Promise<ChooseResult> {
   }
   if (!h) return 'cancelled';
   local.setBasic(false);
-  app.set({ basic: false });
+  local.setFolderOffered();
+  app.set({ basic: false, folderOffer: false });
   await idbSet(HANDLE_KEY, h);
   await idbSet(`${HANDLE_KEY}-kind`, kind);
   const ws = makeWorkspace(h, kind);
@@ -136,7 +138,7 @@ export async function setUser(name: string, next: 'done' | 'ready' = 'done'): Pr
 export async function reconnect(): Promise<void> {
   const { handle } = app.get();
   if (!handle) {
-    app.set({ phase: 'welcome' });
+    await enterBasic();
     return;
   }
   const perm = await requestPermission(handle).catch(() => 'denied' as PermissionState);

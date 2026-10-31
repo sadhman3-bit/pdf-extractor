@@ -92,8 +92,18 @@ function Brand() {
 /** The working folder, its connection state, and the way to switch it. */
 function FolderSwitch() {
   const s = useApp();
-  if (s.basic) return <div class="folder-switch is-static">{S.topbar.basicMode}</div>;
-  if (!s.folderName) return <div class="folder-switch is-static muted">{S.topbar.noFolder}</div>;
+  if (s.basic || !s.folderName)
+    return (
+      <div class="folder-switch">
+        <span class="caption">{S.topbar.browser}</span>
+        {s.phase === 'basic' ? (
+          <button type="button" class="btn-link small" onClick={() => app.set({ phase: 'choose' })}>
+            <FolderIcon size={13} />
+            {S.topbar.chooseFolder}
+          </button>
+        ) : null}
+      </div>
+    );
   return (
     <div class="folder-switch">
       <span class="caption">{S.topbar.workspace}</span>
@@ -121,6 +131,31 @@ function FolderSwitch() {
         </button>
       ) : null}
     </div>
+  );
+}
+
+/** Asked once, after the first download: results can go to a folder instead. */
+function FolderOffer() {
+  const close = (phase?: 'choose') => {
+    local.setFolderOffered();
+    app.set({ folderOffer: false, ...(phase ? { phase } : {}) });
+  };
+  return (
+    <Banner
+      action={
+        <div class="row">
+          <button type="button" class="btn btn-small" onClick={() => close('choose')}>
+            <FolderIcon size={14} />
+            {S.basic.offerChoose}
+          </button>
+          <button type="button" class="btn btn-small btn-text" onClick={() => close()}>
+            {S.basic.offerLater}
+          </button>
+        </div>
+      }
+    >
+      {S.basic.offer}
+    </Banner>
   );
 }
 
@@ -304,7 +339,7 @@ export function App() {
     document.title = title ? `${title} · ${S.appName}` : S.appName;
   }, [route.view]);
 
-  const firstRun = ['welcome', 'choose', 'confirm', 'name', 'done'].includes(s.phase);
+  const firstRun = ['choose', 'confirm', 'name', 'done'].includes(s.phase);
 
   return (
     // The Mapper needs the width: the sidebar keeps only its icons there.
@@ -339,7 +374,7 @@ export function App() {
         {s.slowRead ? (
           <Banner>{S.errors.slowRead(s.slowRead.split('/').pop() ?? '')}</Banner>
         ) : null}
-        {s.basic ? <Banner tone="warn">{S.basic.notice}</Banner> : null}
+        {s.folderOffer && s.phase === 'basic' ? <FolderOffer /> : null}
         {s.phase === 'reconnect' ? (
           <Banner
             tone="warn"

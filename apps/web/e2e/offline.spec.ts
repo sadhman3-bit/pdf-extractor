@@ -12,7 +12,7 @@ test('the app works offline after the first load', async ({ page, context }) => 
   await context.setOffline(true);
   try {
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Welcome to PDF Extractor' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Drop a PDF here to try it' })).toBeVisible();
 
     // A full run, offline: first run, then process a PDF (pdf.js worker, wasm and fonts all cached).
     const file = 'northline-sep26.pdf';

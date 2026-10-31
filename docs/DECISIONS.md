@@ -206,3 +206,11 @@ The approved redesign plan (six phases) starts by making long, grouped bills suc
 - "One row is" offers three plain choices: a block (heading to total), each item line with its heading, or every line. They are stored as `block.rows` (`total`, `items`, `lines`); old templates without it read as before. Rows chosen from a line on the page still work and show as a custom choice.
 - Each row is boxed on the page from its first line to its last (`span` on each row). Rows with unsure or unread values, or a missing heading value, are marked "check", counted in the rail, and the count jumps to them.
 - The Mapper uses the whole window width; the rail is wider. A field's extra labels sit one per line with the remove button beside them, without a sideways scroll.
+
+## Try first, folder later
+
+- The plan's first run asked for a working folder before anything else. Owners want to see a PDF work before committing to a folder.
+- With no folder chosen, the app now opens straight into browser storage. The Templates page leads with "Drop a PDF here to try it". Reloading keeps the work in place.
+- The yellow basic-mode banner is gone. The sidebar says "Saved in this browser" and has a "Choose a folder" link.
+- After the first download from browser storage, the app offers a folder once. "Not now" is remembered.
+- A folder that was already chosen still reconnects on start, as before.

@@ -1190,6 +1190,18 @@ table.data input {
 .dropzone:hover {
   border-color: var(--accent-border);
 }
+.dropzone:has(.dropzone-title) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  padding: 56px var(--s5);
+}
+.dropzone-title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text);
+}
 .dropzone.over {
   border-color: var(--accent);
   background: var(--accent-tint);

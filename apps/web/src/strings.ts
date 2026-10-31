@@ -66,8 +66,8 @@ export const S = {
   topbar: {
     connected: 'Connected',
     reconnect: 'Reconnect',
-    noFolder: 'No folder chosen',
-    basicMode: 'Basic mode',
+    browser: 'Saved in this browser',
+    chooseFolder: 'Choose a folder',
     settings: 'Settings',
     folderLabel: (name: string) => `Working folder: ${name}`,
     workspace: 'Working folder',
@@ -125,14 +125,6 @@ export const S = {
     skipped: 'Skipped (in use)',
   },
   firstRun: {
-    openPdf: 'Open a PDF',
-    openHint:
-      'Start with a PDF. Layouts stay in this browser; connect a working folder later for batch processing.',
-    welcomeTitle: 'Welcome to PDF Extractor',
-    welcomeBody:
-      'Map each supplier’s PDF layout once by clicking on a sample. From then on every PDF from that supplier is read the same way, checked, and saved as CSV and JSON for Power Automate and Power BI.',
-    privacy: 'Your documents never leave this computer. Everything happens in this browser.',
-    start: 'Set up a folder for repeat work',
     chooseTitle: 'Choose your working folder',
     chooseBody:
       'This folder holds your templates, the inbox, outputs and logs. Pick the SharePoint folder you sync with OneDrive (for example “PDF Extractor”), so Power Automate and your team can see the same files.',
@@ -174,6 +166,7 @@ export const S = {
     tryAgain: 'Try again',
     chooseAnother: 'Choose a different folder',
     keepFolder: (name: string) => `Keep using “${name}”`,
+    notNow: 'Not now',
     loadingWorkspace: 'Opening your workspace…',
     pickerFailed: (why: string) =>
       `That folder couldn’t be opened (${why}). Windows protects some folders, such as Documents or Desktop themselves: choose or create a folder inside them instead.`,
@@ -188,8 +181,9 @@ export const S = {
     button: 'Reconnect to your folder',
   },
   basic: {
-    notice:
-      'Your layouts are saved in this browser. Open PDFs to map or extract, then download your results. Choose a workspace folder in Settings to save results directly into folders.',
+    offer: 'Want results saved to a folder automatically?',
+    offerChoose: 'Choose a folder',
+    offerLater: 'Not now',
     openFiles: 'Open PDF files',
     openFolder: 'Open a folder of PDFs',
     downloadCsv: 'Download CSV',
@@ -226,10 +220,8 @@ export const S = {
     sub: 'One template per supplier document layout.',
     newTemplate: 'New template',
     importJson: 'Import JSON',
-    emptyTitle: 'Map your first supplier',
-    empty:
-      'A template tells the app how to read one supplier’s PDFs. Open a sample PDF and click the values you want; it takes a few minutes.',
-    emptyButton: 'Map a supplier PDF',
+    tryTitle: 'Drop a PDF here to try it',
+    tryBody: 'Nothing to set up. Your files stay on this computer.',
     colName: 'Template',
     colVersion: 'Version',
     colSaved: 'Saved',
